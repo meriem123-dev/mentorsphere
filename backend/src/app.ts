@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-// app
+// app conf
 const app = express();
 
 app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
