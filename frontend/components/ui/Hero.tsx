@@ -73,7 +73,7 @@ export function Hero() {
                   }}
                   className="block"
                 >
-                  De l'idée à la
+                  De l&apos;idée à la
                 </motion.span>
               </span>
               <span className="block overflow-hidden">

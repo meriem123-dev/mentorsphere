@@ -141,7 +141,7 @@ export function Navbar() {
               size="sm"
               className="bg-brand-blue hover:bg-brand-blue/90 text-primary-foreground rounded-full shadow-sm shadow-brand-blue/20 gap-1"
             >
-              S'inscrire
+              S&apos;inscrire
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -253,7 +253,7 @@ export function Navbar() {
                     size="lg"
                     className="w-full bg-brand-blue hover:bg-brand-blue/90 text-primary-foreground rounded-full shadow-md gap-1"
                   >
-                    S'inscrire
+                    S&apos;inscrire
                     <ArrowUpRight className="w-4 h-4" />
                   </Button>
                 </motion.div>

@@ -54,7 +54,7 @@ export function Testimonials() {
             Témoignages
           </motion.p>
           <motion.h2 variants={fadeUp} className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-            Ils l'ont fait.
+            Ils l&apos;ont fait.
           </motion.h2>
         </motion.div>
 

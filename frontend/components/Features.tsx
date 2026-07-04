@@ -108,7 +108,7 @@ export function Features() {
             variants={fadeUp}
             className="text-lg text-muted-foreground max-w-xl mx-auto"
           >
-            Une plateforme pensée pour l'entrepreneur moderne — de l'idée au
+            Une plateforme pensée pour l&apos;entrepreneur moderne — de l&apos;idée au
             financement.
           </motion.p>
         </motion.div>

@@ -18,7 +18,7 @@ export function CTA() {
               Prêt à lancer votre startup ?
             </h2>
             <p className="text-lg text-base max-w-2xl mx-auto">
-              Rejoignez des centaines d'entrepreneurs qui ont transformé leur vision en réalité avec notre plateforme.
+              Rejoignez des centaines d&apos;entrepreneurs qui ont transformé leur vision en réalité avec notre plateforme.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
