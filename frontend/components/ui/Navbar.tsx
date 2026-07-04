@@ -10,14 +10,18 @@ import {
   Home,
   Sparkles,
   Route,
-  Users,
   Quote,
   HelpCircle,
   Rocket,
   ChevronRight,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import dynamic from "next/dynamic";
+
+const ThemeToggle = dynamic(
+  () => import("@/components/ui/ThemeToggle").then((mod) => mod.ThemeToggle),
+  { ssr: false }
+);
 
 interface NavLink {
   label: string;
