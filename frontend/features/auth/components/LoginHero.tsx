@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion,type Variants  } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import Image from "next/image";
 import { Lightbulb, Users2, Handshake, Rocket } from "lucide-react";
 
@@ -23,38 +23,38 @@ export function LoginHero() {
     hidden: {},
     visible: { transition: { staggerChildren: 0.15, delayChildren: 0.2 } },
   };
-  
+
   const ease = [0.22, 1, 0.36, 1] as const;
 
-const fadeUp: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 16,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease,
+  const fadeUp: Variants = {
+    hidden: {
+      opacity: 0,
+      y: 16,
     },
-  },
-};
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease,
+      },
+    },
+  };
 
-const line: Variants = {
-  hidden: {
-    opacity: 0,
-    y: "100%",
-  },
-  visible: {
-    opacity: 1,
-    y: "0%",
-    transition: {
-      duration: 0.7,
-      ease,
+  const line: Variants = {
+    hidden: {
+      opacity: 0,
+      y: "100%",
     },
-  },
-};
+    visible: {
+      opacity: 1,
+      y: "0%",
+      transition: {
+        duration: 0.7,
+        ease,
+      },
+    },
+  };
 
   return (
     <motion.div
@@ -73,8 +73,16 @@ const line: Variants = {
         }}
       />
       {/* Logo */}
-      <motion.div variants={fadeUp} className="relative flex items-center justify-center">
-        <Image src="/icone-logo.svg" alt="MentorSphere" width={300} height={300} />
+      <motion.div
+        variants={fadeUp}
+        className="relative flex items-center justify-center"
+      >
+        <Image
+          src="/icone-logo.svg"
+          alt="MentorSphere"
+          width={300}
+          height={300}
+        />
       </motion.div>
 
       {/* Titre + signature "Startup Journey" */}
@@ -101,41 +109,6 @@ const line: Variants = {
               rejoignez une communauté d&apos;entrepreneurs passionnés.
             </motion.p>
           </div>
-
-          {/* Startup Journey vertical */}
-          <motion.div
-            variants={fadeUp}
-            className="relative hidden xl:flex flex-col items-center"
-          >
-            <svg width="2" height="280" className="absolute left-1/2 top-6 -translate-x-1/2">
-              <motion.line
-                x1="1"
-                y1="0"
-                x2="1"
-                y2="280"
-                stroke="#A31C44"
-                strokeWidth="2"
-                strokeDasharray="280"
-                initial={{ strokeDashoffset: reduceMotion ? 0 : 280 }}
-                animate={{ strokeDashoffset: 0 }}
-                transition={{ duration: 1.4, delay: 0.6, ease: "easeInOut" }}
-              />
-            </svg>
-            <div className="relative flex h-[280px] flex-col justify-between py-6">
-              {journey.map((step) => (
-                <motion.div
-                  key={step.label}
-                  variants={fadeUp}
-                  className="flex items-center gap-3"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20 backdrop-blur-sm">
-                    <step.icon className="h-4 w-4 text-white" strokeWidth={1.75} />
-                  </span>
-                  <span className="text-sm text-white/70">{step.label}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </div>
 
