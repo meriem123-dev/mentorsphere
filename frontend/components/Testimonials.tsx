@@ -8,6 +8,7 @@ interface Testimonial {
   role: string;
 }
 
+//list testimonials
 const testimonials: Testimonial[] = [
   {
     quote:
@@ -29,6 +30,8 @@ const testimonials: Testimonial[] = [
   },
 ];
 
+
+//animations
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
@@ -39,6 +42,8 @@ const containerVariants: Variants = {
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
+
+//mon cmpst
 export function Testimonials() {
   return (
     <section className="relative py-24 px-4 overflow-hidden" id="testimo">

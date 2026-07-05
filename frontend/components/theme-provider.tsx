@@ -3,6 +3,8 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
+
+//gére le thème
 export function ThemeProvider({
   children,
   ...props

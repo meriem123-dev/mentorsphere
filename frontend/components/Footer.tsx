@@ -8,6 +8,8 @@ interface FooterColumn {
   links: { label: string; href: string }[];
 }
 
+
+//list cols
 const columns: FooterColumn[] = [
   {
     title: "Plateforme",
@@ -27,6 +29,8 @@ const columns: FooterColumn[] = [
   },
 ];
 
+
+//animations
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
@@ -37,6 +41,8 @@ const containerVariants: Variants = {
   show: { transition: { staggerChildren: 0.08 } },
 };
 
+
+//mon cmpst
 export function Footer() {
   const year = new Date().getFullYear();
 
@@ -50,7 +56,7 @@ export function Footer() {
     >
       <div className="max-w-6xl mx-auto py-16">
         <div className="flex flex-col md:flex-row md:justify-between gap-12">
-          {/* Logo + tagline */}
+          {/* Logo + contact */}
           <motion.div variants={fadeUp} className="max-w-xs">
             <Logo />
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed mb-5">

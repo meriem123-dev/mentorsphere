@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import {Check,LucideIcon} from 'lucide-react'
 
 interface RoleCardProps {
@@ -11,6 +10,8 @@ interface RoleCardProps {
   onChange: (role: 'entrepreneur' | 'mentor') => void;
 }
 
+
+//mon cmpst
 export function RoleCard({
   role,
   title,
@@ -35,20 +36,12 @@ export function RoleCard({
     >
       {/* Icône */}
       <div
-        className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-all ${
+        className={`w-8 h-8 rounded-full flex items-center justify-center mb-4 transition-all ${
           isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
         }`}
       >
-         <Icon size={28} strokeWidth={2} />
+         <Icon size={16} strokeWidth={2} />
       </div>
-
-      {/* Badge */}
-      <Badge
-        variant={isSelected ? 'default' : 'secondary'}
-        className="mb-3 uppercase text-xs font-semibold"
-      >
-        {role === 'entrepreneur' ? 'EK' : 'SC'}
-      </Badge>
 
       {/* Titre */}
       <h3 className="font-semibold text-foreground mb-1">{title}</h3>

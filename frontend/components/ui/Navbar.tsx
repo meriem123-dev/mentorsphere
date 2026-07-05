@@ -18,11 +18,11 @@ import {
 import { Logo } from "@/components/ui/Logo";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-
+import NextLink from "next/link";
 
 const ThemeToggle = dynamic(
   () => import("@/components/ui/ThemeToggle").then((mod) => mod.ThemeToggle),
-  { ssr: false }
+  { ssr: false },
 );
 
 interface NavLink {
@@ -83,6 +83,7 @@ const scrollToSection = (id: string) => {
   }
 };
 
+//le composant
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -141,12 +142,28 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
             <div className="w-px h-5 bg-border mx-1" />
-            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => router.push("/auth")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+              nativeButton={false}
+              render={(props) => (
+                <NextLink href="/auth/login" {...props}>
+                  {props.children}
+                </NextLink>
+              )}
+            >
               Connexion
             </Button>
             <Button
               size="sm"
               className="bg-brand-blue hover:bg-brand-blue/90 text-primary-foreground rounded-full shadow-sm shadow-brand-blue/20 gap-1"
+              nativeButton={false}
+              render={(props) => (
+                <NextLink href="/auth/Registration" {...props}>
+                  {props.children}
+                </NextLink>
+              )}
             >
               S&apos;inscrire
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -253,12 +270,16 @@ export function Navbar() {
                     variant="outline"
                     size="lg"
                     className="w-full rounded-full"
+                    nativeButton={false}
+                    render={<NextLink href="/auth/login" />}
                   >
                     Connexion
                   </Button>
                   <Button
                     size="lg"
                     className="w-full bg-brand-blue hover:bg-brand-blue/90 text-primary-foreground rounded-full shadow-md gap-1"
+                    nativeButton={false}
+                    render={<NextLink href="/auth/Registration" />}
                   >
                     S&apos;inscrire
                     <ArrowUpRight className="w-4 h-4" />

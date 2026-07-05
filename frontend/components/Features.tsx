@@ -65,7 +65,7 @@ const fadeUp: Variants = {
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 2, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }, // 2s était trop lent, corrigé à 0.6
   },
 };
 
@@ -74,9 +74,18 @@ const containerVariants: Variants = {
   show: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 };
 
+// mapping area -> classe Tailwind arbitraire, appliquée uniquement à partir de lg
+const areaClass: Record<Feature["area"], string> = {
+  big: "lg:[grid-area:big]",
+  ai: "lg:[grid-area:ai]",
+  journey: "lg:[grid-area:journey]",
+  explore: "lg:[grid-area:explore]",
+  community: "lg:[grid-area:community]",
+};
+
 export function Features() {
   return (
-    <section className="py-24 px-4 bg-background" id="features">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-background" id="features">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -84,7 +93,7 @@ export function Features() {
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
           variants={containerVariants}
-          className="text-center mb-16 space-y-4"
+          className="text-center mb-12 sm:mb-16 space-y-3 sm:space-y-4"
         >
           <motion.div
             variants={fadeUp}
@@ -98,7 +107,7 @@ export function Features() {
           </motion.p>
           <motion.h2
             variants={fadeUp}
-            className="text-4xl lg:text-5xl font-bold text-foreground leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight px-2"
           >
             Tout pour construire
             <br />
@@ -106,7 +115,7 @@ export function Features() {
           </motion.h2>
           <motion.p
             variants={fadeUp}
-            className="text-lg text-muted-foreground max-w-xl mx-auto"
+            className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto px-2"
           >
             Une plateforme pensée pour l&apos;entrepreneur moderne — de l&apos;idée au
             financement.
@@ -132,18 +141,18 @@ export function Features() {
               <motion.div
                 key={feature.title}
                 variants={fadeUp}
-                style={{ gridArea: feature.area }}
                 className={cn(
-                  "group rounded-2xl border border-border p-6 transition-colors",
+                  "group rounded-2xl border border-border p-5 sm:p-6 transition-colors",
+                  areaClass[feature.area],
                   isBig
-                    ? "bg-brand-rose-light/10 flex flex-col justify-between"
+                    ? "bg-brand-rose-light/10 flex flex-col justify-between gap-6 lg:gap-0"
                     : "bg-brand-blue-light/10",
                 )}
               >
                 <div>
                   <div
                     className={cn(
-                      "w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-white",
+                      "w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center mb-3 sm:mb-4 text-white",
                       feature.accent === "rose"
                         ? "bg-brand-rose"
                         : "bg-brand-navy",
@@ -154,7 +163,7 @@ export function Features() {
                   <h3
                     className={cn(
                       "font-bold text-foreground mb-2",
-                      isBig ? "text-2xl" : "text-lg",
+                      isBig ? "text-xl sm:text-2xl" : "text-base sm:text-lg",
                     )}
                   >
                     {feature.title}
@@ -162,7 +171,7 @@ export function Features() {
                   <p
                     className={cn(
                       "text-muted-foreground",
-                      isBig ? "text-base max-w-md" : "text-sm",
+                      isBig ? "text-sm sm:text-base max-w-md" : "text-sm",
                     )}
                   >
                     {feature.description}
@@ -170,7 +179,7 @@ export function Features() {
                 </div>
 
                 {feature.tags && (
-                  <div className="flex flex-wrap gap-2 mt-6">
+                  <div className="flex flex-wrap gap-2 mt-2 lg:mt-6">
                     {feature.tags.map((tag) => (
                       <span
                         key={tag}
@@ -186,7 +195,7 @@ export function Features() {
           })}
         </motion.div>
 
-        <div className="mx-auto w-8 h-[2px] rounded-full bg-brand-blue mt-16" />
+        <div className="mx-auto w-8 h-[2px] rounded-full bg-brand-blue mt-12 sm:mt-16" />
       </div>
     </section>
   );

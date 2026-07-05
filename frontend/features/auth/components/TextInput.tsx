@@ -8,6 +8,7 @@ interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   variant?: 'default' | 'password';
 }
 
+//mon cmpst
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   ({ label, error, icon, variant = 'default', className, ...props }, ref) => {
     return (

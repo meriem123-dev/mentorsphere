@@ -1,24 +1,21 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
-import { Lightbulb, Users2, Handshake, Rocket } from "lucide-react";
 
-const journey = [
-  { icon: Lightbulb, label: "Idée" },
-  { icon: Users2, label: "Mentorat" },
-  { icon: Handshake, label: "Collaboration" },
-  { icon: Rocket, label: "Startup" },
-];
 
+
+//list stats
 const stats = [
   { value: "500+", label: "mentors experts" },
   { value: "1 200+", label: "entrepreneurs actifs" },
 ];
 
+//mon cmpst
 export function LoginHero() {
-  const reduceMotion = useReducedMotion();
+  
 
+  //animations
   const container = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.15, delayChildren: 0.2 } },
@@ -56,6 +53,7 @@ export function LoginHero() {
     },
   };
 
+  //rendu
   return (
     <motion.div
       className="relative hidden lg:flex w-1/2 flex-col  overflow-hidden px-14 py-16 bg-gradient-brand"
@@ -85,7 +83,7 @@ export function LoginHero() {
         />
       </motion.div>
 
-      {/* Titre + signature "Startup Journey" */}
+      {/* Titre + signature */}
       <div className="relative flex py-18 items-center">
         <div className="grid w-full grid-cols-[1fr_auto] items-center gap-10">
           <div>

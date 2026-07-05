@@ -10,6 +10,8 @@ interface FAQItem {
   answer: string;
 }
 
+
+//qst/rep
 const faqItems: FAQItem[] = [
   {
     question: "Comment fonctionne le matching avec un mentor ?",
@@ -38,6 +40,8 @@ const faqItems: FAQItem[] = [
   },
 ];
 
+
+//animations
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
@@ -48,6 +52,8 @@ const containerVariants: Variants = {
   show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 };
 
+
+//mon cpst
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
