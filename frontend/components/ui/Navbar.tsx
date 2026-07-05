@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+
 
 const ThemeToggle = dynamic(
   () => import("@/components/ui/ThemeToggle").then((mod) => mod.ThemeToggle),
@@ -83,6 +85,7 @@ const scrollToSection = (id: string) => {
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -138,7 +141,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
             <div className="w-px h-5 bg-border mx-1" />
-            <Button variant="ghost" size="sm" className="rounded-full">
+            <Button variant="ghost" size="sm" className="rounded-full" onClick={() => router.push("/auth")}>
               Connexion
             </Button>
             <Button
