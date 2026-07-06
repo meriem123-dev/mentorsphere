@@ -1,7 +1,7 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"];
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || "7d") as Exclude<SignOptions["expiresIn"], undefined>;
 
 export interface JwtPayload {
   userId: string;
