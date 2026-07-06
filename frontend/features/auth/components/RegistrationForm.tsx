@@ -11,9 +11,18 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import NextLink from "next/link";
 
+import { authApi } from "@/features/auth/api/authAPI";
+import { AxiosError } from "axios";
+import { ApiErrorResponse } from "@/types/authTypes";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 type Role = "entrepreneur" | "mentor";
 
-const roleConfig: Record<Role, { title: string; icon: typeof BriefcaseBusiness }> = {
+const roleConfig: Record<
+  Role,
+  { title: string; icon: typeof BriefcaseBusiness }
+> = {
   entrepreneur: { title: "Entrepreneur", icon: BriefcaseBusiness },
   mentor: { title: "Mentor Expert", icon: Users },
 };
@@ -35,7 +44,9 @@ export function RegistrationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const roleSectionRef = useRef<HTMLDivElement>(null);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [globalError, setGlobalError] = useState("");
+  const router = useRouter();
 
   //gérer changement input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,8 +93,36 @@ export function RegistrationForm() {
     if (!validateForm()) return;
     if (!acceptedTerms || !acceptedPrivacy) return;
 
-    console.log("Inscription:", { role, ...formData });
-    // Appel API
+    setIsSubmitting(true);
+
+    try {
+      const response = await authApi.register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role,
+      });
+
+      toast.success("Compte créé avec succès", {
+        description: `Bienvenue sur MentorSphere, ${response.data.user.firstName} !`,
+      });
+
+      router.push("/dashboard");
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+
+      if (axiosError.response?.data?.errors) {
+        setErrors(axiosError.response.data.errors);
+      } else {
+        toast.error("Inscription impossible", {
+          description:
+            axiosError.response?.data?.message || "Une erreur est survenue",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const canSubmit = acceptedTerms && acceptedPrivacy;
@@ -292,7 +331,10 @@ export function RegistrationForm() {
             </span>
             <span className="text-sm text-foreground">
               J&apos;accepte les{" "}
-              <NextLink href="/legal/terms" className="text-brand-blue hover:underline font-medium">
+              <NextLink
+                href="/legal/terms"
+                className="text-brand-blue hover:underline font-medium"
+              >
                 Conditions d&apos;utilisation
               </NextLink>
             </span>
@@ -312,7 +354,10 @@ export function RegistrationForm() {
             </span>
             <span className="text-sm text-foreground">
               J&apos;accepte la{" "}
-              <NextLink href="/legal/privacy" className="text-brand-blue hover:underline font-medium">
+              <NextLink
+                href="/legal/privacy"
+                className="text-brand-blue hover:underline font-medium"
+              >
                 Politique de confidentialité
               </NextLink>
             </span>
@@ -337,12 +382,19 @@ export function RegistrationForm() {
           variants={itemVariants}
         >
           Déjà un compte ?{" "}
-          <button
+          <Button
             type="button"
+            variant={"link"}
             className="text-primary hover:underline font-semibold"
+            nativeButton={false}
+            render={(props) => (
+              <NextLink href="/auth/login" {...props}>
+                {props.children}
+              </NextLink>
+            )}
           >
             Se connecter
-          </button>
+          </Button>
         </motion.p>
       </motion.form>
     </motion.div>

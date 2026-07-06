@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Exo_2 } from "next/font/google";
+import { Toaster } from "sonner";
 
 const exo2 = Exo_2({
   variable: "--font-exo2",
@@ -28,6 +29,16 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              classNames: {
+                success: "!bg-brand-blue !text-white",
+                error: "!bg-brand-rose !text-white",
+                description:"!text-white",
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

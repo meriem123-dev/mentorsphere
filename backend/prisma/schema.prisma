@@ -7,18 +7,161 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ENTREPRENEUR
+
+//Enums pour User
+enum UserRole {
   MENTOR
-  ADMIN
+  ENTREPRENEUR
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  role         Role
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum SocialPlatform {
+  LINKEDIN
+  GITHUB
+  X
+  FACEBOOK
+  INSTAGRAM
+  YOUTUBE
+  WEBSITE
 }
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+
+//************** Modèle User************
+model User {
+  id                String   @id @default(cuid())
+
+  firstName         String
+  lastName          String
+
+  email             String   @unique
+  password          String
+
+  role              UserRole
+
+  profilePicture    String?
+  coverPicture      String?
+
+  bio               String?  @db.Text
+
+  birthDate         DateTime?
+
+  country           String?
+  city              String?
+
+  isEmailVerified   Boolean  @default(false)
+  isActive          Boolean  @default(true)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+
+  //****************** Relations pour User*************
+  languages         UserLanguage[]
+  skills            UserSkill[]
+  availabilities    Availability[]
+  socialLinks       SocialLink[]
+  documents         Document[]
+  cv                CV?
+}
+
+//************Tables pour User *********
+//langues
+model Language {
+  id      String @id @default(cuid())
+  name    String @unique
+
+  users   UserLanguage[]
+}
+
+model UserLanguage {
+  userId      String
+  languageId  String
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language     Language  @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([userId, languageId])
+}
+
+//compétences
+model Skill {
+  id      String @id @default(cuid())
+  name    String @unique
+
+  users   UserSkill[]
+}
+
+
+model UserSkill {
+  userId   String
+  skillId  String
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill    Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+//disponibilités
+model Availability {
+  id         String    @id @default(cuid())
+
+  dayOfWeek  DayOfWeek
+  startTime  String
+  endTime    String
+
+  userId     String
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+//rx sociaux
+model SocialLink {
+  id         String @id @default(cuid())
+
+  platform   SocialPlatform
+  url        String
+
+  userId     String
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//CV
+model CV {
+  id          String   @id @default(cuid())
+
+  fileName    String
+  fileUrl     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String   @unique
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//document
+model Document {
+  id          String   @id @default(cuid())
+
+  title       String
+  type        String
+  fileName    String
+  fileUrl     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

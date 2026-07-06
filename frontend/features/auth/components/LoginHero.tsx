@@ -78,13 +78,13 @@ export function LoginHero() {
         <Image
           src="/icone-logo.svg"
           alt="MentorSphere"
-          width={300}
-          height={300}
+          width={200}
+          height={200}
         />
       </motion.div>
 
       {/* Titre + signature */}
-      <div className="relative flex py-18 items-center">
+      <div className="relative flex py-4 items-center">
         <div className="grid w-full grid-cols-[1fr_auto] items-center gap-10">
           <div>
             <h1 className="text-[2.75rem] font-bold leading-[1.1] text-white">
