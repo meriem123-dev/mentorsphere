@@ -76,7 +76,7 @@ export function LoginForm() {
         description: `Content de te revoir, ${response.data.user.firstName} !`,
       });
 
-      router.push("/dashboard");
+      router.push("/auth/ProfileCompletion/Step1");
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       toast.error("Connexion impossible", {
