@@ -38,3 +38,33 @@ export interface ApiErrorResponse {
   message: string;
   errors?: Record<string, string>;
 }
+
+export interface ProfileFormData {
+  // À propos
+  bio: string;
+  birthDate: string;
+  country: string;
+  city: string;
+  languages: string[];
+
+  // Parcours entrepreneurial
+  profession: string;
+  level: string;
+  domains: string[];
+  skills: string[];
+
+  // Photo
+  photo: string | null;
+
+  // Recherche & Disponibilités
+  lookingFor: string[];
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  website: string;
+  availability: string[];
+  cv: File | null;
+  documents: File[];
+}
+
+export type SetProfileFormData = (data: ProfileFormData) => void;

@@ -1,15 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import SectionCard from "@/components/ui/SectionCard";
 import { ChoicePills } from "@/components/ui/ChoicePills";
 import { RadioChoices } from "@/components/ui/RadioChoices";
 import { SkillsInput } from "./SkillsInput";
-import {BriefcaseBusiness} from 'lucide-react'
+import {BriefcaseBusiness, BriefcaseBusinessIcon,UsersRound,PenLine,PencilSparkles} from 'lucide-react'
 import StepShell from "./StepShell";
+import { Button } from "@/components/ui/button";
+import { ProfileFormData } from "@/types/authTypes";
+import { SetProfileFormData } from "@/types/authTypes";
+
+
 
 interface EntrepreneurialJourneyStepProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: ProfileFormData;
+  setFormData: SetProfileFormData;
   onNext: () => void;
   onPrevious: () => void;
 }
@@ -46,16 +51,19 @@ export function EntrepreneurialJourneyStep({
       icon={BriefcaseBusiness}
     >
 
+      {/*profession */}
       <div className="space-y-4">
-        <SectionCard title="Profession actuelle">
+        <SectionCard title="Profession actuelle" icon={<BriefcaseBusinessIcon/>}>
           <ChoicePills
             options={PROFESSIONS}
             value={formData.profession}
-            onChange={(value) => setFormData({ ...formData, profession: value })}
+            
+            onChange={(value) => setFormData({ ...formData, profession: value as string })}
           />
         </SectionCard>
 
-        <SectionCard title="Niveau entrepreneurial">
+        {/*nv entrepreneurial */}
+        <SectionCard title="Niveau entrepreneurial" icon={<UsersRound />}>
           <RadioChoices
             options={LEVELS}
             value={formData.level}
@@ -63,17 +71,19 @@ export function EntrepreneurialJourneyStep({
           />
         </SectionCard>
 
-        <SectionCard title="Domaines d'intérêt">
+        {/*domaines d'interet */}
+        <SectionCard title="Domaines d'intérêt" icon={<PenLine />}>
           <ChoicePills
             options={DOMAINS}
             value={formData.domains}
-            onChange={(value) => setFormData({ ...formData, domains: value })}
+            onChange={(value) => setFormData({ ...formData, domains: value as string[] })}
             multiple
             showCheck
           />
         </SectionCard>
 
-        <SectionCard title="Compétences">
+        {/*skills */}
+        <SectionCard title="Compétences" icon={<PencilSparkles />}>
           <SkillsInput
             value={formData.skills}
             onChange={(value) => setFormData({ ...formData, skills: value })}
@@ -81,38 +91,25 @@ export function EntrepreneurialJourneyStep({
         </SectionCard>
       </div>
 
+      {/*bouttons */}
       <div className="flex gap-3 mt-8">
-        <button
+        <Button
           type="button"
           onClick={onPrevious}
-          className="flex-1 px-6 py-3 rounded-full border border-border text-foreground font-semibold hover:bg-muted transition-colors"
+          variant={"ghost"}
+          className={"w-1/2"}
         >
-           Précédent
-        </button>
-        <button
+           Précédent 
+        </Button>
+        <Button
           type="button"
           onClick={onNext}
-          className="flex-1 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+          variant={"default"}
+          className={"w-1/2"}
         >
           Continuer 
-        </button>
+        </Button>
       </div>
     </StepShell>
-  );
-}
-
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="rounded-2xl border border-border bg-card p-5"
-    >
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      {children}
-    </motion.div>
   );
 }

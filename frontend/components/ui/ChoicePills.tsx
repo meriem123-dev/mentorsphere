@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 interface ChoicePillsProps {
   options: string[];
   value: string | string[];
-  onChange: (value: any) => void;
+  onChange: (value: string | string[]) => void;
   multiple?: boolean;
   showCheck?: boolean;
   columns?: "auto" | "wrap";

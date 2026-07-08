@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { ProfileFormData } from "@/types/authTypes";
+import { SetProfileFormData } from "@/types/authTypes";
 
 
 //bg colors photo
@@ -15,8 +17,8 @@ const AVATAR_COLORS = [
 ];
 
 interface ProfilePhotoSectionProps {
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: ProfileFormData;
+  setFormData: SetProfileFormData;
 }
 
 
@@ -30,16 +32,17 @@ export default function ProfilePhotoSection({
 
   //gérer upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-        setFormData({ ...formData, photo: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setUploadedImage(result);
+      setFormData({ ...formData, photo: result }); // string | null
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
 
   //mon rendu
