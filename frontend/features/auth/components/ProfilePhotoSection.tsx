@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ProfileFormData } from "@/types/authTypes";
-import { SetProfileFormData } from "@/types/authTypes";
+import { BaseProfileFormData } from "@/types/authTypes";
+
 
 
 //bg colors photo
@@ -16,17 +16,15 @@ const AVATAR_COLORS = [
   "bg-gradient-rose-fade",
 ];
 
-interface ProfilePhotoSectionProps {
-  formData: ProfileFormData;
-  setFormData: SetProfileFormData;
+interface ProfilePhotoSectionProps<T extends BaseProfileFormData> {
+  formData: T;
+  setFormData: React.Dispatch<React.SetStateAction<T>>;
 }
 
-
-//mon cmpst
-export default function ProfilePhotoSection({
+export default function ProfilePhotoSection<T extends BaseProfileFormData>({
   formData,
   setFormData,
-}: ProfilePhotoSectionProps) {
+}: ProfilePhotoSectionProps<T>) {
   const [selectedColor, setSelectedColor] = useState("bg-brand-blue");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 

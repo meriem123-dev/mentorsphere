@@ -1,9 +1,9 @@
 "use client";
 
-import { ProfileCompletionWizard } from "./ProfileCompletionWizard";
+import { MentorCompletionWizard } from "./MentorCompletionWizard";
 import { Logo } from "@/components/ui/Logo";
 
-export function ProfileCompletionStep1() {
+export function ProfileCompletionMentor() {
   return (
     <div className="w-full min-h-screen bg-background">
       <div className="flex items-center gap-4 py-4 px-4">
@@ -14,7 +14,7 @@ export function ProfileCompletionStep1() {
           <Logo />
         </div>
       </div>
-      <ProfileCompletionWizard />
+      <MentorCompletionWizard />
     </div>
   );
 }

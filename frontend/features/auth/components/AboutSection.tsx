@@ -5,13 +5,12 @@ import { Globe2, MapPin, Calendar, Languages as LanguagesIcon } from "lucide-rea
 import { TextInput } from "./TextInput";
 import { ComboBox } from "@/components/ui/ComboBox";
 import SectionCard from "@/components/ui/SectionCard";
-import { ProfileFormData } from "@/types/authTypes";
-import { SetProfileFormData } from "@/types/authTypes";
+import { BaseProfileFormData } from "@/types/authTypes";
 
 
-interface AboutSectionProps {
-  formData: ProfileFormData;
-  setFormData: SetProfileFormData;
+interface AboutSectionProps <T extends BaseProfileFormData> {
+  formData: T;
+  setFormData: React.Dispatch<React.SetStateAction<T>>;
 }
 
 
@@ -49,7 +48,10 @@ const COUNTRIES = [
 
 
 //mon cmpst
-export default function AboutSection({ formData, setFormData }: AboutSectionProps) {
+export default function AboutSection<T extends BaseProfileFormData>({
+  formData,
+  setFormData,
+}: AboutSectionProps<T>) {
   const toggleLanguage = (language: string) => {
     const updated = formData.languages.includes(language)
       ? formData.languages.filter((l: string) => l !== language)

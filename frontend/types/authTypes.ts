@@ -38,23 +38,22 @@ export interface ApiErrorResponse {
   message: string;
   errors?: Record<string, string>;
 }
-
-export interface ProfileFormData {
-  // À propos
+//base user puis héritage
+export interface BaseProfileFormData {
   bio: string;
   birthDate: string;
   country: string;
   city: string;
   languages: string[];
+  photo: File | null;
+}
 
-  // Parcours entrepreneurial
+//type entrepreneur
+export interface ProfileFormData extends BaseProfileFormData {
   profession: string;
   level: string;
   domains: string[];
   skills: string[];
-
-  // Photo
-  photo: string | null;
 
   // Recherche & Disponibilités
   lookingFor: string[];
@@ -67,4 +66,22 @@ export interface ProfileFormData {
   documents: File[];
 }
 
+
 export type SetProfileFormData = (data: ProfileFormData) => void;
+
+//type Mentor
+export interface MentorProfileFormData extends BaseProfileFormData {
+
+  // étape 2
+  profession: string;
+  yearsOfExperience: string;
+  domains: string[];
+  skills: string[];
+  // étape 3
+  availability: string[];
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  website: string;
+  cv: File | null;
+}
