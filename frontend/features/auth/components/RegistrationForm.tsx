@@ -108,7 +108,11 @@ export function RegistrationForm() {
         description: `Bienvenue sur MentorSphere, ${response.data.user.firstName} !`,
       });
 
-      router.push("/dashboard");
+      router.push(
+        role === "mentor"
+          ? "/auth/ProfileCompletion/Mentor"
+          : "/auth/ProfileCompletion/Entrepreneur",
+      );
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
 

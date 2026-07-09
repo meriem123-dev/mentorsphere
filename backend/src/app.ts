@@ -1,7 +1,10 @@
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import authRoutes from "./routes/authRoutes";
+import profileRoutes from "./routes/profileRoutes";
 import cookieParser from "cookie-parser";
+
 
 // app conf
 const app = express();
@@ -19,7 +22,10 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use(morgan("dev"));
+
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 
 

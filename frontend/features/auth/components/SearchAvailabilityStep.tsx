@@ -15,6 +15,7 @@ interface SearchAvailabilityStepProps {
   setFormData: SetProfileFormData;
   onPrevious: () => void;
   onSubmit: () => void;
+  isSubmitting: boolean;
 }
 
 const LOOKING_FOR_OPTIONS = [
@@ -42,6 +43,7 @@ export function SearchAvailabilityStep({
   setFormData,
   onPrevious,
   onSubmit,
+  isSubmitting,
 }: SearchAvailabilityStepProps) {
   return (
     <StepShell currentStep={3} totalSteps={3} title="Recherche & Disponibilités" emoji="🤝">
@@ -60,27 +62,21 @@ export function SearchAvailabilityStep({
           <div className="space-y-3">
             <TextInput
               label="LinkedIn"
-              placeholder="linkedin.com/in/yourname"
+              placeholder="linkedin URL"
               value={formData.linkedin}
               onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
             />
             <TextInput
               label="GitHub"
-              placeholder="github.com/yourname"
+              placeholder="github URL"
               value={formData.github}
               onChange={(e) => setFormData({ ...formData, github: e.target.value })}
             />
             <TextInput
               label="Portfolio"
-              placeholder="portfolio.yourname.com"
+              placeholder="portfolio URL"
               value={formData.portfolio}
               onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
-            />
-            <TextInput
-              label="Site Web"
-              placeholder="www.yoursite.com"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
             />
           </div>
         </SectionCard>
@@ -120,7 +116,7 @@ export function SearchAvailabilityStep({
         </Button>
         <Button type="button" onClick={onSubmit} variant="default" className="w-1/2 bg-gradient-brand">
           <CheckCircle2 size={16} className="mr-1" />
-          Finaliser mon profil
+          {isSubmitting ? "Envoi en cours..." : "Finaliser mon profil"}
         </Button>
       </div>
     </StepShell>

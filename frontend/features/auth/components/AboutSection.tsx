@@ -93,7 +93,7 @@ export default function AboutSection<T extends BaseProfileFormData>({
           />
           <TextInput
             label="Ville"
-            placeholder="Ex. Béjaïa, Paris, Montréal..."
+            placeholder="Ex. Béjaïa"
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
           />

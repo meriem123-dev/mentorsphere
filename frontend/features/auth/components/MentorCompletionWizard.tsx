@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MentorProfileFormData } from "@/types/authTypes";
+import { ApiErrorResponse, MentorProfileFormData } from "@/types/authTypes";
 import ProfilePhotoSection from "./ProfilePhotoSection";
 import AboutSection from "./AboutSection";
 import { ExpertiseStep } from "./ExpertiseStep";
@@ -10,6 +10,9 @@ import { AvailabilityLinksStep } from "./AvailabilityLinksStep";
 import StepShell from "./StepShell";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { authApi } from "../api/authAPI";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const INITIAL_FORM_DATA: MentorProfileFormData = {
   bio: "",
@@ -28,20 +31,83 @@ const INITIAL_FORM_DATA: MentorProfileFormData = {
   portfolio: "",
   website: "",
   cv: null,
+  documents: [],
 };
 
 //intégrer les étapes
 export function MentorCompletionWizard() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<MentorProfileFormData>(INITIAL_FORM_DATA);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const goNext = () => setStep((s) => s + 1);
+  //valide les champs de l'étape 1 avant de continuer
+  const validateStep1 = () => {
+    if (!formData.bio || formData.bio.trim().length < 10) {
+      toast.error("Merci de renseigner une biographie (min 10 caractères)");
+      return false;
+    }
+    if (!formData.country) {
+      toast.error("Merci de sélectionner un pays");
+      return false;
+    }
+    if (!formData.city || formData.city.trim().length === 0) {
+      toast.error("Merci de renseigner votre ville");
+      return false;
+    }
+    if (formData.languages.length === 0) {
+      toast.error("Merci de sélectionner au moins une langue");
+      return false;
+    }
+    return true;
+  };
+
+  //valide les champs de l'étape 2 avant de continuer
+  const validateStep2 = () => {
+    if (!formData.profession || formData.profession.trim().length < 2) {
+      toast.error("Merci de renseigner votre profession");
+      return false;
+    }
+    if (!formData.yearsOfExperience) {
+      toast.error("Merci de sélectionner vos années d'expérience");
+      return false;
+    }
+    if (formData.domains.length === 0) {
+      toast.error("Merci de sélectionner au moins un domaine d'expertise");
+      return false;
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (step === 1 && !validateStep1()) return;
+    if (step === 2 && !validateStep2()) return;
+    setStep((s) => s + 1);
+  };
+
   const goPrevious = () => setStep((s) => Math.max(1, s - 1));
 
-  const handleSubmit = () => {
-    console.log("Form Data mentor finale:", formData);
-    router.push("/dashboard");
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await authApi.completeMentorProfile(formData);
+      toast.success("Profil complété avec succès");
+      router.push("/dashboard");
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      const firstError = axiosError.response?.data?.errors
+        ? Object.values(axiosError.response.data.errors)[0]
+        : undefined;
+
+      toast.error("Erreur lors de la complétion du profil", {
+        description:
+          firstError ||
+          axiosError.response?.data?.message ||
+          "Une erreur est survenue",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (step === 1) {
@@ -76,6 +142,7 @@ export function MentorCompletionWizard() {
         setFormData={setFormData}
         onPrevious={goPrevious}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     );
   }

@@ -34,11 +34,10 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
   if (file) {
     const reader = new FileReader();
     reader.onloadend = () => {
-      const result = reader.result as string;
-      setUploadedImage(result);
-      setFormData({ ...formData, photo: result }); // string | null
+      setUploadedImage(reader.result as string); // aperçu local uniquement
     };
     reader.readAsDataURL(file);
+    setFormData({ ...formData, photo: file }); // File réel envoyé au backend
   }
 };
 

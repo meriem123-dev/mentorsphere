@@ -7,6 +7,8 @@ import { RadioChoices } from "@/components/ui/RadioChoices";
 import { SkillsInput } from "./SkillsInput";
 import { Button } from "@/components/ui/button";
 import { Briefcase } from "lucide-react";
+import SectionCard from "@/components/ui/SectionCard";
+import{BriefcaseBusiness} from "lucide-react"
 
 const EXPERTISE_DOMAINS = [
   "Développement produit",
@@ -41,6 +43,7 @@ export function ExpertiseStep({
 }: ExpertiseStepProps) {
   return (
     <StepShell currentStep={2} totalSteps={3} title="Expérience & Expertise" icon={Briefcase}>
+       <SectionCard icon={<BriefcaseBusiness size={16} />} title="Expérience">
       <div className="space-y-8">
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
@@ -107,6 +110,7 @@ export function ExpertiseStep({
           Continuer
         </Button>
       </div>
+       </SectionCard>
     </StepShell>
   );
 }

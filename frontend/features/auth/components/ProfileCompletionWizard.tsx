@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ProfileFormData } from "@/types/authTypes";
+import { ApiErrorResponse, ProfileFormData } from "@/types/authTypes";
 import ProfilePhotoSection from "./ProfilePhotoSection";
 import AboutSection from "./AboutSection";
 import { EntrepreneurialJourneyStep } from "./EntrepreneurialJourney";
-import{SearchAvailabilityStep} from "./SearchAvailabilityStep"
+import { SearchAvailabilityStep } from "./SearchAvailabilityStep";
 import StepShell from "./StepShell";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { authApi } from "../api/authAPI";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const INITIAL_FORM_DATA: ProfileFormData = {
   bio: "",
@@ -32,19 +35,76 @@ const INITIAL_FORM_DATA: ProfileFormData = {
   documents: [],
 };
 
-
 //composant qui enveloppe toutes les étapes
 export function ProfileCompletionWizard() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const goNext = () => setStep((s) => s + 1);
+  //valide les champs de l'étape 1 avant de continuer
+  const validateStep1 = () => {
+    if (!formData.bio || formData.bio.trim().length < 10) {
+      toast.error("Merci de renseigner une biographie (min 10 caractères)");
+      return false;
+    }
+    if (!formData.country) {
+      toast.error("Merci de sélectionner un pays");
+      return false;
+    }
+    if (!formData.city || formData.city.trim().length === 0) {
+      toast.error("Merci de renseigner votre ville");
+      return false;
+    }
+    if (formData.languages.length === 0) {
+      toast.error("Merci de sélectionner au moins une langue");
+      return false;
+    }
+    return true;
+  };
+
+  //valide les champs de l'étape 2 avant de continuer
+  const validateStep2 = () => {
+    if (!formData.level) {
+      toast.error("Merci de sélectionner votre niveau entrepreneurial");
+      return false;
+    }
+    if (formData.domains.length === 0) {
+      toast.error("Merci de sélectionner au moins un domaine");
+      return false;
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (step === 1 && !validateStep1()) return;
+    if (step === 2 && !validateStep2()) return;
+    setStep((s) => s + 1);
+  };
+
   const goPrevious = () => setStep((s) => Math.max(1, s - 1));
 
-  const handleSubmit = () => {
-    console.log("Form Data finale:", formData);
-    router.push("/dashboard");
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await authApi.completeEntrepreneurProfile(formData);
+      toast.success("Profil complété avec succès");
+      router.push("/dashboard");
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      const firstError = axiosError.response?.data?.errors
+        ? Object.values(axiosError.response.data.errors)[0]
+        : undefined;
+
+      toast.error("Erreur lors de la complétion du profil", {
+        description:
+          firstError ||
+          axiosError.response?.data?.message ||
+          "Une erreur est survenue",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (step === 1) {
@@ -72,16 +132,17 @@ export function ProfileCompletionWizard() {
     );
   }
 
-  
   if (step === 3) {
-  return (
-    <SearchAvailabilityStep
-      formData={formData}
-      setFormData={setFormData}
-      onPrevious={goPrevious}
-      onSubmit={handleSubmit}
-    />
-  );}
+    return (
+      <SearchAvailabilityStep
+        formData={formData}
+        setFormData={setFormData}
+        onPrevious={goPrevious}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+      />
+    );
+  }
 
-  return null; // step 3 
+  return null;
 }

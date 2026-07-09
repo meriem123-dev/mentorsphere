@@ -13,6 +13,12 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ProfileCompletionResponse {
+  success: boolean;
+  message: string;
+  data: { user: User }; 
+}
+
 export interface User {
   id: string;
   firstName: string;
@@ -84,4 +90,6 @@ export interface MentorProfileFormData extends BaseProfileFormData {
   portfolio: string;
   website: string;
   cv: File | null;
+
+  documents: File[];
 }
