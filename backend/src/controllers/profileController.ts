@@ -10,6 +10,13 @@ export class ProfileController {
   ) {
     try {
       const userId = req.user!.userId;
+      const existingUser = await ProfileService.getUserById(userId);
+      if (existingUser?.profileCompleted) {
+        return res.status(409).json({
+          success: false,
+          message: "Le profil a déjà été complété",
+        });
+      }
       const {
         bio,
         birthDate,
@@ -31,6 +38,14 @@ export class ProfileController {
 
       if (!bio || bio.trim().length < 10) {
         errors.bio = "Biographie requise (min 10 caractères)";
+      }
+      if (!birthDate) {
+        errors.birthDate = "Date de naissance requise";
+      } else {
+        const date = new Date(birthDate);
+        if (isNaN(date.getTime()) || calculateAge(date) < 15) {
+          errors.birthDate = "Vous devez avoir au moins 15 ans";
+        }
       }
       if (!country) {
         errors.country = "Pays requis";
@@ -69,7 +84,7 @@ export class ProfileController {
       const updatedUser = await ProfileService.completeEntrepreneurProfile({
         userId,
         bio: bio.trim(),
-        birthDate: birthDate ? new Date(birthDate) : null,
+        birthDate: new Date(birthDate),
         country,
         city,
         languages: parsedLanguages,
@@ -102,6 +117,14 @@ export class ProfileController {
   ) {
     try {
       const userId = req.user!.userId;
+      const existingUser = await ProfileService.getUserById(userId);
+      if (existingUser?.profileCompleted) {
+        return res.status(409).json({
+          success: false,
+          message: "Le profil a déjà été complété",
+        });
+      }
+
       const {
         bio,
         birthDate,
@@ -123,6 +146,14 @@ export class ProfileController {
 
       if (!bio || bio.trim().length < 10) {
         errors.bio = "Biographie requise (min 10 caractères)";
+      }
+      if (!birthDate) {
+        errors.birthDate = "Date de naissance requise";
+      } else {
+        const date = new Date(birthDate);
+        if (isNaN(date.getTime()) || calculateAge(date) < 15) {
+          errors.birthDate = "Vous devez avoir au moins 15 ans";
+        }
       }
       if (!country) {
         errors.country = "Pays requis";
@@ -168,7 +199,7 @@ export class ProfileController {
       const updatedUser = await ProfileService.completeMentorProfile({
         userId,
         bio: bio.trim(),
-        birthDate: birthDate ? new Date(birthDate) : null,
+        birthDate: new Date(birthDate),
         country,
         city,
         languages: parsedLanguages,
@@ -224,4 +255,18 @@ function buildSocialLinks(links: {
   if (links.website)
     platforms.push({ platform: "WEBSITE", url: links.website });
   return platforms;
+}
+
+//calcule l'âge exact à partir d'une date de naissance
+function calculateAge(birthDate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  return age;
 }

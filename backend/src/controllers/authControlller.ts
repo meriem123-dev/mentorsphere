@@ -102,4 +102,27 @@ export class AuthController {
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "Déconnexion réussie" });
   }
+
+  //gérer http me
+static async me(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.userId;
+    const user = await AuthService.getMe(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Utilisateur introuvable",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
 }
+}
+

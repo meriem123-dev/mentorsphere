@@ -47,7 +47,7 @@ export function ExpertiseStep({
       <div className="space-y-8">
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            Profession actuelle
+            Profession actuelle *
           </label>
           <input
             type="text"
@@ -62,7 +62,7 @@ export function ExpertiseStep({
 
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            Années d&apos;expérience
+            Années d&apos;expérience *
           </label>
           <RadioChoices
             options={EXPERIENCE_LEVELS}
@@ -75,7 +75,7 @@ export function ExpertiseStep({
 
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            Domaines d&apos;expertise
+            Domaines d&apos;expertise *
           </label>
           <ChoicePills
             options={EXPERTISE_DOMAINS}

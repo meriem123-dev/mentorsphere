@@ -8,6 +8,7 @@ import {
   MentorProfileFormData,
   ProfileFormData,
   ProfileCompletionResponse,
+  MeResponse
 } from "../../../types/authTypes";
 
 export const authApi = {
@@ -23,6 +24,11 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     await api.post("/api/auth/logout");
+  },
+
+  getMe: async (): Promise<MeResponse> => {
+    const res = await api.get<MeResponse>("/api/auth/me");
+    return res.data;
   },
 
   completeEntrepreneurProfile: async (

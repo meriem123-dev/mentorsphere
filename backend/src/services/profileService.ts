@@ -39,6 +39,12 @@ interface CompleteMentorProfileInput {
 }
 
 export class ProfileService {
+  static async getUserById(userId: string) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: { profileCompleted: true },
+  });
+}
   static async completeEntrepreneurProfile(
     input: CompleteEntrepreneurProfileInput,
   ) {
@@ -59,6 +65,7 @@ export class ProfileService {
             birthDate: input.birthDate,
             country: input.country,
             city: input.city,
+            profileCompleted: true,
             ...(photoUrl ? { profilePicture: photoUrl } : {}),
           },
         });
@@ -124,6 +131,7 @@ export class ProfileService {
             birthDate: input.birthDate,
             country: input.country,
             city: input.city,
+            profileCompleted: true,
             ...(photoUrl ? { profilePicture: photoUrl } : {}),
           },
         });

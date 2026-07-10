@@ -13,6 +13,7 @@ import { User } from "lucide-react";
 import { authApi } from "../api/authAPI";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
 
 const INITIAL_FORM_DATA: ProfileFormData = {
   bio: "",
@@ -56,6 +57,18 @@ export function ProfileCompletionWizard() {
       toast.error("Merci de renseigner votre ville");
       return false;
     }
+    if (!isValidCity(formData.city)) {
+      toast.error("Le nom de la ville ne doit pas contenir de chiffres");
+      return false;
+    }
+    if (!isValidAge(formData.birthDate)) {
+      toast.error(
+        formData.birthDate
+          ? "Vous devez avoir au moins 15 ans"
+          : "Merci de renseigner votre date de naissance",
+      );
+      return false;
+    }
     if (formData.languages.length === 0) {
       toast.error("Merci de sélectionner au moins une langue");
       return false;
@@ -76,6 +89,23 @@ export function ProfileCompletionWizard() {
     return true;
   };
 
+  //valider etp3
+  const validateStep3 = () => {
+    if (!isValidUrl(formData.linkedin)) {
+      toast.error("Le lien LinkedIn n'est pas une URL valide");
+      return false;
+    }
+    if (!isValidUrl(formData.github)) {
+      toast.error("Le lien GitHub n'est pas une URL valide");
+      return false;
+    }
+    if (!isValidUrl(formData.portfolio)) {
+      toast.error("Le lien Portfolio n'est pas une URL valide");
+      return false;
+    }
+    return true;
+  };
+
   const goNext = () => {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
@@ -85,7 +115,9 @@ export function ProfileCompletionWizard() {
   const goPrevious = () => setStep((s) => Math.max(1, s - 1));
 
   const handleSubmit = async () => {
+    if (!validateStep3()) return;
     setIsSubmitting(true);
+  
     try {
       await authApi.completeEntrepreneurProfile(formData);
       toast.success("Profil complété avec succès");
@@ -109,7 +141,12 @@ export function ProfileCompletionWizard() {
 
   if (step === 1) {
     return (
-      <StepShell currentStep={1} totalSteps={3} title="Profil Personnel" icon={User}>
+      <StepShell
+        currentStep={1}
+        totalSteps={3}
+        title="Profil Personnel"
+        icon={User}
+      >
         <div className="space-y-8">
           <ProfilePhotoSection formData={formData} setFormData={setFormData} />
           <AboutSection formData={formData} setFormData={setFormData} />

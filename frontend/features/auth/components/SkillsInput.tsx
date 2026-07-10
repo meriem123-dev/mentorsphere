@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X,Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SkillsInputProps {
@@ -48,8 +48,10 @@ export function SkillsInput({ value, onChange, placeholder = "Ex. React" }: Skil
           type="button"
           onClick={addSkill}
           variant={"default"}
+          className="shrink-0 px-2 sm:px-4"
         >
-          Ajouter
+          <Plus size={12} className="sm:hidden" />
+          <span className="hidden sm:inline">Ajouter</span>
         </Button>
       </div>
 

@@ -3,6 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Exo_2 } from "next/font/google";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/context/AuthContext";
+
 
 const exo2 = Exo_2({
   variable: "--font-exo2",
@@ -28,7 +30,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
           {children}
+          </AuthProvider>
           <Toaster
             position="top-center"
             toastOptions={{

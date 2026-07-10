@@ -63,7 +63,7 @@ export function EntrepreneurialJourneyStep({
         </SectionCard>
 
         {/*nv entrepreneurial */}
-        <SectionCard title="Niveau entrepreneurial" icon={<UsersRound />}>
+        <SectionCard title="Niveau entrepreneurial *" icon={<UsersRound />}>
           <RadioChoices
             options={LEVELS}
             value={formData.level}
@@ -72,7 +72,7 @@ export function EntrepreneurialJourneyStep({
         </SectionCard>
 
         {/*domaines d'interet */}
-        <SectionCard title="Domaines d'intérêt" icon={<PenLine />}>
+        <SectionCard title="Domaines d'intérêt *" icon={<PenLine />}>
           <ChoicePills
             options={DOMAINS}
             value={formData.domains}

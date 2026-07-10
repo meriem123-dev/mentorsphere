@@ -14,6 +14,7 @@ import { AxiosError } from "axios";
 import { ApiErrorResponse } from "@/types/authTypes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 //mon cmpst
 export function LoginForm() {
@@ -28,6 +29,7 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState("");
   const router = useRouter();
+  const { refetch } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -76,7 +78,19 @@ export function LoginForm() {
         description: `Content de te revoir, ${response.data.user.firstName} !`,
       });
 
-      router.push("/dashboard");
+      await refetch();
+
+      const user = response.data.user;
+
+      if (!user.profileCompleted) {
+        router.push(
+          user.role === "MENTOR"
+            ? "/auth/ProfileCompletion/Mentor"
+            : "/auth/ProfileCompletion/Entrepreneur",
+        );
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       toast.error("Connexion impossible", {

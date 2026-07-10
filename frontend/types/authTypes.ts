@@ -24,10 +24,17 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: "ENTREPRENEUR" | "MENTOR";
+  role: "ENTREPRENEUR" | "MENTOR" | "ADMIN";
   profilePicture: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
+  profileCompleted: boolean;
+}
+
+export interface ProfileCompletionResponse {
+  success: boolean;
+  message: string;
+  data: { user: User };
 }
 
 export interface AuthResponse {
@@ -36,6 +43,13 @@ export interface AuthResponse {
   data: {
     user: User;
     token: string;
+  };
+}
+
+export interface MeResponse {
+  success: boolean;
+  data: {
+    user: User;
   };
 }
 

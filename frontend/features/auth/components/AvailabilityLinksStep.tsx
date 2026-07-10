@@ -78,7 +78,7 @@ export function AvailabilityLinksStep({
         </SectionCard>
 
         {/*documents*/}
-        <SectionCard title="Documents (optionnel)" icon={<FileText />}>
+        <SectionCard title="Documents" icon={<FileText />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FileUploadInput
               label="Importer CV"

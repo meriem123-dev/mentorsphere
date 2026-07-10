@@ -80,4 +80,16 @@ export class AuthService {
 
     return { user: safeUser, token };
   }
+
+  //métier me
+static async getMe(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) return null;
+
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
 }

@@ -16,7 +16,7 @@ import { AxiosError } from "axios";
 import { ApiErrorResponse } from "@/types/authTypes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
+import { useAuth } from "@/context/AuthContext";
 type Role = "entrepreneur" | "mentor";
 
 const roleConfig: Record<
@@ -47,6 +47,7 @@ export function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState("");
   const router = useRouter();
+  const { refetch } = useAuth();
 
   //gérer changement input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,6 +109,8 @@ export function RegistrationForm() {
         description: `Bienvenue sur MentorSphere, ${response.data.user.firstName} !`,
       });
 
+      await refetch();
+
       router.push(
         role === "mentor"
           ? "/auth/ProfileCompletion/Mentor"
@@ -115,19 +118,26 @@ export function RegistrationForm() {
       );
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
+      const status = axiosError.response?.status;
+      const message = axiosError.response?.data?.message;
 
       if (axiosError.response?.data?.errors) {
         setErrors(axiosError.response.data.errors);
+      } else if (status === 409) {
+        setErrors((prev) => ({
+          ...prev,
+          email: message || "Un compte existe déjà avec cet email",
+        }));
       } else {
         toast.error("Inscription impossible", {
-          description:
-            axiosError.response?.data?.message || "Une erreur est survenue",
+          description: message || "Une erreur est survenue",
         });
       }
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const canSubmit = acceptedTerms && acceptedPrivacy;
 

@@ -13,6 +13,7 @@ import { User } from "lucide-react";
 import { authApi } from "../api/authAPI";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
 
 const INITIAL_FORM_DATA: MentorProfileFormData = {
   bio: "",
@@ -37,7 +38,8 @@ const INITIAL_FORM_DATA: MentorProfileFormData = {
 //intégrer les étapes
 export function MentorCompletionWizard() {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<MentorProfileFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] =
+    useState<MentorProfileFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -53,6 +55,18 @@ export function MentorCompletionWizard() {
     }
     if (!formData.city || formData.city.trim().length === 0) {
       toast.error("Merci de renseigner votre ville");
+      return false;
+    }
+    if (!isValidCity(formData.city)) {
+      toast.error("Le nom de la ville ne doit pas contenir de chiffres");
+      return false;
+    }
+    if (!isValidAge(formData.birthDate)) {
+      toast.error(
+        formData.birthDate
+          ? "Vous devez avoir au moins 15 ans"
+          : "Merci de renseigner votre date de naissance",
+      );
       return false;
     }
     if (formData.languages.length === 0) {
@@ -79,6 +93,27 @@ export function MentorCompletionWizard() {
     return true;
   };
 
+  //valider step 3
+  const validateStep3 = () => {
+    if (!isValidUrl(formData.linkedin)) {
+      toast.error("Le lien LinkedIn n'est pas une URL valide");
+      return false;
+    }
+    if (!isValidUrl(formData.github)) {
+      toast.error("Le lien GitHub n'est pas une URL valide");
+      return false;
+    }
+    if (!isValidUrl(formData.portfolio)) {
+      toast.error("Le lien Portfolio n'est pas une URL valide");
+      return false;
+    }
+    if (!isValidUrl(formData.website)) {
+      toast.error("Le lien du site web n'est pas une URL valide");
+      return false;
+    }
+    return true;
+  };
+
   const goNext = () => {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
@@ -87,7 +122,9 @@ export function MentorCompletionWizard() {
 
   const goPrevious = () => setStep((s) => Math.max(1, s - 1));
 
+  //gérer clic terminer 
   const handleSubmit = async () => {
+    if (!validateStep3()) return;
     setIsSubmitting(true);
     try {
       await authApi.completeMentorProfile(formData);
@@ -112,7 +149,12 @@ export function MentorCompletionWizard() {
 
   if (step === 1) {
     return (
-      <StepShell currentStep={1} totalSteps={3} title="Profil Personnel" icon={User}>
+      <StepShell
+        currentStep={1}
+        totalSteps={3}
+        title="Profil Personnel"
+        icon={User}
+      >
         <div className="space-y-8">
           <ProfilePhotoSection formData={formData} setFormData={setFormData} />
           <AboutSection formData={formData} setFormData={setFormData} />

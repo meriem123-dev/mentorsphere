@@ -1,18 +1,21 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Globe2, MapPin, Calendar, Languages as LanguagesIcon } from "lucide-react";
+import {
+  Globe2,
+  MapPin,
+  Calendar,
+  Languages as LanguagesIcon,
+} from "lucide-react";
 import { TextInput } from "./TextInput";
 import { ComboBox } from "@/components/ui/ComboBox";
 import SectionCard from "@/components/ui/SectionCard";
 import { BaseProfileFormData } from "@/types/authTypes";
 
-
-interface AboutSectionProps <T extends BaseProfileFormData> {
+interface AboutSectionProps<T extends BaseProfileFormData> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
 }
-
 
 //languages et pays statiques
 const AVAILABLE_LANGUAGES = [
@@ -46,7 +49,6 @@ const COUNTRIES = [
   "Autre",
 ];
 
-
 //mon cmpst
 export default function AboutSection<T extends BaseProfileFormData>({
   formData,
@@ -61,8 +63,8 @@ export default function AboutSection<T extends BaseProfileFormData>({
 
   return (
     <div className="space-y-6">
-        {/*bio*/ }
-      <SectionCard icon={<Globe2 size={16} />} title="À propos de vous">
+      {/*bio*/}
+      <SectionCard icon={<Globe2 size={16} />} title="À propos de vous *">
         <textarea
           placeholder="Décrivez-vous en quelques mots — vos passions, vos projets, ce qui vous motive..."
           value={formData.bio}
@@ -71,28 +73,30 @@ export default function AboutSection<T extends BaseProfileFormData>({
         />
       </SectionCard>
 
-      {/*date de naiss*/ }
-      <SectionCard icon={<Calendar size={16} />} title="Date de naissance">
+      {/*date de naiss*/}
+      <SectionCard icon={<Calendar size={16} />} title="Date de naissance *">
         <TextInput
-          label="Date de naissance (optionnel)"
+          label="Date de naissance *"
           type="date"
           value={formData.birthDate}
-          onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, birthDate: e.target.value })
+          }
         />
       </SectionCard>
 
-       {/*pays et ville*/ }
+      {/*pays et ville*/}
       <SectionCard icon={<MapPin size={16} />} title="Localisation">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ComboBox
-            label="Pays"
+            label="Pays *"
             placeholder="Sélectionnez un pays"
             options={COUNTRIES}
             value={formData.country}
             onChange={(value) => setFormData({ ...formData, country: value })}
           />
           <TextInput
-            label="Ville"
+            label="Ville *"
             placeholder="Ex. Béjaïa"
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -100,8 +104,8 @@ export default function AboutSection<T extends BaseProfileFormData>({
         </div>
       </SectionCard>
 
-      {/*Langues*/ }
-      <SectionCard icon={<LanguagesIcon size={16} />} title="Langues parlées">
+      {/*Langues*/}
+      <SectionCard icon={<LanguagesIcon size={16} />} title="Langues parlées *">
         <div className="flex flex-wrap gap-2">
           {AVAILABLE_LANGUAGES.map((language, i) => {
             const active = formData.languages.includes(language);
@@ -126,11 +130,11 @@ export default function AboutSection<T extends BaseProfileFormData>({
           })}
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          {formData.languages.length} langue{formData.languages.length > 1 ? "s" : ""} sélectionnée
+          {formData.languages.length} langue
+          {formData.languages.length > 1 ? "s" : ""} sélectionnée
           {formData.languages.length > 1 ? "s" : ""}
         </p>
       </SectionCard>
     </div>
   );
 }
-
