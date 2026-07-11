@@ -5,8 +5,18 @@ import { AuthService } from "../services/authService";
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as
+    | "none"
+    | "lax",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+};
+
+const CLEAR_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as
+    | "none"
+    | "lax",
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,30 +109,29 @@ export class AuthController {
 
   //gérer http logout
   static async logout(req: Request, res: Response) {
-    res.clearCookie("token");
+    res.clearCookie("token", CLEAR_COOKIE_OPTIONS);
     res.status(200).json({ success: true, message: "Déconnexion réussie" });
   }
 
   //gérer http me
-static async me(req: Request, res: Response, next: NextFunction) {
-  try {
-    const userId = req.user!.userId;
-    const user = await AuthService.getMe(userId);
+  static async me(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const user = await AuthService.getMe(userId);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Utilisateur introuvable",
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Utilisateur introuvable",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: { user },
       });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(200).json({
-      success: true,
-      data: { user },
-    });
-  } catch (error) {
-    next(error);
   }
 }
-}
-
