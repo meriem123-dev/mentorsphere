@@ -13,7 +13,7 @@ export function ProfileCompletionMentor() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      router.replace("/auth/login");
+      router.replace("/");
       return;
     }
     if (user.role !== "MENTOR") {

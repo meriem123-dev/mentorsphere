@@ -115,7 +115,7 @@ export function Navbar() {
       await refetch();
       toast.success("Déconnexion réussie");
       setIsOpen(false);
-      router.push("/auth/login");
+      router.push("/");
     } catch {
       toast.error("Erreur lors de la déconnexion");
     }

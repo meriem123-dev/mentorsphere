@@ -11,7 +11,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await authApi.logout();
     await refetch();
-    router.push("/auth/login");
+    router.push("/");
   };
 
   return (
