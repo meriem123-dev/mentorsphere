@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { ProfileCompletionWizard } from "./ProfileCompletionWizard";
 import { Logo } from "@/components/ui/Logo";
 
+import { getDashboardPath } from "@/lib/routes";
+
 export function ProfileCompletionEntrepreneur() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -17,11 +19,11 @@ export function ProfileCompletionEntrepreneur() {
       return;
     }
     if (user.role !== "ENTREPRENEUR") {
-      router.replace("/dashboard");
+      router.replace(getDashboardPath(user.role));
       return;
     }
     if (user.profileCompleted) {
-      router.replace("/dashboard");
+      router.replace(getDashboardPath(user.role));
     }
   }, [user, isLoading, router]);
 

@@ -16,9 +16,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
+import { getDashboardPath, getProfileCompletionPath } from "@/lib/routes";
+
 //mon cmpst
 export function LoginForm() {
-  const [role, setRole] = useState<"entrepreneur" | "mentor">("entrepreneur");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -27,7 +28,7 @@ export function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [globalError, setGlobalError] = useState("");
+
   const router = useRouter();
   const { refetch } = useAuth();
 
@@ -83,13 +84,9 @@ export function LoginForm() {
       const user = response.data.user;
 
       if (!user.profileCompleted) {
-        router.push(
-          user.role === "MENTOR"
-            ? "/auth/ProfileCompletion/Mentor"
-            : "/auth/ProfileCompletion/Entrepreneur",
-        );
+        router.push(getProfileCompletionPath(user.role));
       } else {
-        router.push("/dashboard");
+        router.push(getDashboardPath(user.role));
       }
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
@@ -159,8 +156,6 @@ export function LoginForm() {
         className="w-full max-w-md space-y-5"
         variants={containerVariants}
       >
- 
-
         {/* Email Input */}
         <TextInput
           label="Email"
@@ -224,11 +219,11 @@ export function LoginForm() {
             variant={"link"}
             className="text-primary hover:underline font-semibold"
             nativeButton={false}
-             render={(props) => (
-                <NextLink href="/auth/Registration" {...props}>
-                  {props.children}
-                </NextLink>
-              )}
+            render={(props) => (
+              <NextLink href="/auth/Registration" {...props}>
+                {props.children}
+              </NextLink>
+            )}
           >
             S&apos;inscrire gratuitement
           </Button>

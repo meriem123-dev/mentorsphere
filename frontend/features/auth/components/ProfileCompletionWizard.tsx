@@ -14,6 +14,7 @@ import { authApi } from "../api/authAPI";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
+import { getDashboardPath } from "@/lib/routes";
 
 const INITIAL_FORM_DATA: ProfileFormData = {
   bio: "",
@@ -117,11 +118,11 @@ export function ProfileCompletionWizard() {
   const handleSubmit = async () => {
     if (!validateStep3()) return;
     setIsSubmitting(true);
-  
+
     try {
-      await authApi.completeEntrepreneurProfile(formData);
+      const res = await authApi.completeEntrepreneurProfile(formData);
       toast.success("Profil complété avec succès");
-      router.push("/dashboard");
+      router.push(getDashboardPath(res.data.user.role));
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const firstError = axiosError.response?.data?.errors

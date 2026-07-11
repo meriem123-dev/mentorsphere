@@ -14,6 +14,7 @@ import { authApi } from "../api/authAPI";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
+import { getDashboardPath } from "@/lib/routes";
 
 const INITIAL_FORM_DATA: MentorProfileFormData = {
   bio: "",
@@ -122,14 +123,14 @@ export function MentorCompletionWizard() {
 
   const goPrevious = () => setStep((s) => Math.max(1, s - 1));
 
-  //gérer clic terminer 
+  //gérer clic terminer
   const handleSubmit = async () => {
     if (!validateStep3()) return;
     setIsSubmitting(true);
     try {
-      await authApi.completeMentorProfile(formData);
+      const res = await authApi.completeMentorProfile(formData);
       toast.success("Profil complété avec succès");
-      router.push("/dashboard");
+      router.push(getDashboardPath(res.data.user.role));
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const firstError = axiosError.response?.data?.errors
