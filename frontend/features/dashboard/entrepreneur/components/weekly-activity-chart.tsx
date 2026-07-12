@@ -21,8 +21,8 @@ export function WeeklyActivityChart({ data }: { data: WeeklyActivityPoint[] }) {
           <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="--brand-blue" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="--brand-blue" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(var(--brand-blue))" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="hsl(var(--brand-blue))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis

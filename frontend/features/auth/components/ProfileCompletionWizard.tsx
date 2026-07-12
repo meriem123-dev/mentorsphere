@@ -23,6 +23,7 @@ const INITIAL_FORM_DATA: ProfileFormData = {
   city: "",
   languages: ["Français"],
   photo: null,
+  avatarColor: "bg-brand-blue",
   profession: "",
   level: "",
   domains: [],

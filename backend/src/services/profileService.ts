@@ -15,6 +15,7 @@ interface CompleteEntrepreneurProfileInput {
   lookingFor: string[];
   availability: string[];
   socialLinks: { platform: string; url: string }[];
+  avatarColor: string | null;
   photoFile: Express.Multer.File | null;
   cvFile: Express.Multer.File | null;
   documentFiles: Express.Multer.File[];
@@ -33,6 +34,7 @@ interface CompleteMentorProfileInput {
   yearsOfExperience: string;
   availability: string[];
   socialLinks: { platform: string; url: string }[];
+  avatarColor: string | null;
   photoFile: Express.Multer.File | null;
   cvFile: Express.Multer.File | null;
   documentFiles: Express.Multer.File[];
@@ -40,11 +42,11 @@ interface CompleteMentorProfileInput {
 
 export class ProfileService {
   static async getUserById(userId: string) {
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: { profileCompleted: true },
-  });
-}
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: { profileCompleted: true },
+    });
+  }
   static async completeEntrepreneurProfile(
     input: CompleteEntrepreneurProfileInput,
   ) {
@@ -66,10 +68,14 @@ export class ProfileService {
             country: input.country,
             city: input.city,
             profileCompleted: true,
-            ...(photoUrl ? { profilePicture: photoUrl } : {}),
+            ...(photoUrl
+              ? { profilePicture: photoUrl, coverPicture: null }
+              : {}),
+            ...(!photoUrl && input.avatarColor
+              ? { coverPicture: input.avatarColor }
+              : {}),
           },
         });
-
         await tx.userLanguage.deleteMany({ where: { userId: input.userId } });
         await tx.userLanguage.createMany({
           data: languageIds.map((languageId) => ({
@@ -132,7 +138,12 @@ export class ProfileService {
             country: input.country,
             city: input.city,
             profileCompleted: true,
-            ...(photoUrl ? { profilePicture: photoUrl } : {}),
+            ...(photoUrl
+              ? { profilePicture: photoUrl, coverPicture: null }
+              : {}),
+            ...(!photoUrl && input.avatarColor
+              ? { coverPicture: input.avatarColor }
+              : {}),
           },
         });
 

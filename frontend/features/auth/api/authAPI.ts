@@ -75,6 +75,10 @@ function buildEntrepreneurFormData(payload: ProfileFormData): FormData {
   fd.append("github", payload.github);
   fd.append("portfolio", payload.portfolio);
 
+   if (payload.avatarColor) {
+    fd.append("avatarColor", payload.avatarColor);
+  }
+
   if (payload.photo) {
     fd.append("photo", payload.photo);
   }
@@ -105,6 +109,10 @@ function buildMentorFormData(payload: MentorProfileFormData): FormData {
   fd.append("github", payload.github);
   fd.append("portfolio", payload.portfolio);
   fd.append("website", payload.website);
+
+  if (payload.avatarColor) {
+    fd.append("avatarColor", payload.avatarColor);
+  }
 
   if (payload.photo) {
     fd.append("photo", payload.photo);

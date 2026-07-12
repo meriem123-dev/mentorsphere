@@ -26,6 +26,7 @@ export interface User {
   email: string;
   role: "ENTREPRENEUR" | "MENTOR" | "ADMIN";
   profilePicture: string | null;
+  coverPicture?: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
   profileCompleted: boolean;
@@ -66,6 +67,7 @@ export interface BaseProfileFormData {
   city: string;
   languages: string[];
   photo: File | null;
+  avatarColor?: string;
 }
 
 //type entrepreneur

@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { EntrepreneurSidebar } from "@/components/layout/sidebar/entrepreneur-sidebar";
 import { TopBar } from "@/components/layout/top-bar";
-import { getFullName, getInitials, getAvatarUrl } from "@/lib/user-display";
+import { getFullName, getInitials, getAvatarUrl,getAvatarColor } from "@/lib/user-display";
 import { entrepreneurNavItems } from "@/lib/navigation-config";
+import { SidebarMobileProvider } from "@/components/layout/sidebar/sidebar-mobile-context";
+
 
 export default function EntrepreneurLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -32,9 +34,11 @@ export default function EntrepreneurLayout({ children }: { children: React.React
     name: getFullName(user),
     initials: getInitials(user),
     avatarUrl: getAvatarUrl(user),
+    avatarColor: getAvatarColor(user),
   };
 
   return (
+    <SidebarMobileProvider>
     <div className="flex h-screen overflow-hidden">
       <EntrepreneurSidebar user={displayUser} />
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -42,5 +46,6 @@ export default function EntrepreneurLayout({ children }: { children: React.React
         <main className="flex-1 overflow-y-auto bg-background p-6">{children}</main>
       </div>
     </div>
+    </SidebarMobileProvider>
   );
 }

@@ -1,21 +1,22 @@
-// components/layout/top-bar.tsx
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Moon, Sun, User } from "lucide-react";
+import { Bell, Moon, Sun, Menu, Home } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useIsClient } from "@/hooks/use-is-client";
 import type { NavItem } from "@/types/navigation";
-import { UserAvatar } from "../ui/user-avatar";
+import { UserMenu } from "@/components/layout/user-menu";
+import { useLogout } from "@/features/auth/hooks/use-logout";
+import { useSidebarMobile } from "./sidebar/sidebar-mobile-context";
+
 
 interface TopBarProps {
   navItems: NavItem[];
-  title?: string; 
+  title?: string;
   notificationCount?: number;
-  user: { name: string; initials: string; avatarUrl?: string };
+  user: { name: string; initials: string; avatarUrl?: string; avatarColor?: string };
   accent?: "blue" | "rose";
 }
-
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card";
@@ -25,14 +26,26 @@ export function TopBar({ navItems, title, notificationCount = 0, user, accent = 
   const { theme, setTheme } = useTheme();
   const mounted = useIsClient();
   const isDark = mounted && theme === "dark";
+  const { toggle } = useSidebarMobile();
+  const handleLogout = useLogout();
 
   const displayTitle = title ?? navItems.find((item) => item.href === pathname)?.label ?? "Dashboard";
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
-      <h1 className="text-base font-semibold text-foreground">{displayTitle}</h1>
-
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/60 bg-card/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 sm:px-6">
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Ouvrir le menu"
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden ${FOCUS_RING}`}
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+        <h1 className="truncate text-base font-semibold text-foreground">{displayTitle}</h1>
+      </div>
+
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
           aria-label="Notifications"
@@ -48,13 +61,19 @@ export function TopBar({ navItems, title, notificationCount = 0, user, accent = 
           type="button"
           aria-label="Changer de thème"
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
+          className={`hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex ${FOCUS_RING}`}
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
-       
-        <UserAvatar user={user} accent={accent}/>
+        <UserMenu
+          name={user.name}
+          initials={user.initials}
+          avatarUrl={user.avatarUrl}
+          avatarColor={user.avatarColor}
+          primaryAction={{ label: "Retour au site", href: "/", icon: Home }}
+          onLogout={handleLogout}
+        />
       </div>
     </header>
   );

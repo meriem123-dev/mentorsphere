@@ -1,4 +1,6 @@
-// features/dashboard/entrepreneur/types.ts
+import type { LucideIcon } from "lucide-react";
+
+export type Accent = "rose" | "blue" | "green";
 
 export interface DashboardStats {
   activeProjects: number;
@@ -28,4 +30,42 @@ export interface RecommendedMentor {
   title: string;
   initials: string;
   avatarUrl?: string;
+}
+
+export interface StatCardData {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  delta: string;
+  accent: Accent;
+}
+
+export interface SessionActivityPoint {
+  day: string;
+  sessions: number;
+}
+
+export interface MenteeProgress {
+  id: string;
+  name: string;
+  progress: number;
+  accent: Accent;
+}
+
+export interface UpcomingSession {
+  id: string;
+  menteeName: string;
+  initials: string;
+  topic: string;
+  when: string;
+  accent: Accent;
+}
+
+export interface Feedback {
+  id: string;
+  menteeName: string;
+  initials: string;
+  rating: number;
+  quote: string;
+  accent: Accent;
 }

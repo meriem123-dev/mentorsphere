@@ -23,6 +23,11 @@ import NextLink from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/features/auth/api/authAPI";
 import { toast } from "sonner";
+import { UserMenu } from "@/components/layout/user-menu";
+import { LayoutDashboard } from "lucide-react";
+import { getDashboardPath } from "@/lib/routes";
+import { getFullName, getInitials, getAvatarUrl } from "@/lib/user-display";
+import { getAvatarColor } from "@/lib/user-display";
 
 const ThemeToggle = dynamic(
   () => import("@/components/ui/ThemeToggle").then((mod) => mod.ThemeToggle),
@@ -161,15 +166,19 @@ export function Navbar() {
             <ThemeToggle />
             <div className="w-px h-5 bg-border mx-1" />
             {!isLoading && user ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full gap-1"
-                onClick={handleLogout}
-              >
-                Déconnexion
-                <LogOut className="w-3.5 h-3.5" />
-              </Button>
+              <UserMenu
+                name={getFullName(user)}
+                subtitle={user.email}
+                initials={getInitials(user)}
+                avatarUrl={getAvatarUrl(user)}
+                avatarColor={getAvatarColor(user)}
+                primaryAction={{
+                  label: "Accéder au dashboard",
+                  href: getDashboardPath(user.role),
+                  icon: LayoutDashboard,
+                }}
+                onLogout={handleLogout}
+              />
             ) : (
               <>
                 <Button
@@ -299,15 +308,53 @@ export function Navbar() {
                   className="relative flex flex-col gap-2.5 p-4 border-t border-border bg-background/60"
                 >
                   {!isLoading && user ? (
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full rounded-full gap-1"
-                      onClick={handleLogout}
-                    >
-                      Déconnexion
-                      <LogOut className="w-4 h-4" />
-                    </Button>
+                    <>
+                      <div className="flex items-center gap-3 px-1 pb-1">
+                        {getAvatarUrl(user) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={getAvatarUrl(user)}
+                            alt={getFullName(user)}
+                            className="h-9 w-9 rounded-full object-cover ring-2 ring-border"
+                          />
+                        ) : (
+                          <span
+                            className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold text-white ${getAvatarColor(user)}`}
+                          >
+                            {getInitials(user)}
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {getFullName(user)}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full rounded-full gap-1"
+                        nativeButton={false}
+                        render={<NextLink href={getDashboardPath(user.role)} />}
+                      >
+                        Accéder au dashboard
+                        <LayoutDashboard className="w-4 h-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        className="w-full rounded-full gap-1 text-brand-rose hover:bg-brand-rose/8"
+                        onClick={handleLogout}
+                      >
+                        Déconnexion
+                        <LogOut className="w-4 h-4" />
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <Button

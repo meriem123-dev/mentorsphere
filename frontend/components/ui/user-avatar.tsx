@@ -32,7 +32,7 @@ export function UserAvatar({ user, accent = "blue", size = "md" }: UserAvatarPro
 
   return (
     <div
-      className={`flex items-center justify-center rounded-full bg-brand-navy font-semibold text-white ring-2 ${dimensions} ${ring}`}
+      className={`flex items-center justify-center rounded-full bg-gradient-hero font-semibold text-white ring-2 ${dimensions} ${ring}`}
     >
       {user.initials}
     </div>

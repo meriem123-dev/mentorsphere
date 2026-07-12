@@ -12,14 +12,14 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         value={stats.activeProjects}
         delta={stats.activeProjectsDelta}
         Icon={Rocket}
-        IconBg="bg-[#13496B]"
+        IconBg="bg-gradient-brand"
       />
       <StatCard
         label="Sessions Mentor"
         value={stats.mentorSessions}
         delta={stats.mentorSessionsDelta}
         Icon={Users}
-        IconBg="bg-brand-blue-light"
+        IconBg="bg-gradient-brand"
       />
       <StatCard
         label="Prochaines Sessions"
@@ -27,14 +27,14 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         delta={stats.nextSessionLabel}
         deltaTone="neutral"
         Icon={Clock}
-        IconBg="bg-brand-rose"
+        IconBg="bg-gradient-brand"
       />
       <StatCard
         label="Progression"
         value={`${stats.progression}%`}
         delta={stats.progressionDelta}
         Icon={TrendingUp}
-        IconBg="bg-brand-rose-light"
+        IconBg="bg-gradient-brand"
       />
     </div>
   );

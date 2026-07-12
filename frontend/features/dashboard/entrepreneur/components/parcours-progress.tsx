@@ -50,7 +50,7 @@ export function ParcoursProgress({ projectName, stage, progression }: ParcoursPr
 
       <NextLink
         href="/entrepreneur/projects"
-        className="mt-auto flex items-center justify-center gap-1 text-sm font-medium text-[#13496B] hover:underline"
+        className="mt-auto flex items-center justify-center gap-1 text-sm font-medium text-brand-blue-light hover:underline"
       >
         Voir le parcours
         <ChevronRight className="h-4 w-4" />

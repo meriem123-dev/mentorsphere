@@ -1,6 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { ProfileService } from "../services/profileService";
 
+const ALLOWED_AVATAR_COLORS = [
+  "bg-brand-blue",
+  "bg-brand-rose",
+  "bg-brand-blue-light",
+  "bg-brand-rose-light",
+  "bg-gradient-brand",
+  "bg-gradient-rose-fade",
+];
+
 export class ProfileController {
   //compléter le profil entrepreneur (wizard)
   static async completeEntrepreneurProfile(
@@ -32,9 +41,14 @@ export class ProfileController {
         linkedin,
         github,
         portfolio,
+        avatarColor,
       } = req.body;
 
       const errors: Record<string, string> = {};
+
+      if (avatarColor && !ALLOWED_AVATAR_COLORS.includes(avatarColor)) {
+        errors.avatarColor = "Couleur d'avatar invalide";
+      }
 
       if (!bio || bio.trim().length < 10) {
         errors.bio = "Biographie requise (min 10 caractères)";
@@ -95,6 +109,7 @@ export class ProfileController {
         lookingFor: parsedLookingFor,
         availability: parsedAvailability,
         socialLinks,
+        avatarColor: photo ? null : avatarColor || null, // photo prioritaire si les deux arrivent
         photoFile: photo,
         cvFile: cv,
         documentFiles: documents,
@@ -140,9 +155,14 @@ export class ProfileController {
         github,
         portfolio,
         website,
+        avatarColor,
       } = req.body;
 
       const errors: Record<string, string> = {};
+
+      if (avatarColor && !ALLOWED_AVATAR_COLORS.includes(avatarColor)) {
+        errors.avatarColor = "Couleur d'avatar invalide";
+      }
 
       if (!bio || bio.trim().length < 10) {
         errors.bio = "Biographie requise (min 10 caractères)";
@@ -209,6 +229,7 @@ export class ProfileController {
         yearsOfExperience,
         availability: parsedAvailability,
         socialLinks,
+        avatarColor: photo ? null : avatarColor || null, // photo prioritaire si les deux arrivent
         photoFile: photo,
         cvFile: cv,
         documentFiles: documents,
