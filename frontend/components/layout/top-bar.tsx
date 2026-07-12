@@ -2,23 +2,20 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Moon, Sun } from "lucide-react";
+import { Bell, Moon, Sun, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useIsClient } from "@/hooks/use-is-client";
 import type { NavItem } from "@/types/navigation";
+import { UserAvatar } from "../ui/user-avatar";
 
 interface TopBarProps {
   navItems: NavItem[];
-  title?: string; // override manuel, sinon dérivé de navItems + pathname
+  title?: string; 
   notificationCount?: number;
   user: { name: string; initials: string; avatarUrl?: string };
   accent?: "blue" | "rose";
 }
 
-const ACCENT_RING = {
-  blue: "ring-brand-blue/25",
-  rose: "ring-brand-rose/25",
-} as const;
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card";
@@ -56,20 +53,8 @@ export function TopBar({ navItems, title, notificationCount = 0, user, accent = 
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
-        {user.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={user.avatarUrl}
-            alt={user.name}
-            className={`h-8 w-8 rounded-full object-cover ring-2 ${ACCENT_RING[accent]}`}
-          />
-        ) : (
-          <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full bg-brand-navy text-xs font-semibold text-white ring-2 ${ACCENT_RING[accent]}`}
-          >
-            {user.initials}
-          </div>
-        )}
+       
+        <UserAvatar user={user} accent={accent}/>
       </div>
     </header>
   );
