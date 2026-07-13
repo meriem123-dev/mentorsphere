@@ -11,14 +11,20 @@ import SectionCard from "@/components/ui/SectionCard";
 import{BriefcaseBusiness} from "lucide-react"
 
 const EXPERTISE_DOMAINS = [
+  "Stratégie & Business",
   "Développement produit",
-  "Marketing digital",
+  "Marketing & Growth",
+  "Vente & Business Development",
+  "Finance",
   "Levée de fonds",
-  "Stratégie business",
-  "Gestion d'équipe",
-  "Finance & comptabilité",
-  "Vente & négociation",
-  "Tech & innovation",
+  "Leadership & Management",
+  "Technologie & Développement",
+  "UX/UI Design",
+  "Opérations",
+  "Juridique",
+  "Ressources humaines",
+  "Data & IA",
+  "Cybersécurité",
 ];
 
 const EXPERIENCE_LEVELS = [

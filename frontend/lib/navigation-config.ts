@@ -20,7 +20,7 @@ export const entrepreneurNavItems: NavItem[] = [
   { label: "Mon Parcours", href: "/entrepreneur/parcours", icon: Map },
   { label: "Workspace", href: "/entrepreneur/workspace", icon: PenSquare },
   { label: "Calendrier", href: "/entrepreneur/calendrier", icon: CalendarDays },
-  { label: "Explorer", href: "/entrepreneur/explorer", icon: Compass },
+  { label: "Explorer", href: "/entrepreneur/explore", icon: Compass },
   { label: "Communauté", href: "/entrepreneur/communaute", icon: Hash },
   { label: "IA Assistant", href: "/entrepreneur/ia-assistant", icon: Bot },
   { label: "Ressources", href: "/entrepreneur/ressources", icon: BookOpen },

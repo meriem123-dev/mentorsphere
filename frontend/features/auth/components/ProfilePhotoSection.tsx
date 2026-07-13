@@ -4,8 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { BaseProfileFormData } from "@/types/authTypes";
 
-
-
 //bg colors photo
 const AVATAR_COLORS = [
   "bg-brand-blue",
@@ -30,17 +28,16 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
 
   //gérer upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImage(reader.result as string); // aperçu local uniquement
-    };
-    reader.readAsDataURL(file);
-    setFormData({ ...formData, photo: file }); // File réel envoyé au backend
-  }
-};
-
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string); // aperçu local uniquement
+      };
+      reader.readAsDataURL(file);
+      setFormData({ ...formData, photo: file }); // File réel envoyé au backend
+    }
+  };
 
   //mon rendu
   return (
@@ -75,7 +72,13 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
             {AVATAR_COLORS.map((color) => (
               <button
                 key={color}
-                onClick={() => setSelectedColor(color)}
+                onClick={() => {
+                  setSelectedColor(color);
+                  setFormData((prev) => ({
+                    ...prev,
+                    avatarColor: color,
+                  }));
+                }}
                 className={`w-6 h-6 rounded-full ${color} cursor-pointer border-2 transition ${
                   selectedColor === color
                     ? "border-foreground"

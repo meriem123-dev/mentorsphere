@@ -30,9 +30,29 @@ const LEVELS = [
 ];
 
 const DOMAINS = [
-  "AI", "FinTech", "EdTech", "HealthTech", "GreenTech", "SaaS", "E-commerce",
-  "Agriculture", "Cybersecurity", "Blockchain", "Marketplace", "Logistique",
-  "Immobilier", "Sport", "Mode",
+  "Intelligence Artificielle",
+  "FinTech",
+  "HealthTech",
+  "EdTech",
+  "GreenTech",
+  "Cybersecurity",
+  "Blockchain & Web3",
+  "SaaS",
+  "Marketplace",
+  "E-commerce",
+  "AgriTech",
+  "FoodTech",
+  "PropTech",
+  "Logistique",
+  "TravelTech",
+  "SportTech",
+  "FashionTech",
+  "LegalTech",
+  "HRTech",
+  "Media & Creator Economy",
+  "Gaming",
+  "IoT",
+  "Biotech",
 ];
 
 
