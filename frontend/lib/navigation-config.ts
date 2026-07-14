@@ -33,7 +33,6 @@ export const mentorNavItems: NavItem[] = [
   { label: "Demandes", href: "/mentor/demandes", icon: UserPlus, badge: 2 },
   { label: "Workspace", href: "/mentor/workspace", icon: PenSquare },
   { label: "Calendrier", href: "/mentor/calendrier", icon: CalendarDays },
-  { label: "Explorer", href: "/mentor/explorer", icon: Compass },
   { label: "Communauté", href: "/mentor/communaute", icon: Hash },
   { label: "IA Assistant", href: "/mentor/ia-assistant", icon: Bot },
   { label: "Ressources", href: "/mentor/ressources", icon: BookOpen },

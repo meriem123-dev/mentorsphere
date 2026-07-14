@@ -24,6 +24,13 @@ enum SocialPlatform {
   WEBSITE
 }
 
+enum MentorshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
 
 
 //************** Modèle User************
@@ -172,6 +179,7 @@ model Mentor {
 
   //****************** Relations pour Mentor*************
   domains           MentorDomain[]
+  mentorships      Mentorship[]
 }
 
 //************** Modèle Entrepreneur ************
@@ -189,6 +197,7 @@ model Entrepreneur {
   updatedAt         DateTime @updatedAt
 
   domains           EntrepreneurDomain[]
+  mentorships      Mentorship[]
 }
 
 //************Table pivot Domaines *********
@@ -218,6 +227,24 @@ model EntrepreneurDomain {
   domain         Domain       @relation(fields: [domainId], references: [id], onDelete: Cascade)
 
   @@id([entrepreneurId, domainId])
+}
+
+//***********table d'assocaion entre entrepreneur et mentor
+model Mentorship {
+  id               String @id @default(cuid())
+
+  mentorId         String
+  entrepreneurId   String
+
+  mentor           Mentor @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  entrepreneur     Entrepreneur @relation(fields: [entrepreneurId], references: [id], onDelete: Cascade)
+
+  status           MentorshipStatus @default(PENDING)
+
+  message          String? @db.Text
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 
