@@ -67,6 +67,7 @@ export const ComboBox = ({
 
       <div className="relative" ref={comboboxRef}>
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full px-4 py-3 rounded-2xl border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between ${
             error ? "border-destructive" : "border-input"
@@ -112,6 +113,7 @@ export const ComboBox = ({
                 {filteredOptions.length > 0 ? (
                   filteredOptions.map((option) => (
                     <motion.button
+                      type="button"
                       key={option}
                       onClick={() => {
                         onChange(option);

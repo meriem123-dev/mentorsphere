@@ -16,7 +16,7 @@ import type { NavItem } from "@/types/navigation";
 
 export const entrepreneurNavItems: NavItem[] = [
   { label: "Dashboard", href: "/entrepreneur/dashboard", icon: LayoutDashboard },
-  { label: "Mes Projets", href: "/entrepreneur/projets", icon: FolderKanban },
+  { label: "Startups", href: "/entrepreneur/startups", icon: FolderKanban },
   { label: "Mon Parcours", href: "/entrepreneur/parcours", icon: Map },
   { label: "Workspace", href: "/entrepreneur/workspace", icon: PenSquare },
   { label: "Calendrier", href: "/entrepreneur/calendrier", icon: CalendarDays },
