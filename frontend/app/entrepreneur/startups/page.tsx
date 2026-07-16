@@ -18,6 +18,8 @@ import {
 } from "@/features/projets/components/CreateStartupModal";
 import { startupApi } from "@/features/projets/api/startuAPI";
 import type { Startup } from "../../../types/startupTypes";
+import { confirmToast } from "@/lib/confirm";
+import { toast } from "sonner";
 
 //traduit l'enum Prisma (ASCII) vers le libellé français utilisé par le front
 const STAGE_LABELS: Record<Startup["stage"], ProjectStage> = {
@@ -27,7 +29,23 @@ const STAGE_LABELS: Record<Startup["stage"], ProjectStage> = {
   CROISSANCE: "Croissance",
 };
 
-//
+// convertit une Startup (backend) en valeurs de formulaire pour l'édition
+function mapStartupToFormValues(startup: Startup): CreateStartupFormValues {
+  return {
+    name: startup.name,
+    description: startup.description,
+    stage: STAGE_LABELS[startup.stage],
+    domain: startup.domain,
+    isPublic: startup.isPublic,
+    isRecruiting: startup.isRecruiting,
+    needs: startup.needs ?? [],
+    roadmapSteps: startup.steps.map((s) => ({
+      title: s.title,
+      completed: s.completed,
+    })),
+  };
+}
+
 function mapStartupToProjectData(startup: Startup): ProjectData {
   const total = startup.steps.length;
   const completed = startup.steps.filter((s) => s.completed).length;
@@ -48,15 +66,19 @@ function mapStartupToProjectData(startup: Startup): ProjectData {
 //page
 export default function MyProjectsPage() {
   const router = useRouter();
+
   const [view, setView] = useState<ProjectsView>("mine");
+  const [startups, setStartups] = useState<Startup[]>([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStartup, setEditingStartup] = useState<Startup | null>(null);
 
-  //appel api et chargment
+  //appel api et chargement
   const fetchProjects = async () => {
     try {
       const res = await startupApi.getMine();
+      setStartups(res.data.startups);
       setProjects(res.data.startups.map(mapStartupToProjectData));
     } finally {
       setIsLoading(false);
@@ -68,9 +90,13 @@ export default function MyProjectsPage() {
     fetchProjects();
   }, []);
 
-  //gérer création
-  const handleCreateStartup = async (values: CreateStartupFormValues) => {
-    await startupApi.create(values);
+  //gérer création + modification (même modal)
+  const handleSubmitModal = async (values: CreateStartupFormValues) => {
+    if (editingStartup) {
+      await startupApi.update(editingStartup.id, values);
+    } else {
+      await startupApi.create(values);
+    }
     setIsLoading(true);
     await fetchProjects();
   };
@@ -82,15 +108,37 @@ export default function MyProjectsPage() {
 
   //gérer delete
   const handleDeleteStartup = async (id: string) => {
-  if (!window.confirm("Supprimer cette startup ? Cette action est irréversible.")) return;
-  await startupApi.remove(id);
-  await fetchProjects();
-};
+    const confirmed = await confirmToast({
+      title: "Supprimer cette startup ?",
+      description: "Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+    });
+    if (!confirmed) return;
 
-//gérer modif
-const handleEditStartup = (id: string) => {
-  console.log("edit", id);
-};
+    await startupApi.remove(id);
+    await fetchProjects();
+    toast.success("Startup supprimée.");
+  };
+
+  //gérer ouverture modal en mode édition
+  const handleEditStartup = (id: string) => {
+    const startup = startups.find((s) => s.id === id);
+    if (!startup) return;
+    setEditingStartup(startup);
+    setIsModalOpen(true);
+  };
+
+  //gérer ouverture modal en mode création
+  const handleOpenCreateModal = () => {
+    setEditingStartup(null);
+    setIsModalOpen(true);
+  };
+
+  //gérer fermeture modal (reset du mode édition)
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingStartup(null);
+  };
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
@@ -107,7 +155,7 @@ const handleEditStartup = (id: string) => {
 
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreateModal}
           className="inline-flex items-center gap-1.5 self-start rounded-full bg-gradient-brand px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-transform active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" />
@@ -127,7 +175,7 @@ const handleEditStartup = (id: string) => {
             <ProjectsGrid
               projects={projects}
               onViewRoadmap={handleViewRoadmap}
-              onCreateProject={() => setIsModalOpen(true)}
+              onCreateProject={handleOpenCreateModal}
               onEdit={handleEditStartup}
               onDelete={handleDeleteStartup}
             />
@@ -135,8 +183,14 @@ const handleEditStartup = (id: string) => {
 
           <CreateStartupModal
             open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={handleCreateStartup}
+            onClose={handleModalClose}
+            onSubmit={handleSubmitModal}
+            mode={editingStartup ? "edit" : "create"}
+            initialValues={
+              editingStartup
+                ? mapStartupToFormValues(editingStartup)
+                : undefined
+            }
           />
         </>
       ) : (

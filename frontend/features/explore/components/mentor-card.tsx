@@ -17,8 +17,16 @@ export interface MentorCardData {
   initials: string;
 }
 
-export function MentorCard({ mentor, index = 0 }: { mentor: MentorCardData; index?: number }) {
-  const domain = EXPERTISE_STYLES[mentor.expertise];
+export function MentorCard({
+  mentor,
+  index = 0,
+  onRequestMentorship,
+}: {
+  mentor: MentorCardData;
+  index?: number;
+  onRequestMentorship?: (mentorId: string, mentorName: string) => void;
+}) {
+  const domain = EXPERTISE_STYLES[mentor.expertise] ?? Object.values(EXPERTISE_STYLES)[0];
   const Icon = domain.icon;
 
   return (
@@ -68,6 +76,7 @@ export function MentorCard({ mentor, index = 0 }: { mentor: MentorCardData; inde
 
       <button
         type="button"
+        onClick={() => onRequestMentorship?.(mentor.id, mentor.name)}
         className="relative mt-auto flex items-center justify-center gap-1.5 bg-gradient-brand py-3 text-sm font-medium text-white transition-[filter] hover:brightness-110"
       >
         Demander un mentorat

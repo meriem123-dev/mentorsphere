@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -72,18 +72,32 @@ interface CreateStartupModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: CreateStartupFormValues) => Promise<void> | void;
+  mode?: "create" | "edit";
+  initialValues?: CreateStartupFormValues;
 }
-
 
 //cmpst
 export function CreateStartupModal({
   open,
   onClose,
   onSubmit,
+  mode = "create",
+  initialValues,
 }: CreateStartupModalProps) {
   const [needInput, setNeedInput] = useState("");
   const [stepInput, setStepInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const defaultValues: CreateStartupFormValues = {
+    name: "",
+    description: "",
+    stage: "Idée",
+    domain: "",
+    isPublic: true,
+    isRecruiting: false,
+    needs: [],
+    roadmapSteps: [],
+  };
 
   const {
     register,
@@ -94,17 +108,16 @@ export function CreateStartupModal({
     reset,
     formState: { errors },
   } = useForm<CreateStartupFormValues>({
-    defaultValues: {
-      name: "",
-      description: "",
-      stage: "Idée",
-      domain: "",
-      isPublic: true,
-      isRecruiting: false,
-      needs: [],
-      roadmapSteps: [],
-    },
+    defaultValues,
   });
+
+  // Pré-remplit le formulaire quand on ouvre la modal en mode édition
+  useEffect(() => {
+    if (open) {
+      reset(mode === "edit" && initialValues ? initialValues : defaultValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, initialValues]);
 
   const {
     fields: stepFields,
@@ -139,7 +152,12 @@ export function CreateStartupModal({
   const addStep = (title?: string) => {
     const value = (title ?? stepInput).trim();
     if (!value || stepFields.length >= MAX_STEPS) return;
-    if (stepFields.some((step) => step.title.toLowerCase() === value.toLowerCase())) return;
+    if (
+      stepFields.some(
+        (step) => step.title.toLowerCase() === value.toLowerCase(),
+      )
+    )
+      return;
     appendStep({ title: value, completed: false });
     if (!title) setStepInput("");
   };
@@ -183,7 +201,7 @@ export function CreateStartupModal({
           >
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <h2 className="text-lg font-semibold text-foreground">
-                Créer une startup
+                {mode === "edit" ? "Modifier la startup" : "Créer une startup"}
               </h2>
               <button
                 type="button"
@@ -399,7 +417,10 @@ export function CreateStartupModal({
                 {/* Suggestions rapides, masquées une fois ajoutées */}
                 <div className="flex flex-wrap gap-1.5">
                   {STEP_SUGGESTIONS.filter(
-                    (s) => !stepFields.some((f) => f.title.toLowerCase() === s.toLowerCase()),
+                    (s) =>
+                      !stepFields.some(
+                        (f) => f.title.toLowerCase() === s.toLowerCase(),
+                      ),
                   ).map((suggestion) => (
                     <button
                       key={suggestion}
@@ -417,9 +438,12 @@ export function CreateStartupModal({
                   <>
                     <div className="mt-1">
                       <div className="mb-1 flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Progression initiale</span>
+                        <span className="text-muted-foreground">
+                          Progression initiale
+                        </span>
                         <span className="font-medium text-foreground">
-                          {progressPercent}% · {completedStepsCount}/{watchedSteps.length}
+                          {progressPercent}% · {completedStepsCount}/
+                          {watchedSteps.length}
                         </span>
                       </div>
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -441,7 +465,9 @@ export function CreateStartupModal({
                             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
                               <button
                                 type="button"
-                                onClick={() => completedField.onChange(!completedField.value)}
+                                onClick={() =>
+                                  completedField.onChange(!completedField.value)
+                                }
                                 aria-pressed={completedField.value}
                                 aria-label={
                                   completedField.value
@@ -454,7 +480,11 @@ export function CreateStartupModal({
                                     : "bg-muted text-muted-foreground hover:bg-brand-blue/10 hover:text-brand-blue"
                                 }`}
                               >
-                                {completedField.value ? <Check className="h-3 w-3" /> : index + 1}
+                                {completedField.value ? (
+                                  <Check className="h-3 w-3" />
+                                ) : (
+                                  index + 1
+                                )}
                               </button>
                               <span
                                 className={`flex-1 truncate text-sm transition-colors ${
@@ -502,7 +532,9 @@ export function CreateStartupModal({
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                  Optionnel — cochez une étape déjà accomplie pour démarrer avec une progression réelle. Vous pourrez aussi en ajouter plus tard depuis la roadmap du projet.
+                  Optionnel — cochez une étape déjà accomplie pour démarrer avec
+                  une progression réelle. Vous pourrez aussi en ajouter plus
+                  tard depuis la roadmap du projet.
                 </p>
               </div>
 
@@ -514,7 +546,7 @@ export function CreateStartupModal({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {field.value ? (
-                          <Globe className="h-4 w-4 text-muted-foreground" />
+                          <Globe className="h-4 w-4  text-muted-foreground" />
                         ) : (
                           <Lock className="h-4 w-4 text-muted-foreground" />
                         )}
@@ -537,8 +569,8 @@ export function CreateStartupModal({
                         }`}
                       >
                         <span
-                          className={`absolute -left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                            field.value ? "translate-x-5" : "translate-x-0"
+                          className={`absolute -left-0.5  top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                            field.value ? "translate-x-6.5" : "translate-x-0"
                           }`}
                         />
                       </button>
@@ -568,7 +600,7 @@ export function CreateStartupModal({
                       >
                         <span
                           className={`absolute -left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                            field.value ? "translate-x-5" : "translate-x-0.5"
+                            field.value ? "translate-x-6.5" : "translate-x-0.5"
                           }`}
                         />
                       </button>
@@ -593,7 +625,7 @@ export function CreateStartupModal({
                   {isSubmitting && (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   )}
-                  Créer la startup
+                  {mode === "edit" ? "Enregistrer" : "Créer la startup"}
                 </button>
               </div>
             </form>

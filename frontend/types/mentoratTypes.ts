@@ -1,3 +1,7 @@
+import type { Mentor, MentorUser } from "./mentorTypes";
+
+export type MentorshipStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
+
 export type MentorshipStage = "Idée" | "MVP" | "Seed" | "Croissance";
 
 export interface MentorshipRequest {
@@ -14,4 +18,48 @@ export interface MentorshipRequest {
   timeAgo: string;
   /** Score d'affinité 0-100 */
   compatibilityScore?: number;
+}
+
+
+
+
+export interface MentorshipStartup {
+  id: string;
+  name: string;
+  stage: string;
+  domain: string;
+  description?: string;
+}
+
+export interface MentorshipEntrepreneur {
+  id: string;
+  user: MentorUser;
+}
+
+export interface Mentorship {
+  id: string;
+  status: MentorshipStatus;
+  message: string | null;
+  startupId: string | null;
+  mentorId: string;
+  entrepreneurId: string;
+  createdAt: string;
+  updatedAt: string;
+  startup: MentorshipStartup | null;
+  mentor?: Mentor;
+  entrepreneur?: MentorshipEntrepreneur;
+}
+
+export interface CreateMentorshipPayload {
+  mentorId: string;
+  startupId: string;
+  message: string;
+}
+
+export interface GetMentorsResponseWrapper {
+  mentors: Mentor[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }

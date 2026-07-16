@@ -5,6 +5,8 @@ import multer from "multer";
 import authRoutes from "./routes/authRoutes";
 import profileRoutes from "./routes/profileRoutes";
 import startupRoutes from "./routes/startupRoutes";
+import mentorshipRoutes from "./routes/mentorshipRoutes";
+
 import cookieParser from "cookie-parser";
 
 // app conf
@@ -28,6 +30,7 @@ app.use(morgan("dev"));
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/startups", startupRoutes);
+app.use("/api/mentorship",mentorshipRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {
