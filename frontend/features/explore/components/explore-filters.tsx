@@ -5,11 +5,10 @@ import { Tabs } from "@base-ui/react/tabs";
 import { ChoicePills } from "@/components/ui/ChoicePills";
 import { EXPERTISE_DOMAINS, type ExpertiseDomain } from "@/lib/expertise";
 
-type View = "mentors" | "projets" | "entrepreneurs";
+type View = "mentors" | "entrepreneurs";
 
 const VIEWS: { value: View; label: string }[] = [
   { value: "mentors", label: "Mentors" },
-  { value: "projets", label: "Projets" },
   { value: "entrepreneurs", label: "Entrepreneurs" },
 ];
 

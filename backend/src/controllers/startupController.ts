@@ -280,4 +280,139 @@ export class StartupController {
       next(error);
     }
   }
+
+  //recup 1 startup (owner ou visiteur si publique)
+  static async getStartupById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const id = req.params.id;
+      if (!id || typeof id !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Identifiant de startup invalide",
+        });
+      }
+
+      const result = await StartupService.getStartupById(id, userId);
+      if (!result) {
+        return res.status(404).json({
+          success: false,
+          message: "Startup introuvable",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: { startup: result.startup, isOwner: result.isOwner },
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "FORBIDDEN") {
+        return res.status(403).json({
+          success: false,
+          message: "Ce projet n'est pas public",
+        });
+      }
+      next(error);
+    }
+  }
+
+  //recup projets publics
+  static async getPublicStartups(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId = req.user!.userId;
+      const startups = await StartupService.getPublicStartups(userId);
+
+      res.status(200).json({
+        success: true,
+        data: { startups },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //envoyer une demande pour rejoindre un projet
+  static async createJoinRequest(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId = req.user!.userId;
+      const id = req.params.id;
+
+      if (!id || typeof id !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Identifiant de startup invalide",
+        });
+      }
+
+      const { message } = req.body;
+
+      if (message !== undefined && typeof message !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Message invalide",
+        });
+      }
+      if (typeof message === "string" && message.length > 500) {
+        return res.status(400).json({
+          success: false,
+          message: "Le message ne peut pas dépasser 500 caractères",
+        });
+      }
+
+      const request = await StartupService.createJoinRequest({
+        startupId: id,
+        userId,
+        message,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Demande envoyée avec succès",
+        data: { request },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "ENTREPRENEUR_NOT_FOUND") {
+          return res
+            .status(403)
+            .json({ success: false, message: "Profil entrepreneur requis" });
+        }
+        if (error.message === "STARTUP_NOT_FOUND") {
+          return res
+            .status(404)
+            .json({ success: false, message: "Startup introuvable" });
+        }
+        if (error.message === "FORBIDDEN") {
+          return res
+            .status(403)
+            .json({ success: false, message: "Ce projet n'est pas public" });
+        }
+        if (error.message === "CANNOT_JOIN_OWN_STARTUP") {
+          return res
+            .status(400)
+            .json({
+              success: false,
+              message: "Vous ne pouvez pas rejoindre votre propre projet",
+            });
+        }
+        if (error.message === "ALREADY_REQUESTED") {
+          return res
+            .status(409)
+            .json({
+              success: false,
+              message: "Vous avez déjà envoyé une demande pour ce projet",
+            });
+        }
+      }
+      next(error);
+    }
+  }
 }

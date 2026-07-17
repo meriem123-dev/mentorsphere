@@ -1,4 +1,3 @@
-// backend/src/services/mentorService.ts
 import prisma from "../lib/prisma";
 
 interface GetMentorsParams {
@@ -6,13 +5,17 @@ interface GetMentorsParams {
   domain?: string | undefined;
   page?: number | undefined;
   pageSize?: number | undefined;
+  currentUserId: string;
 }
 
+
+//métier recup tous les mentors
 export const getMentors = async ({
   search,
   domain,
   page = 1,
   pageSize = 12,
+  currentUserId,
 }: GetMentorsParams) => {
   const where: any = {
     user: { isActive: true },
@@ -34,6 +37,10 @@ export const getMentors = async ({
     };
   }
 
+  const currentEntrepreneur = await prisma.entrepreneur.findUnique({
+    where: { userId: currentUserId },
+  });
+
   const [mentors, total] = await Promise.all([
     prisma.mentor.findMany({
       where,
@@ -51,8 +58,10 @@ export const getMentors = async ({
         },
         domains: { include: { domain: true } },
         mentorships: {
-          where: { status: "ACCEPTED" },
-          select: { id: true },
+          where: currentEntrepreneur
+            ? { OR: [{ status: "ACCEPTED" }, { entrepreneurId: currentEntrepreneur.id }] }
+            : { status: "ACCEPTED" },
+          select: { id: true, status: true, entrepreneurId: true },
         },
       },
       skip: (page - 1) * pageSize,
@@ -63,7 +72,19 @@ export const getMentors = async ({
   ]);
 
   return {
-    mentors,
+    mentors: mentors.map((mentor: any) => {
+      const menteeCount = mentor.mentorships.filter((m: any) => m.status === "ACCEPTED").length;
+      const myRequest = currentEntrepreneur
+        ? mentor.mentorships.find((m: any) => m.entrepreneurId === currentEntrepreneur.id)
+        : undefined;
+
+      return {
+        ...mentor,
+        mentorships: mentor.mentorships.filter((m: any) => m.status === "ACCEPTED"),
+        menteeCount,
+        mentorshipStatus: myRequest?.status ?? null,
+      };
+    }),
     total,
     page,
     pageSize,
@@ -71,8 +92,13 @@ export const getMentors = async ({
   };
 };
 
-export const getMentorById = async (id: string) => {
-  return prisma.mentor.findUnique({
+//métier recup un mentor
+export const getMentorById = async (id: string, currentUserId: string) => {
+  const currentEntrepreneur = await prisma.entrepreneur.findUnique({
+    where: { userId: currentUserId },
+  });
+
+  const mentor = await prisma.mentor.findUnique({
     where: { id },
     include: {
       user: {
@@ -91,9 +117,25 @@ export const getMentorById = async (id: string) => {
       },
       domains: { include: { domain: true } },
       mentorships: {
-        where: { status: "ACCEPTED" },
-        select: { id: true },
+        where: currentEntrepreneur
+          ? { OR: [{ status: "ACCEPTED" }, { entrepreneurId: currentEntrepreneur.id }] }
+          : { status: "ACCEPTED" },
+        select: { id: true, status: true, entrepreneurId: true },
       },
     },
   });
+
+  if (!mentor) return null;
+
+  const menteeCount = mentor.mentorships.filter((m: any) => m.status === "ACCEPTED").length;
+  const myRequest = currentEntrepreneur
+    ? mentor.mentorships.find((m: any) => m.entrepreneurId === currentEntrepreneur.id)
+    : undefined;
+
+  return {
+    ...mentor,
+    mentorships: mentor.mentorships.filter((m: any) => m.status === "ACCEPTED"),
+    menteeCount,
+    mentorshipStatus: myRequest?.status ?? null,
+  };
 };

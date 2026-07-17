@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,15 +7,21 @@ import { ExploreGrid } from "@/features/explore/components/explore-grid";
 import { RequestMentorshipModal } from "@/features/explore/components/request-mentorship-modal";
 import { mentorApi } from "@/features/explore/api/mentorAPI";
 import type { MentorCardData } from "@/features/explore/components/mentor-card";
+import type { EntrepreneurCardData } from "@/features/explore/components/EntrepreneurCard";
 import type { Mentor } from "../../../types/mentorTypes";
+import type { Entrepreneur } from "../../../types/entrepreneurTypes";
 import { EXPERTISE_DOMAINS, type ExpertiseDomain } from "@/lib/expertise";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const FALLBACK_DOMAIN = (EXPERTISE_DOMAINS[0] ?? "SaaS") as ExpertiseDomain;
 
 function mapMentorToCardData(mentor: Mentor): MentorCardData {
-  const primaryDomain = mentor.domains[0]?.domain.name as ExpertiseDomain | undefined;
-  const initials = `${mentor.user.firstName.charAt(0)}${mentor.user.lastName.charAt(0)}`.toUpperCase();
+  const primaryDomain = mentor.domains[0]?.domain.name as
+    | ExpertiseDomain
+    | undefined;
+  const initials =
+    `${mentor.user.firstName.charAt(0)}${mentor.user.lastName.charAt(0)}`.toUpperCase();
 
   return {
     id: mentor.id,
@@ -27,20 +32,49 @@ function mapMentorToCardData(mentor: Mentor): MentorCardData {
     menteeCount: mentor.mentorships.length,
     avatarUrl: mentor.user.profilePicture ?? undefined,
     initials,
+    mentorshipStatus: mentor.mentorshipStatus ?? null,
+  };
+}
+
+function mapEntrepreneurToCardData(entrepreneur: Entrepreneur): EntrepreneurCardData {
+  const primaryDomain = entrepreneur.domains[0]?.domain.name as
+    | ExpertiseDomain
+    | undefined;
+  const initials =
+    `${entrepreneur.user.firstName.charAt(0)}${entrepreneur.user.lastName.charAt(0)}`.toUpperCase();
+
+  return {
+    id: entrepreneur.id,
+    name: `${entrepreneur.user.firstName} ${entrepreneur.user.lastName}`,
+    title: entrepreneur.profession ?? "Entrepreneur",
+    expertise: primaryDomain ?? FALLBACK_DOMAIN,
+    lookingFor: entrepreneur.lookingFor,
+    avatarUrl: entrepreneur.user.profilePicture ?? undefined,
+    initials,
+    
   };
 }
 
 export default function ExplorePage() {
+  const router = useRouter();
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sector, setSector] = useState("Tous");
-  const [view, setView] = useState<"mentors" | "projets" | "entrepreneurs">("mentors");
 
   const [mentors, setMentors] = useState<MentorCardData[]>([]);
+  const [entrepreneurs, setEntrepreneurs] = useState<EntrepreneurCardData[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   const [requestModalOpen, setRequestModalOpen] = useState(false);
-  const [selectedMentor, setSelectedMentor] = useState<{ id: string; name: string } | null>(null);
+  const [selectedMentor, setSelectedMentor] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const [view, setView] = useState<"mentors" | "entrepreneurs">("mentors");
 
   // debounce de la recherche
   useEffect(() => {
@@ -48,54 +82,78 @@ export default function ExplorePage() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  // fetch mentors à chaque changement de recherche/secteur
-  useEffect(() => {
-    if (view !== "mentors") return;
+  // fetch mentors ou entrepreneurs selon la vue active
+ useEffect(() => {
+  let ignore = false;
 
-    let cancelled = false;
+  const load = async () => {
+    setIsLoading(true);
+    try {
+      const domainParam = sector !== "Tous" ? sector : undefined;
 
-    const load = async () => {
-      setIsLoading(true);
-      try {
+      if (view === "mentors") {
         const res = await mentorApi.getMentors({
+          domain: domainParam,
           search: debouncedSearch || undefined,
-          domain: sector !== "Tous" ? sector : undefined,
         });
-        if (!cancelled) setMentors(res.mentors.map(mapMentorToCardData));
-      } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!ignore) setMentors(res.mentors.map(mapMentorToCardData));
+      } else {
+        const res = await mentorApi.getEntrepreneurs({
+          domain: domainParam,
+          search: debouncedSearch || undefined,
+        });
+        if (!ignore)
+          setEntrepreneurs(res.entrepreneurs.map(mapEntrepreneurToCardData));
       }
-    };
+    } catch (error) {
+      console.error("Explore fetch error:", error);
+      if (!ignore) {
+        setMentors([]);
+        setEntrepreneurs([]);
+      }
+    } finally {
+      if (!ignore) setIsLoading(false);
+    }
+  };
 
-    load();
+  load();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSearch, sector, view]);
+  return () => {
+    ignore = true;
+  };
+}, [view, sector, debouncedSearch]);
 
   const handleRequestMentorship = (mentorId: string, mentorName: string) => {
     setSelectedMentor({ id: mentorId, name: mentorName });
     setRequestModalOpen(true);
   };
 
+  const handleViewProfile = (entrepreneurId: string) => {
+    router.push(`/entrepreneur/explore/entrepreneurs/${entrepreneurId}`);
+  };
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8">
       <ExploreSearchBar value={search} onChange={setSearch} />
-      <ExploreFilters expertise={sector} onExpertiseChange={setSector} view={view} onViewChange={setView} />
+      <ExploreFilters
+        expertise={sector}
+        onExpertiseChange={setSector}
+        view={view}
+        onViewChange={setView}
+      />
 
-      {view === "mentors" ? (
-        isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <ExploreGrid mentors={mentors} onRequestMentorship={handleRequestMentorship} />
-        )
-      ) : (
-        <div className="rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
-          Cette vue arrive bientôt.
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
+      ) : (
+        <ExploreGrid
+          view={view}
+          mentors={mentors}
+          entrepreneurs={entrepreneurs}
+          onRequestMentorship={handleRequestMentorship}
+          onViewProfile={handleViewProfile}
+        />
       )}
 
       <RequestMentorshipModal

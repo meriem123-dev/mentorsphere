@@ -42,6 +42,7 @@ export interface Startup {
   createdAt: string;
   updatedAt: string;
   steps: StartupStep[];
+  joinRequestStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | null;
 }
 
 export interface StartupResponse {
@@ -60,3 +61,7 @@ export interface DeleteStartupResponse {
   message: string;
 }
 
+export interface GetStartupResponse {
+  success: boolean;
+  data: { startup: Startup; isOwner: boolean };
+}

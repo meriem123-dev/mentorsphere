@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star, ArrowUpRight } from "lucide-react";
+import { Star, ArrowUpRight, Clock, Check, X } from "lucide-react";
 import { RatingRing } from "./rating-ring";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { EXPERTISE_STYLES, type ExpertiseDomain } from "@/lib/expertise";
+
+export type MentorshipRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED";
 
 export interface MentorCardData {
   id: string;
@@ -15,7 +17,34 @@ export interface MentorCardData {
   menteeCount: number;
   avatarUrl?: string;
   initials: string;
+  mentorshipStatus?: MentorshipRequestStatus | null;
 }
+
+const STATUS_CONFIG: Record<
+  MentorshipRequestStatus,
+  { label: string; icon: typeof Clock; className: string }
+> = {
+  PENDING: {
+    label: "Demande envoyée",
+    icon: Clock,
+    className: "bg-muted text-muted-foreground",
+  },
+  ACCEPTED: {
+    label: "Mentorat accepté",
+    icon: Check,
+    className: "bg-success/10 text-success",
+  },
+  REJECTED: {
+    label: "Demande refusée",
+    icon: X,
+    className: "bg-danger/10 text-danger",
+  },
+  CANCELLED: {
+    label: "Demande annulée",
+    icon: X,
+    className: "bg-muted text-muted-foreground",
+  },
+};
 
 export function MentorCard({
   mentor,
@@ -28,6 +57,17 @@ export function MentorCard({
 }) {
   const domain = EXPERTISE_STYLES[mentor.expertise] ?? Object.values(EXPERTISE_STYLES)[0];
   const Icon = domain.icon;
+
+  // REJECTED et CANCELLED n'empêchent pas une nouvelle demande
+  const canRequest =
+    !mentor.mentorshipStatus ||
+    mentor.mentorshipStatus === "REJECTED" ||
+    mentor.mentorshipStatus === "CANCELLED";
+
+  const statusConfig =
+    mentor.mentorshipStatus && !canRequest
+      ? STATUS_CONFIG[mentor.mentorshipStatus]
+      : null;
 
   return (
     <motion.article
@@ -74,14 +114,23 @@ export function MentorCard({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => onRequestMentorship?.(mentor.id, mentor.name)}
-        className="relative mt-auto flex items-center justify-center gap-1.5 bg-gradient-brand py-3 text-sm font-medium text-white transition-[filter] hover:brightness-110"
-      >
-        Demander un mentorat
-        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </button>
+      {statusConfig ? (
+        <span
+          className={`flex items-center justify-center gap-1.5 py-3 text-sm font-medium ${statusConfig.className}`}
+        >
+          <statusConfig.icon className="h-3.5 w-3.5" />
+          {statusConfig.label}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onRequestMentorship?.(mentor.id, mentor.name)}
+          className="relative mt-auto flex items-center justify-center gap-1.5 bg-gradient-brand py-3 text-sm font-medium text-white transition-[filter] hover:brightness-110"
+        >
+          Demander un mentorat
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </button>
+      )}
     </motion.article>
   );
 }

@@ -77,14 +77,23 @@ export class StartupService {
   }
 
   //métier recup 1 startup
-  static async getStartupById(startupId: string) {
-    return prisma.startup.findUnique({
+  static async getStartupById(startupId: string, requestingUserId: string) {
+    const startup = await prisma.startup.findUnique({
       where: { id: startupId },
       include: {
         entrepreneur: true,
         steps: { orderBy: { order: "asc" } },
       },
     });
+
+    if (!startup) return null;
+
+    const isOwner = startup.entrepreneur.userId === requestingUserId;
+    if (!startup.isPublic && !isOwner) {
+      throw new Error("FORBIDDEN");
+    }
+
+    return { startup, isOwner };
   }
 
   static async getMyStartups(userId: string) {
@@ -102,14 +111,14 @@ export class StartupService {
 
   //modif startup
   static async updateStartup(input: UpdateStartupInput) {
-    const startup = await this.getStartupById(input.startupId);
-    if (!startup) {
+    const result = await this.getStartupById(input.startupId, input.userId);
+    if (!result) {
       throw new Error("STARTUP_NOT_FOUND");
     }
+    const { startup } = result;
     if (startup.entrepreneur.userId !== input.userId) {
       throw new Error("FORBIDDEN");
     }
-
     return prisma.$transaction(
       async (tx) => {
         await tx.startup.update({
@@ -156,14 +165,82 @@ export class StartupService {
 
   //supp startup
   static async deleteStartup(userId: string, startupId: string) {
-    const startup = await this.getStartupById(startupId);
-    if (!startup) {
+    const result = await this.getStartupById(startupId, userId);
+    if (!result) {
       throw new Error("STARTUP_NOT_FOUND");
     }
+    const { startup } = result;
     if (startup.entrepreneur.userId !== userId) {
       throw new Error("FORBIDDEN");
     }
 
     await prisma.startup.delete({ where: { id: startupId } });
+  }
+
+  //métier recup public projetss
+  static async getPublicStartups(userId: string) {
+    const entrepreneur = await this.getEntrepreneurByUserId(userId);
+
+    const startups = await prisma.startup.findMany({
+      where: {
+        isPublic: true,
+        ...(entrepreneur && { entrepreneurId: { not: entrepreneur.id } }),
+      },
+      include: {
+        steps: { orderBy: { order: "asc" } },
+        joinRequests: entrepreneur
+          ? {
+              where: { requesterId: entrepreneur.id },
+              select: { status: true },
+            }
+          : false,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return startups.map(({ joinRequests, ...startup }) => ({
+      ...startup,
+      joinRequestStatus: joinRequests?.[0]?.status ?? null,
+    }));
+  }
+
+  //créer une demande pour rejoindre un projet public
+  static async createJoinRequest(input: {
+    startupId: string;
+    userId: string;
+    message?: string;
+  }) {
+    const entrepreneur = await this.getEntrepreneurByUserId(input.userId);
+    if (!entrepreneur) {
+      throw new Error("ENTREPRENEUR_NOT_FOUND");
+    }
+
+    const startup = await prisma.startup.findUnique({
+      where: { id: input.startupId },
+    });
+    if (!startup) {
+      throw new Error("STARTUP_NOT_FOUND");
+    }
+    if (!startup.isPublic) {
+      throw new Error("FORBIDDEN");
+    }
+    if (startup.entrepreneurId === entrepreneur.id) {
+      throw new Error("CANNOT_JOIN_OWN_STARTUP");
+    }
+
+    try {
+      return await prisma.projectJoinRequest.create({
+        data: {
+          startupId: input.startupId,
+          requesterId: entrepreneur.id,
+          message: input.message?.trim() || null,
+        },
+      });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        throw new Error("ALREADY_REQUESTED");
+      }
+      throw error;
+    }
   }
 }

@@ -38,6 +38,12 @@ enum ProjectStage {
   CROISSANCE
 }
 
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 
 
 //************** Modèle User************
@@ -206,6 +212,7 @@ model Entrepreneur {
   domains           EntrepreneurDomain[]
   mentorships      Mentorship[]
   startups          Startup[]
+  joinRequests      ProjectJoinRequest[]
 }
 
 //************Table pivot Domaines *********
@@ -279,6 +286,7 @@ model Startup {
  //relations
   mentorships    Mentorship[]
   steps          StartupStep[]
+  joinRequests   ProjectJoinRequest[]
 }
 
 //*****model étapes startup********
@@ -294,4 +302,22 @@ model StartupStep {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+//********Modèle DEmande de rejoindre une startup**********
+model ProjectJoinRequest {
+  id          String            @id @default(cuid())
+  message     String?           @db.Text
+  status      JoinRequestStatus @default(PENDING)
+
+  startupId   String
+  startup     Startup      @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  requesterId String
+  requester   Entrepreneur @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([startupId, requesterId])
 }

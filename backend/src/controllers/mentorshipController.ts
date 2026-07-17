@@ -1,4 +1,4 @@
-// backend/src/controllers/mentorshipController.ts
+
 import { Request, Response } from "express";
 import * as mentorshipService from "../services/mentorshipService";
 

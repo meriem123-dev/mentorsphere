@@ -1,4 +1,4 @@
-export interface MentorUser {
+export interface EntrepreneurUser {
   id: string;
   firstName: string;
   lastName: string;
@@ -9,29 +9,28 @@ export interface MentorUser {
   bio?: string | null;
 }
 
-export interface MentorDomainItem {
+export interface EntrepreneurDomainItem {
   domain: { id: string; name: string };
 }
 
-export interface Mentor {
+export interface Entrepreneur {
   id: string;
   profession: string | null;
-  yearsOfExperience: string | null;
-  user: MentorUser;
-  domains: MentorDomainItem[];
-  mentorships: { id: string }[];
-  mentorshipStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | null;
+  level: string | null;
+  lookingFor: string[];
+  user: EntrepreneurUser;
+  domains: EntrepreneurDomainItem[];
 }
 
-export interface GetMentorsResponse {
-  mentors: Mentor[];
+export interface GetEntrepreneursResponse {
+  entrepreneurs: Entrepreneur[];
   total: number;
   page: number;
   pageSize: number;
   totalPages: number;
 }
 
-export interface GetMentorsParams {
+export interface GetEntrepreneursParams {
   search?: string;
   domain?: string;
   page?: number;

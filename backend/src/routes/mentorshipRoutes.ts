@@ -3,12 +3,15 @@ import { requireAuth } from "../middlewares/authMiddleware";
 import { requireRole } from "../middlewares/authMiddleware";
 import * as mentorController from "../controllers/mentorController";
 import * as mentorshipController from "../controllers/mentorshipController";
+import * as EntrepreneurController from "../controllers/entrepreneurController"
 
 const router = Router();
 
 
-router.get("/mentors", mentorController.getMentors);
-router.get("/mentors/:id", mentorController.getMentorById);
+router.get("/mentors",requireAuth, mentorController.getMentors);
+router.get("/entrepreneurs",requireAuth, EntrepreneurController.getEntrepreneurs);
+router.get("/entrepreneurs/:id",requireAuth, EntrepreneurController.getEntrepreneurById);
+router.get("/mentors/:id",requireAuth, mentorController.getMentorById);
 
 
 router.post(

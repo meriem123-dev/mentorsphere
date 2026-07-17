@@ -1,7 +1,5 @@
-
 import { Request, Response } from "express";
 import * as mentorService from "../services/mentorService";
-
 
 //recup mentors
 export const getMentors = async (req: Request, res: Response) => {
@@ -13,6 +11,7 @@ export const getMentors = async (req: Request, res: Response) => {
       domain: domain as string | undefined,
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
+      currentUserId: req.user!.userId,
     });
 
     return res.json(result);
@@ -32,7 +31,7 @@ export const getMentorById = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Identifiant de mentor manquant." });
     }
 
-    const mentor = await mentorService.getMentorById(id);
+    const mentor = await mentorService.getMentorById(id, req.user!.userId);
 
     if (!mentor) {
       return res.status(404).json({ message: "Mentor introuvable." });
