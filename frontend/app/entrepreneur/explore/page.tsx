@@ -8,6 +8,8 @@ import { RequestMentorshipModal } from "@/features/explore/components/request-me
 import { mentorApi } from "@/features/explore/api/mentorAPI";
 import type { MentorCardData } from "@/features/explore/components/mentor-card";
 import type { EntrepreneurCardData } from "@/features/explore/components/EntrepreneurCard";
+import { startupApi } from "@/features/projets/api/startuAPI";
+import type { Startup } from "../../../types/startupTypes";
 import type { Mentor } from "../../../types/mentorTypes";
 import type { Entrepreneur } from "../../../types/entrepreneurTypes";
 import { EXPERTISE_DOMAINS, type ExpertiseDomain } from "@/lib/expertise";
@@ -16,12 +18,23 @@ import { useRouter } from "next/navigation";
 
 const FALLBACK_DOMAIN = (EXPERTISE_DOMAINS[0] ?? "SaaS") as ExpertiseDomain;
 
-function mapMentorToCardData(mentor: Mentor): MentorCardData {
+function mapMentorToCardData(
+  mentor: Mentor,
+  myStartupIds: string[],
+): MentorCardData {
   const primaryDomain = mentor.domains[0]?.domain.name as
     | ExpertiseDomain
     | undefined;
   const initials =
     `${mentor.user.firstName.charAt(0)}${mentor.user.lastName.charAt(0)}`.toUpperCase();
+
+  const requestedStartupIds = new Set(
+    (mentor.myMentorshipRequests ?? []).map((r) => r.startupId),
+  );
+  const sentCount = requestedStartupIds.size;
+  const hasRequestedAll =
+    myStartupIds.length > 0 &&
+    myStartupIds.every((id) => requestedStartupIds.has(id));
 
   return {
     id: mentor.id,
@@ -32,11 +45,14 @@ function mapMentorToCardData(mentor: Mentor): MentorCardData {
     menteeCount: mentor.mentorships.length,
     avatarUrl: mentor.user.profilePicture ?? undefined,
     initials,
-    mentorshipStatus: mentor.mentorshipStatus ?? null,
+    sentRequestsCount: sentCount,
+    hasRequestedAll,
+    requestedStartupIds: Array.from(requestedStartupIds) as string[],
   };
 }
-
-function mapEntrepreneurToCardData(entrepreneur: Entrepreneur): EntrepreneurCardData {
+function mapEntrepreneurToCardData(
+  entrepreneur: Entrepreneur,
+): EntrepreneurCardData {
   const primaryDomain = entrepreneur.domains[0]?.domain.name as
     | ExpertiseDomain
     | undefined;
@@ -51,7 +67,6 @@ function mapEntrepreneurToCardData(entrepreneur: Entrepreneur): EntrepreneurCard
     lookingFor: entrepreneur.lookingFor,
     avatarUrl: entrepreneur.user.profilePicture ?? undefined,
     initials,
-    
   };
 }
 
@@ -69,12 +84,13 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [view, setView] = useState<"mentors" | "entrepreneurs">("mentors");
+  const [myStartups, setMyStartups] = useState<Startup[]>([]);
   const [selectedMentor, setSelectedMentor] = useState<{
     id: string;
     name: string;
+    requestedStartupIds: string[];
   } | null>(null);
-
-  const [view, setView] = useState<"mentors" | "entrepreneurs">("mentors");
 
   // debounce de la recherche
   useEffect(() => {
@@ -83,57 +99,108 @@ export default function ExplorePage() {
   }, [search]);
 
   // fetch mentors ou entrepreneurs selon la vue active
- useEffect(() => {
-  let ignore = false;
-
-  const load = async () => {
+  const loadMentors = async () => {
     setIsLoading(true);
     try {
       const domainParam = sector !== "Tous" ? sector : undefined;
-
-      if (view === "mentors") {
-        const res = await mentorApi.getMentors({
-          domain: domainParam,
-          search: debouncedSearch || undefined,
-        });
-        if (!ignore) setMentors(res.mentors.map(mapMentorToCardData));
-      } else {
-        const res = await mentorApi.getEntrepreneurs({
-          domain: domainParam,
-          search: debouncedSearch || undefined,
-        });
-        if (!ignore)
-          setEntrepreneurs(res.entrepreneurs.map(mapEntrepreneurToCardData));
-      }
+      const res = await mentorApi.getMentors({
+        domain: domainParam,
+        search: debouncedSearch || undefined,
+      });
+      setMentors(
+        res.mentors.map((m) =>
+          mapMentorToCardData(
+            m,
+            myStartups.map((s) => s.id),
+          ),
+        ),
+      );
     } catch (error) {
       console.error("Explore fetch error:", error);
-      if (!ignore) {
-        setMentors([]);
-        setEntrepreneurs([]);
-      }
+      setMentors([]);
     } finally {
-      if (!ignore) setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
-  load();
+  useEffect(() => {
+    let ignore = false;
 
-  return () => {
-    ignore = true;
-  };
-}, [view, sector, debouncedSearch]);
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const domainParam = sector !== "Tous" ? sector : undefined;
 
-  const handleRequestMentorship = (mentorId: string, mentorName: string) => {
-    setSelectedMentor({ id: mentorId, name: mentorName });
-    setRequestModalOpen(true);
-  };
+        if (view === "mentors") {
+          const res = await mentorApi.getMentors({
+            domain: domainParam,
+            search: debouncedSearch || undefined,
+          });
+          if (!ignore)
+            setMentors(
+              res.mentors.map((m) =>
+                mapMentorToCardData(
+                  m,
+                  myStartups.map((s) => s.id),
+                ),
+              ),
+            );
+        } else {
+          const res = await mentorApi.getEntrepreneurs({
+            domain: domainParam,
+            search: debouncedSearch || undefined,
+          });
+          if (!ignore)
+            setEntrepreneurs(res.entrepreneurs.map(mapEntrepreneurToCardData));
+        }
+      } catch (error) {
+        console.error("Explore fetch error:", error);
+        if (!ignore) {
+          setMentors([]);
+          setEntrepreneurs([]);
+        }
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, [view, sector, debouncedSearch, myStartups]);
+
+  //chargement startups
+  useEffect(() => {
+    let ignore = false;
+    startupApi
+      .getMine()
+      .then((res) => {
+        if (!ignore) setMyStartups(res.data.startups);
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleViewProfile = (entrepreneurId: string) => {
     router.push(`/entrepreneur/explore/entrepreneurs/${entrepreneurId}`);
   };
 
+  const handleRequestMentorship = (mentorId: string, mentorName: string) => {
+    const mentor = mentors.find((m) => m.id === mentorId);
+    setSelectedMentor({
+      id: mentorId,
+      name: mentorName,
+      requestedStartupIds: mentor?.requestedStartupIds ?? [],
+    });
+    setRequestModalOpen(true);
+  };
+
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8">
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-2">
       <ExploreSearchBar value={search} onChange={setSearch} />
       <ExploreFilters
         expertise={sector}
@@ -161,6 +228,8 @@ export default function ExplorePage() {
         onClose={() => setRequestModalOpen(false)}
         mentorId={selectedMentor?.id ?? null}
         mentorName={selectedMentor?.name}
+        requestedStartupIds={selectedMentor?.requestedStartupIds ?? []}
+        onSuccess={loadMentors}
       />
     </div>
   );

@@ -56,12 +56,10 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
   const accent = ACCENT[role];
   const isDark = mounted && theme === "dark";
 
-  // Ferme le drawer à chaque changement de route (mobile)
   useEffect(() => {
     close();
   }, [pathname, close]);
 
-  // Empêche le scroll du body pendant que le drawer mobile est ouvert
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -71,7 +69,6 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
     }
   }, [isOpen]);
 
-  // Fermeture via la touche Échap
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -90,6 +87,89 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
     }
   };
 
+  const renderNav = () => (
+    <nav className="flex flex-1 flex-col gap-1 overflow-hidden">
+      {navItems.map((item) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+
+        return (
+          <NextLink
+            key={item.href}
+            href={item.href}
+            className={`relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${FOCUS_RING} ${
+              isActive ? "text-white" : `text-muted-foreground ${accent.hover}`
+            }`}
+          >
+            {isActive && (
+              <motion.span
+                layoutId={`sidebar-active-pill-${role}`}
+                className={`absolute inset-0 rounded-xl ${accent.activeBg} shadow-sm shadow-black/10`}
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+              />
+            )}
+            <span className="relative z-10 flex flex-1 items-center gap-3">
+              <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <span className="flex-1 truncate">{item.label}</span>
+              {!!item.badge && (
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-rose px-1 text-[10px] font-semibold text-white">
+                  {item.badge}
+                </span>
+              )}
+            </span>
+          </NextLink>
+        );
+      })}
+    </nav>
+  );
+
+  const renderFooter = () => (
+    <div className="space-y-1 border-t border-border pt-1">
+      <button
+        type="button"
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
+      >
+        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        Mode {isDark ? "Clair" : "Sombre"}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-brand-rose transition-colors hover:bg-brand-rose/8 ${FOCUS_RING}`}
+      >
+        <LogOut className="h-4 w-4" />
+        Déconnexion
+      </button>
+
+      <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2">
+        {user.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={user.avatarUrl}
+            alt={user.name}
+            className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-border"
+          />
+        ) : (
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ring-2 ring-border ${user.avatarColor ?? accent.avatar}`}
+          >
+            {user.initials}
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">
+            {user.name}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {user.roleLabel}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Backdrop mobile */}
@@ -107,113 +187,43 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
         )}
       </AnimatePresence>
 
+      {/* MOBILE SIDEBAR - Drawer overlay */}
       <aside
         role="dialog"
         aria-modal={isOpen}
         aria-label="Menu de navigation"
-        className={`fixed inset-y-0 left-0 z-50 flex h-full w-72 -translate-x-full flex-col border-r border-border bg-card px-3 py-4 shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:w-64 lg:translate-x-0 lg:shadow-none ${
+        className={`fixed rounded-3xl inset-y-0 left-0 z-50 flex h-full w-1/2 -translate-x-full flex-col border-r border-border bg-card px-3 py-3 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? "translate-x-0" : ""
         }`}
       >
-        {/* Logo + close (mobile) */}
-        <div className="flex items-center justify-between px-3 pb-6">
-          <Logo />
+        <div className="flex items-center justify-between px-1 pb-4">
+          <Logo compact/>
           <button
             type="button"
             onClick={close}
             aria-label="Fermer le menu"
-            className={`flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden ${FOCUS_RING}`}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
+        {renderNav()}
+        {renderFooter()}
+      </aside>
 
-            return (
-              <NextLink
-                key={item.href}
-                href={item.href}
-                className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${FOCUS_RING} ${
-                  isActive
-                    ? "text-white"
-                    : `text-muted-foreground ${accent.hover}`
-                }`}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId={`sidebar-active-pill-${role}`}
-                    className={`absolute inset-0 rounded-xl ${accent.activeBg}`}
-                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                  />
-                )}
-                <span className="relative z-10 flex flex-1 items-center gap-3">
-                  <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {!!item.badge && (
-                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-rose px-1 text-[10px] font-semibold text-white">
-                      {item.badge}
-                    </span>
-                  )}
-                </span>
-              </NextLink>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
-        <div className="space-y-1 border-t border-border pt-3">
-          <button
-            type="button"
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
-          >
-            {isDark ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-            Mode {isDark ? "Clair" : "Sombre"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-brand-rose transition-colors hover:bg-brand-rose/8 ${FOCUS_RING}`}
-          >
-            <LogOut className="h-4 w-4" />
-            Déconnexion
-          </button>
-
-          <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2.5">
-            {user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-border"
-              />
-            ) : (
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ring-2 ring-border ${user.avatarColor ?? accent.avatar}`}
-              >
-                {user.initials}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
-                {user.name}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {user.roleLabel}
-              </p>
-            </div>
-          </div>
+      {/* DESKTOP SIDEBAR */}
+      <aside
+        role="navigation"
+        aria-label="Menu de navigation"
+        className="hidden h-screen w-1/6 flex-col border-r border-border bg-card px-3 py-3 lg:flex rounded-3xl"
+      >
+        <div className="px-1 pb-3">
+          <Logo />
         </div>
+
+        {renderNav()}
+        {renderFooter()}
       </aside>
     </>
   );

@@ -8,7 +8,6 @@ interface GetMentorsParams {
   currentUserId: string;
 }
 
-
 //métier recup tous les mentors
 export const getMentors = async ({
   search,
@@ -59,9 +58,19 @@ export const getMentors = async ({
         domains: { include: { domain: true } },
         mentorships: {
           where: currentEntrepreneur
-            ? { OR: [{ status: "ACCEPTED" }, { entrepreneurId: currentEntrepreneur.id }] }
+            ? {
+                OR: [
+                  { status: "ACCEPTED" },
+                  { entrepreneurId: currentEntrepreneur.id },
+                ],
+              }
             : { status: "ACCEPTED" },
-          select: { id: true, status: true, entrepreneurId: true },
+          select: {
+            id: true,
+            status: true,
+            entrepreneurId: true,
+            startupId: true,
+          },
         },
       },
       skip: (page - 1) * pageSize,
@@ -73,16 +82,27 @@ export const getMentors = async ({
 
   return {
     mentors: mentors.map((mentor: any) => {
-      const menteeCount = mentor.mentorships.filter((m: any) => m.status === "ACCEPTED").length;
-      const myRequest = currentEntrepreneur
-        ? mentor.mentorships.find((m: any) => m.entrepreneurId === currentEntrepreneur.id)
-        : undefined;
+      const menteeCount = mentor.mentorships.filter(
+        (m: any) => m.status === "ACCEPTED",
+      ).length;
+      const myRequests = currentEntrepreneur
+        ? mentor.mentorships.filter(
+            (m: any) =>
+              m.entrepreneurId === currentEntrepreneur.id &&
+              (m.status === "PENDING" || m.status === "ACCEPTED"),
+          )
+        : [];
 
       return {
         ...mentor,
-        mentorships: mentor.mentorships.filter((m: any) => m.status === "ACCEPTED"),
+        mentorships: mentor.mentorships.filter(
+          (m: any) => m.status === "ACCEPTED",
+        ),
         menteeCount,
-        mentorshipStatus: myRequest?.status ?? null,
+        myMentorshipRequests: myRequests.map((m: any) => ({
+          startupId: m.startupId,
+          status: m.status,
+        })),
       };
     }),
     total,
@@ -118,7 +138,12 @@ export const getMentorById = async (id: string, currentUserId: string) => {
       domains: { include: { domain: true } },
       mentorships: {
         where: currentEntrepreneur
-          ? { OR: [{ status: "ACCEPTED" }, { entrepreneurId: currentEntrepreneur.id }] }
+          ? {
+              OR: [
+                { status: "ACCEPTED" },
+                { entrepreneurId: currentEntrepreneur.id },
+              ],
+            }
           : { status: "ACCEPTED" },
         select: { id: true, status: true, entrepreneurId: true },
       },
@@ -127,9 +152,13 @@ export const getMentorById = async (id: string, currentUserId: string) => {
 
   if (!mentor) return null;
 
-  const menteeCount = mentor.mentorships.filter((m: any) => m.status === "ACCEPTED").length;
+  const menteeCount = mentor.mentorships.filter(
+    (m: any) => m.status === "ACCEPTED",
+  ).length;
   const myRequest = currentEntrepreneur
-    ? mentor.mentorships.find((m: any) => m.entrepreneurId === currentEntrepreneur.id)
+    ? mentor.mentorships.find(
+        (m: any) => m.entrepreneurId === currentEntrepreneur.id,
+      )
     : undefined;
 
   return {

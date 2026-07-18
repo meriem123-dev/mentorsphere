@@ -1,9 +1,8 @@
-
-import  prisma  from "../lib/prisma";
+import prisma from "../lib/prisma";
 
 interface CreateMentorshipParams {
-  userId: string;      // userId de l'entrepreneur connecté
-  mentorId: string;    // id du Mentor 
+  userId: string; // userId de l'entrepreneur connecté
+  mentorId: string; // id du Mentor
   startupId: string;
   message: string;
 }
@@ -63,7 +62,13 @@ export const getReceivedRequests = async (userId: string, status?: string) => {
     },
     include: {
       startup: {
-        select: { id: true, name: true, stage: true, domain: true, description: true },
+        select: {
+          id: true,
+          name: true,
+          stage: true,
+          domain: true,
+          description: true,
+        },
       },
       entrepreneur: {
         include: {
@@ -85,7 +90,9 @@ export const getReceivedRequests = async (userId: string, status?: string) => {
 
 //recup demandes sent
 export const getSentRequests = async (userId: string) => {
-  const entrepreneur = await prisma.entrepreneur.findUnique({ where: { userId } });
+  const entrepreneur = await prisma.entrepreneur.findUnique({
+    where: { userId },
+  });
   if (!entrepreneur) throw new Error("ENTREPRENEUR_NOT_FOUND");
 
   return prisma.mentorship.findMany({
@@ -130,5 +137,63 @@ export const respondToRequest = async (
     include: {
       startup: { select: { id: true, name: true, stage: true, domain: true } },
     },
+  });
+};
+
+//liste des mentorés
+export const getMentees = async (mentorUserId: string) => {
+  const mentor = await prisma.mentor.findUnique({
+    where: { userId: mentorUserId },
+  });
+
+  if (!mentor) {
+    throw new Error("MENTOR_NOT_FOUND");
+  }
+
+  const mentorships = await prisma.mentorship.findMany({
+    where: {
+      mentorId: mentor.id,
+      status: "ACCEPTED",
+    },
+    include: {
+      entrepreneur: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePicture: true,
+              isActive: true,
+            },
+          },
+        },
+      },
+      startup: {
+        include: {
+          steps: true,
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return mentorships.map((m) => {
+    const total = m.startup?.steps.length ?? 0;
+    const completed = m.startup?.steps.filter((s) => s.completed).length ?? 0;
+    const progression = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      mentorshipId: m.id,
+      entrepreneur: m.entrepreneur,
+      startup: m.startup
+        ? { id: m.startup.id, name: m.startup.name, stage: m.startup.stage }
+        : null,
+      progression,
+      // approximation : dernière mise à jour de la relation de mentorat
+      lastInteractionAt: m.updatedAt,
+      // pas de modèle de suivi de sessions/réunions en base pour l'instant
+      sessionsCount: 0,
+    };
   });
 };

@@ -1,6 +1,7 @@
 
 import { Request, Response } from "express";
 import * as mentorshipService from "../services/mentorshipService";
+import { $Enums } from "@prisma/client";
 
 export const createMentorshipRequest = async (req: Request, res: Response) => {
   try {
@@ -88,6 +89,20 @@ export const respondToRequest = async (req: Request, res: Response) => {
     return res.json({ mentorship });
   } catch (error) {
     console.error("respondToRequest error:", error);
+    return res.status(500).json({ message: "Erreur serveur." });
+  }
+};
+
+//recup mentorés
+export const getMentees = async (req: Request, res: Response) => {
+  try {
+    const mentees = await mentorshipService.getMentees(req.user!.userId);
+    return res.json({ mentees });
+  } catch (error) {
+    if (error instanceof Error && error.message === "MENTOR_NOT_FOUND") {
+      return res.status(403).json({ message: "Profil mentor requis." });
+    }
+    console.error("getMentees error:", error);
     return res.status(500).json({ message: "Erreur serveur." });
   }
 };

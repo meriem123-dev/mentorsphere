@@ -13,6 +13,11 @@ export interface MentorDomainItem {
   domain: { id: string; name: string };
 }
 
+export interface MentorshipRequestSummary {
+  startupId: string | null;
+  status: "PENDING" | "ACCEPTED";
+}
+
 export interface Mentor {
   id: string;
   profession: string | null;
@@ -21,6 +26,7 @@ export interface Mentor {
   domains: MentorDomainItem[];
   mentorships: { id: string }[];
   mentorshipStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | null;
+  myMentorshipRequests?: MentorshipRequestSummary[];
 }
 
 export interface GetMentorsResponse {

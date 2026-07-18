@@ -10,6 +10,12 @@ const router = Router();
 
 router.get("/mentors",requireAuth, mentorController.getMentors);
 router.get("/entrepreneurs",requireAuth, EntrepreneurController.getEntrepreneurs);
+router.get(
+  "/mentees",
+  requireAuth,
+  requireRole("MENTOR"),
+  mentorshipController.getMentees,
+);
 router.get("/entrepreneurs/:id",requireAuth, EntrepreneurController.getEntrepreneurById);
 router.get("/mentors/:id",requireAuth, mentorController.getMentorById);
 
@@ -36,6 +42,8 @@ router.get(
   requireRole("ENTREPRENEUR"),
   mentorshipController.getSentRequests,
 );
+
+
 
 
 router.patch(

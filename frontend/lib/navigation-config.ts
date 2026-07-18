@@ -29,7 +29,7 @@ export const entrepreneurNavItems: NavItem[] = [
 
 export const mentorNavItems: NavItem[] = [
   { label: "Dashboard", href: "/mentor/dashboard", icon: LayoutDashboard },
-  { label: "Mes Mentorés", href: "/mentor/mentores", icon: Users },
+  { label: "Mes Mentorés", href: "/mentor/mentees", icon: Users },
   { label: "Demandes", href: "/mentor/demandes", icon: UserPlus, badge: 2 },
   { label: "Workspace", href: "/mentor/workspace", icon: PenSquare },
   { label: "Calendrier", href: "/mentor/calendrier", icon: CalendarDays },

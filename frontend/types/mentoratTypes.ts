@@ -63,3 +63,21 @@ export interface GetMentorsResponseWrapper {
   pageSize: number;
   totalPages: number;
 }
+
+export type MenteeStatus = "actif" | "inactif";
+
+export interface Mentee {
+  id: string;
+  name: string;
+  initials: string;
+  avatarUrl?: string | null;
+  accent: "blue" | "rose";
+  projectName: string;
+  stage: string;
+  status: MenteeStatus;
+  lastSeenLabel: string;
+  sessionsCount: number;
+  progression: number; // 0-100
+}
+
+export type SortKey = "progression" | "recent" | "name";

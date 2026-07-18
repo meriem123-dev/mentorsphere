@@ -15,6 +15,8 @@ interface RequestMentorshipModalProps {
   onClose: () => void;
   mentorId: string | null;
   mentorName?: string;
+  requestedStartupIds?: string[];
+  onSuccess?: () => void;
 }
 
 interface FormValues {
@@ -27,6 +29,8 @@ export function RequestMentorshipModal({
   onClose,
   mentorId,
   mentorName,
+  requestedStartupIds = [],
+  onSuccess,
 }: RequestMentorshipModalProps) {
   const [startups, setStartups] = useState<Startup[]>([]);
   const [isLoadingStartups, setIsLoadingStartups] = useState(false);
@@ -72,6 +76,7 @@ export function RequestMentorshipModal({
         message: values.message.trim(),
       });
       toast.success("Demande de mentorat envoyée.");
+      onSuccess?.();
       handleClose();
     } catch (err: unknown) {
       const msg =
@@ -85,11 +90,14 @@ export function RequestMentorshipModal({
     }
   };
 
-  const startupOptions = startups.map((s) => s.name);
+  const availableStartups = startups.filter(
+    (s) => !requestedStartupIds.includes(s.id),
+  );
+  const startupOptions = availableStartups.map((s) => s.name);
   const startupIdByName = (name: string) =>
-    startups.find((s) => s.name === name)?.id ?? "";
+    availableStartups.find((s) => s.name === name)?.id ?? "";
   const startupNameById = (id: string) =>
-    startups.find((s) => s.id === id)?.name ?? "";
+    availableStartups.find((s) => s.id === id)?.name ?? "";
 
   return (
     <AnimatePresence>
@@ -147,6 +155,13 @@ export function RequestMentorshipModal({
                     />
                   )}
                 />
+                {availableStartups.length === 0 && !isLoadingStartups && (
+                  <p className="text-xs text-muted-foreground">
+                    {startups.length === 0
+                      ? "Vous devez d'abord créer une startup avant de demander un mentorat."
+                      : "Vous avez déjà envoyé une demande pour toutes vos startups à ce mentor."}
+                  </p>
+                )}
                 {startups.length === 0 && !isLoadingStartups && (
                   <p className="text-xs text-muted-foreground">
                     Vous devez d&apos;abord créer une startup avant de demander
@@ -207,7 +222,7 @@ export function RequestMentorshipModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || startups.length === 0}
+                  disabled={isSubmitting || availableStartups.length === 0}
                   className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-5 py-2 text-sm font-medium text-white transition-transform active:scale-[0.98] disabled:opacity-60"
                 >
                   {isSubmitting ? (
