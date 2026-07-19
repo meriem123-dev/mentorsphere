@@ -309,6 +309,7 @@ model ProjectJoinRequest {
   id          String            @id @default(cuid())
   message     String?           @db.Text
   status      JoinRequestStatus @default(PENDING)
+  rejectionReason  String?           @db.Text
 
   startupId   String
   startup     Startup      @relation(fields: [startupId], references: [id], onDelete: Cascade)

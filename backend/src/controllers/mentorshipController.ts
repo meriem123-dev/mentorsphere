@@ -106,3 +106,21 @@ export const getMentees = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Erreur serveur." });
   }
 };
+
+//GET des demandes en attentes
+export const getPendingRequestsCount = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId;
+
+    const count = await mentorshipService.getPendingRequestsCount(userId);
+
+    return res.status(200).json({ count });
+  } catch (error: any) {
+    if (error.message === "MENTOR_NOT_FOUND") {
+      return res.status(404).json({ error: "Profil mentor introuvable" });
+    }
+
+    console.error("getPendingRequestsCount error:", error);
+    return res.status(500).json({ error: "Erreur serveur" });
+  }
+};

@@ -24,13 +24,13 @@ export const entrepreneurNavItems: NavItem[] = [
   { label: "Communauté", href: "/entrepreneur/communaute", icon: Hash },
   { label: "IA Assistant", href: "/entrepreneur/ia-assistant", icon: Bot },
   { label: "Ressources", href: "/entrepreneur/ressources", icon: BookOpen },
-  { label: "Notifications", href: "/entrepreneur/notifications", icon: Bell, badge: 3 },
+  { label: "Notifications", href: "/entrepreneur/notifications", icon: Bell, badgeKey: "notifications" },
 ];
 
 export const mentorNavItems: NavItem[] = [
   { label: "Dashboard", href: "/mentor/dashboard", icon: LayoutDashboard },
   { label: "Mes Mentorés", href: "/mentor/mentees", icon: Users },
-  { label: "Demandes", href: "/mentor/demandes", icon: UserPlus, badge: 2 },
+  { label: "Demandes", href: "/mentor/demandes", icon: UserPlus, badgeKey: "mentorRequests" },
   { label: "Workspace", href: "/mentor/workspace", icon: PenSquare },
   { label: "Calendrier", href: "/mentor/calendrier", icon: CalendarDays },
   { label: "Communauté", href: "/mentor/communaute", icon: Hash },

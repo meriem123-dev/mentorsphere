@@ -4,5 +4,6 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  badge?: number;
+  badge?: number; 
+  badgeKey?: "notifications" | "mentorRequests"; //calcul dynamique
 }

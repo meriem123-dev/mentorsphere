@@ -16,6 +16,12 @@ router.get(
   requireRole("MENTOR"),
   mentorshipController.getMentees,
 );
+router.get(
+  "/requests/pending-count",
+  requireAuth,
+  requireRole("MENTOR"),
+  mentorshipController.getPendingRequestsCount,
+);
 router.get("/entrepreneurs/:id",requireAuth, EntrepreneurController.getEntrepreneurById);
 router.get("/mentors/:id",requireAuth, mentorController.getMentorById);
 

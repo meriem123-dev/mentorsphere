@@ -6,7 +6,9 @@ import {
   StartupsListResponse,
   DeleteStartupResponse,
   Startup,
-  GetStartupResponse
+  GetStartupResponse,
+  JoinRequestsListResponse,
+  RespondJoinRequestResponse,
 } from "../../../types/startupTypes";
 
 
@@ -49,12 +51,34 @@ export const startupApi = {
     const res = await api.post(`/api/startups/${id}/join`, { message });
     return res.data;
   },
-  
+
   //api récup une startup (owner ou publique)
   getById: async (id: string): Promise<GetStartupResponse> => {
     const res = await api.get<GetStartupResponse>(`/api/startups/${id}`);
     return res.data;
   },
 
+  //api demandes reçues sur mes projets (owner)
+  getReceivedRequests: async (
+    status?: string,
+  ): Promise<JoinRequestsListResponse> => {
+    const res = await api.get<JoinRequestsListResponse>(
+      "/api/startups/requests/received",
+      { params: status ? { status } : undefined },
+    );
+    return res.data;
+  },
 
+  //api accepter/refuser une demande reçue
+  respondToJoinRequest: async (
+    requestId: string,
+    accept: boolean,
+    rejectionReason?: string,
+  ): Promise<RespondJoinRequestResponse> => {
+    const res = await api.patch<RespondJoinRequestResponse>(
+      `/api/startups/requests/${requestId}/respond`,
+      { accept, rejectionReason },
+    );
+    return res.data;
+  },
 };

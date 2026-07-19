@@ -65,3 +65,60 @@ export interface GetStartupResponse {
   success: boolean;
   data: { startup: Startup; isOwner: boolean };
 }
+
+
+export type CollabRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+
+export interface CollabRequestUser {
+  id: string;
+  name: string;
+  initials: string;
+  avatarUrl?: string | null;
+}
+
+export interface CollabRequest {
+  id: string;
+  projectId: string;
+  projectName: string;
+  requester: CollabRequestUser;
+  message: string;
+  need?: string | null;
+  status: CollabRequestStatus;
+  createdAt: string;
+}
+
+export interface JoinRequestEntrepreneur {
+  id: string; // id Entrepreneur
+  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture: string | null;
+  };
+}
+
+export interface JoinRequest {
+  id: string;
+  message: string | null;
+  status: CollabRequestStatus;
+  rejectionReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  startupId: string;
+  startup: { id: string; name: string };
+  requesterId: string;
+  requester: JoinRequestEntrepreneur;
+}
+
+export interface JoinRequestsListResponse {
+  success: boolean;
+  data: { requests: JoinRequest[] };
+}
+
+export interface RespondJoinRequestResponse {
+  success: boolean;
+  message: string;
+  data: { request: JoinRequest };
+}
+

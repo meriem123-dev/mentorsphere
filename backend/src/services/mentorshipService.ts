@@ -197,3 +197,18 @@ export const getMentees = async (mentorUserId: string) => {
     };
   });
 };
+
+//count demandes en attente (badge sidebar mentor)
+export const getPendingRequestsCount = async (mentorUserId: string) => {
+  const mentor = await prisma.mentor.findUnique({
+    where: { userId: mentorUserId },
+  });
+  if (!mentor) throw new Error("MENTOR_NOT_FOUND");
+
+  return prisma.mentorship.count({
+    where: {
+      mentorId: mentor.id,
+      status: "PENDING",
+    },
+  });
+};

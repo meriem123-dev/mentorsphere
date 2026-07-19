@@ -243,4 +243,79 @@ export class StartupService {
       throw error;
     }
   }
+
+  //récupère les demandes reçues sur les startups du user connecté
+static async getReceivedJoinRequests(userId: string, status?: string) {
+  const entrepreneur = await this.getEntrepreneurByUserId(userId);
+  if (!entrepreneur) {
+    throw new Error("ENTREPRENEUR_NOT_FOUND");
+  }
+
+  return prisma.projectJoinRequest.findMany({
+    where: {
+      startup: { entrepreneurId: entrepreneur.id },
+      ...(status ? { status: status as any } : {}),
+    },
+    include: {
+      startup: { select: { id: true, name: true } },
+      requester: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePicture: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+//accepter ou refuser une demande (avec motif si refus)
+static async respondToJoinRequest(input: {
+  userId: string;
+  requestId: string;
+  accept: boolean;
+  rejectionReason?: string;
+}) {
+  const entrepreneur = await this.getEntrepreneurByUserId(input.userId);
+  if (!entrepreneur) {
+    throw new Error("ENTREPRENEUR_NOT_FOUND");
+  }
+
+  const request = await prisma.projectJoinRequest.findUnique({
+    where: { id: input.requestId },
+    include: { startup: true },
+  });
+  if (!request) {
+    throw new Error("REQUEST_NOT_FOUND");
+  }
+  if (request.startup.entrepreneurId !== entrepreneur.id) {
+    throw new Error("FORBIDDEN");
+  }
+  if (request.status !== "PENDING") {
+    throw new Error("REQUEST_ALREADY_HANDLED");
+  }
+  if (!input.accept && !input.rejectionReason?.trim()) {
+    throw new Error("REJECTION_REASON_REQUIRED");
+  }
+
+  return prisma.projectJoinRequest.update({
+    where: { id: input.requestId },
+    data: {
+      status: input.accept ? "ACCEPTED" : "REJECTED",
+      ...(!input.accept && {
+        rejectionReason: input.rejectionReason!.trim(),
+      }),
+    },
+    include: {
+      startup: { select: { id: true, name: true } },
+    },
+  });
+}
+
 }

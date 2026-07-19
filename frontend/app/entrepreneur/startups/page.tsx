@@ -22,6 +22,8 @@ import { confirmToast } from "@/lib/confirm";
 import { toast } from "sonner";
 import { ProjectDetailsModal } from "@/features/projets/components/ProjectDetailsModal";
 import { JoinRequestModal } from "@/features/projets/components/JoinRequestModal";
+import { CollabRequestsList } from "@/features/projets/components/CollabRequestList";
+import type { CollabRequest, JoinRequest } from "@/types/startupTypes";
 import axios from "axios";
 
 //traduit l'enum Prisma (ASCII) vers le libellé français utilisé par le front
@@ -66,6 +68,41 @@ function mapStartupToProjectData(startup: Startup): ProjectData {
     hasSentRequest: startup.joinRequestStatus === "PENDING",
   };
 }
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+// Formatage relatif simple, sans dépendance externe.
+function formatRelativeDate(isoDate: string): string {
+  const diffMs = Date.now() - new Date(isoDate).getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  if (diffHours < 1) return "à l'instant";
+  if (diffHours < 24) return `il y a ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `il y a ${diffDays}j`;
+  return new Date(isoDate).toLocaleDateString("fr-FR");
+}
+
+function mapJoinRequestToCollabRequest(request: JoinRequest): CollabRequest {
+  const { firstName, lastName, profilePicture } = request.requester.user;
+
+  return {
+    id: request.id,
+    projectId: request.startupId,
+    projectName: request.startup.name,
+    requester: {
+      id: request.requester.userId,
+      name: `${firstName} ${lastName}`,
+      initials: getInitials(firstName, lastName),
+      avatarUrl: profilePicture,
+    },
+    message: request.message ?? "",
+    need: null,
+    status: request.status,
+    createdAt: formatRelativeDate(request.createdAt),
+  };
+}
 
 //page
 export default function MyProjectsPage() {
@@ -87,6 +124,8 @@ export default function MyProjectsPage() {
   const [sentJoinRequests, setSentJoinRequests] = useState<Set<string>>(
     new Set(),
   );
+  const [collabRequests, setCollabRequests] = useState<CollabRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
   //appel api et chargement
   const fetchProjects = async () => {
@@ -100,18 +139,48 @@ export default function MyProjectsPage() {
   };
 
   //rendering
+
+  //mine
   useEffect(() => {
+  let ignore = false;
+
+  const load = async () => {
+    setIsLoading(true);
+    try {
+      const res = await startupApi.getMine();
+      if (ignore) return;
+      setStartups(res.data.startups);
+      setProjects(res.data.startups.map(mapStartupToProjectData));
+    } finally {
+      if (!ignore) setIsLoading(false);
+    }
+  };
+
+  load();
+
+  return () => {
+    ignore = true;
+  };
+}, []);
+
+
+ //requests
+  useEffect(() => {
+    if (view !== "requests") return;
+
     let ignore = false;
 
     const load = async () => {
-      setIsLoading(true);
+      setIsLoadingRequests(true);
       try {
-        const res = await startupApi.getMine();
-        if (ignore) return;
-        setStartups(res.data.startups);
-        setProjects(res.data.startups.map(mapStartupToProjectData));
+        const res = await startupApi.getReceivedRequests("PENDING");
+        if (!ignore) {
+          setCollabRequests(
+            res.data.requests.map(mapJoinRequestToCollabRequest),
+          );
+        }
       } finally {
-        if (!ignore) setIsLoading(false);
+        if (!ignore) setIsLoadingRequests(false);
       }
     };
 
@@ -120,8 +189,9 @@ export default function MyProjectsPage() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [view]);
 
+  //publis projets
   useEffect(() => {
     if (view !== "explore" || hasLoadedPublic) return;
 
@@ -146,6 +216,7 @@ export default function MyProjectsPage() {
       ignore = true;
     };
   }, [view, hasLoadedPublic]);
+
 
   //gérer création + modification (même modal)
   const handleSubmitModal = async (values: CreateStartupFormValues) => {
@@ -218,10 +289,34 @@ export default function MyProjectsPage() {
     }
   };
 
+  const handleAcceptCollabRequest = async (id: string) => {
+    try {
+      await startupApi.respondToJoinRequest(id, true);
+      setCollabRequests((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Demande acceptée.");
+    } catch {
+      toast.error("Impossible d'accepter la demande pour le moment.");
+    }
+  };
+
+  const handleRejectCollabRequest = async (id: string, reason: string) => {
+    try {
+      await startupApi.respondToJoinRequest(id, false, reason);
+      setCollabRequests((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Demande refusée.");
+    } catch {
+      toast.error("Impossible de refuser la demande pour le moment.");
+    }
+  };
+
   const detailsProject =
     view === "mine"
       ? (projects.find((p) => p.id === detailsProjectId) ?? null)
       : (publicProjects.find((p) => p.id === detailsProjectId) ?? null);
+
+  const pendingRequestsCount = collabRequests.filter(
+    (r) => r.status === "PENDING",
+  ).length;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
@@ -246,9 +341,13 @@ export default function MyProjectsPage() {
         </button>
       </header>
 
-      <ProjectsTabs view={view} onViewChange={setView} />
+      <ProjectsTabs
+        view={view}
+        onViewChange={setView}
+        requestsCount={pendingRequestsCount}
+      />
 
-      {view === "mine" ? (
+      {view === "mine" && (
         <>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -278,7 +377,9 @@ export default function MyProjectsPage() {
             }
           />
         </>
-      ) : (
+      )}
+
+      {view === "explore" && (
         <>
           {isLoadingPublic ? (
             <div className="flex items-center justify-center py-12">
@@ -292,6 +393,22 @@ export default function MyProjectsPage() {
               onJoin={handleOpenJoinModal}
               onOpenDetails={setDetailsProjectId}
               sentJoinRequests={sentJoinRequests}
+            />
+          )}
+        </>
+      )}
+
+      {view === "requests" && (
+        <>
+          {isLoadingRequests ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <CollabRequestsList
+              requests={collabRequests}
+              onAccept={handleAcceptCollabRequest}
+              onReject={handleRejectCollabRequest}
             />
           )}
         </>

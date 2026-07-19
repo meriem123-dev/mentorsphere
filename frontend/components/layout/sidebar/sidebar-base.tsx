@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { NavItem } from "@/types/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { useSidebarMobile } from "./sidebar-mobile-context";
+import { useNavBadges } from "@/features/auth/hooks/use-nav-badges";
 
 export type SidebarRole = "entrepreneur" | "mentor";
 
@@ -55,6 +56,11 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
 
   const accent = ACCENT[role];
   const isDark = mounted && theme === "dark";
+
+  const badgeCounts = useNavBadges();
+
+  const resolvedBadge = (item: NavItem) =>
+    item.badgeKey ? badgeCounts[item.badgeKey] : item.badge;
 
   useEffect(() => {
     close();
@@ -108,12 +114,19 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
                 transition={{ type: "spring", stiffness: 500, damping: 40 }}
               />
             )}
+
             <span className="relative z-10 flex flex-1 items-center gap-3">
               <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
               <span className="flex-1 truncate">{item.label}</span>
-              {!!item.badge && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-rose px-1 text-[10px] font-semibold text-white">
-                  {item.badge}
+              {!!resolvedBadge(item) && (
+                <span
+                  className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ${
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : "bg-brand-rose text-white"
+                  }`}
+                >
+                  {resolvedBadge(item)}
                 </span>
               )}
             </span>
@@ -197,7 +210,7 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
         }`}
       >
         <div className="flex items-center justify-between px-1 pb-4">
-          <Logo compact/>
+          <Logo compact />
           <button
             type="button"
             onClick={close}

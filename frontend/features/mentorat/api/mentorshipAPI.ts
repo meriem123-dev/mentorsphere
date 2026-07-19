@@ -37,4 +37,12 @@ export const mentorshipApi = {
     );
     return res.data;
   },
+
+    // nombre de demandes en attente (mentor) — pour le badge sidebar
+  getPendingCount: async (): Promise<{ count: number }> => {
+    const res = await api.get<{ count: number }>(
+      "/api/mentorship/requests/pending-count",
+    );
+    return res.data;
+  },
 };

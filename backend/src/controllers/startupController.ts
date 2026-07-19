@@ -415,4 +415,98 @@ export class StartupController {
       next(error);
     }
   }
+
+  //liste des demandes reçues (owner)
+static async getReceivedJoinRequests(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user!.userId;
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+
+    const requests = await StartupService.getReceivedJoinRequests(userId, status);
+
+    res.status(200).json({
+      success: true,
+      data: { requests },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "ENTREPRENEUR_NOT_FOUND") {
+      return res.status(403).json({
+        success: false,
+        message: "Profil entrepreneur requis",
+      });
+    }
+    next(error);
+  }
+}
+
+//accepter/refuser une demande reçue
+static async respondToJoinRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user!.userId;
+    const requestId = req.params.requestId;
+    const { accept, rejectionReason } = req.body;
+
+    if (!requestId || typeof requestId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Identifiant de demande invalide",
+      });
+    }
+    if (typeof accept !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "Le champ accept doit être un booléen",
+      });
+    }
+    if (
+      rejectionReason !== undefined &&
+      typeof rejectionReason !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Motif de refus invalide",
+      });
+    }
+
+    const request = await StartupService.respondToJoinRequest({
+      userId,
+      requestId,
+      accept,
+      rejectionReason,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: accept ? "Demande acceptée" : "Demande refusée",
+      data: { request },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "ENTREPRENEUR_NOT_FOUND") {
+        return res.status(403).json({ success: false, message: "Profil entrepreneur requis" });
+      }
+      if (error.message === "REQUEST_NOT_FOUND") {
+        return res.status(404).json({ success: false, message: "Demande introuvable" });
+      }
+      if (error.message === "FORBIDDEN") {
+        return res.status(403).json({ success: false, message: "Vous n'êtes pas autorisé à répondre à cette demande" });
+      }
+      if (error.message === "REQUEST_ALREADY_HANDLED") {
+        return res.status(409).json({ success: false, message: "Cette demande a déjà été traitée" });
+      }
+      if (error.message === "REJECTION_REASON_REQUIRED") {
+        return res.status(400).json({ success: false, message: "Un motif est requis pour refuser une demande" });
+      }
+    }
+    next(error);
+  }
+}
 }
