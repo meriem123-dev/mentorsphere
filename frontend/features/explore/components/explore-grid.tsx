@@ -8,7 +8,8 @@ interface ExploreGridProps {
   mentors?: MentorCardData[];
   entrepreneurs?: EntrepreneurCardData[];
   onRequestMentorship?: (mentorId: string, mentorName: string) => void;
-  onViewProfile?: (entrepreneurId: string) => void;
+  onViewMentorProfile?: (mentorId: string) => void;
+  onViewEntrepreneurProfile?: (entrepreneurId: string) => void;
 }
 
 export function ExploreGrid({
@@ -16,7 +17,8 @@ export function ExploreGrid({
   mentors = [],
   entrepreneurs = [],
   onRequestMentorship,
-  onViewProfile,
+  onViewMentorProfile,
+  onViewEntrepreneurProfile,
 }: ExploreGridProps) {
   const isEmpty =
     view === "mentors" ? mentors.length === 0 : entrepreneurs.length === 0;
@@ -38,6 +40,7 @@ export function ExploreGrid({
               mentor={mentor}
               index={i}
               onRequestMentorship={onRequestMentorship}
+              onViewProfile={onViewMentorProfile}
             />
           ))
         : entrepreneurs.map((entrepreneur, i) => (
@@ -45,7 +48,7 @@ export function ExploreGrid({
               key={entrepreneur.id}
               entrepreneur={entrepreneur}
               index={i}
-              onViewProfile={onViewProfile}
+              onViewProfile={onViewEntrepreneurProfile}
             />
           ))}
     </div>

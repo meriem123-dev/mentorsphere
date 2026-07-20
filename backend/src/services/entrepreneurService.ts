@@ -68,8 +68,12 @@ export const getEntrepreneurs = async (input: GetEntrepreneursInput) => {
 };
 
 //un entrepreneur par id
-export const getEntrepreneurById = async (id: string) => {
-  return prisma.entrepreneur.findUnique({
+export const getEntrepreneurById = async (id: string, currentUserId?: string) => {
+  const currentMentor = currentUserId
+    ? await prisma.mentor.findUnique({ where: { userId: currentUserId } })
+    : null;
+
+  const entrepreneur = await prisma.entrepreneur.findUnique({
     where: { id },
     include: {
       user: {
@@ -77,14 +81,51 @@ export const getEntrepreneurById = async (id: string) => {
           id: true,
           firstName: true,
           lastName: true,
+          bio: true,
           profilePicture: true,
           coverPicture: true,
           city: true,
           country: true,
-          bio: true,
+          languages: { include: { language: true } },
+          skills: { include: { skill: true } },
+          socialLinks: true,
         },
       },
       domains: { include: { domain: true } },
+      startups: {
+        where: { isPublic: true },
+        include: {
+          steps: { orderBy: { order: "asc" } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      mentorships: currentMentor
+        ? {
+            where: { mentorId: currentMentor.id },
+            select: { id: true, status: true },
+          }
+        : false,
     },
   });
+
+  if (!entrepreneur) return null;
+
+  const myMentorshipStatus = currentMentor
+    ? (entrepreneur as any).mentorships?.[0]?.status ?? null
+    : null;
+
+  const startups = entrepreneur.startups.map((startup) => {
+    const total = startup.steps.length;
+    const completed = startup.steps.filter((s) => s.completed).length;
+    return {
+      ...startup,
+      progress: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  });
+
+  return {
+    ...entrepreneur,
+    startups,
+    mentorshipStatus: myMentorshipStatus,
+  };
 };

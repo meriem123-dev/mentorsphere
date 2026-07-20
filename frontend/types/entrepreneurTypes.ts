@@ -1,3 +1,4 @@
+import type { ExpertiseDomain } from "@/lib/expertise";
 export interface EntrepreneurUser {
   id: string;
   firstName: string;
@@ -35,4 +36,42 @@ export interface GetEntrepreneursParams {
   domain?: string;
   page?: number;
   pageSize?: number;
+}
+
+
+
+export type ProjectStage = "IDEE" | "MVP" | "SEED" | "CROISSANCE";
+
+export interface StartupSummary {
+  id: string;
+  name: string;
+  description: string;
+  stage: ProjectStage;
+  domain: string;
+  needs: string[];
+  isRecruiting: boolean;
+  progress: number;
+}
+
+export interface EntrepreneurProfile {
+  id: string;
+  profession: string | null;
+  level: string | null;
+  lookingFor: string[];
+  mentorshipStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | null;
+  domains: { domain: { id: string; name: ExpertiseDomain } }[];
+  startups: StartupSummary[];
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    bio: string | null;
+    profilePicture: string | null;
+    coverPicture: string | null;
+    city: string | null;
+    country: string | null;
+    languages: { language: { id: string; name: string } }[];
+    skills: { skill: { id: string; name: string } }[];
+    socialLinks: { id: string; platform: string; url: string }[];
+  };
 }

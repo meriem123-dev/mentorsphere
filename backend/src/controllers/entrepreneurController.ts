@@ -32,7 +32,10 @@ export const getEntrepreneurById = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Identifiant d'entrepreneur manquant." });
     }
 
-    const entrepreneur = await entrepreneurService.getEntrepreneurById(id);
+    const entrepreneur = await entrepreneurService.getEntrepreneurById(
+      id,
+      req.user!.userId,
+    );
 
     if (!entrepreneur) {
       return res.status(404).json({ message: "Entrepreneur introuvable." });

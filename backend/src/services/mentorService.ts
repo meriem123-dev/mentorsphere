@@ -132,6 +132,8 @@ export const getMentorById = async (id: string, currentUserId: string) => {
           city: true,
           country: true,
           languages: { include: { language: true } },
+          skills: { include: { skill: true } },
+          availabilities: true,
           socialLinks: true,
         },
       },

@@ -185,8 +185,12 @@ export default function ExplorePage() {
     };
   }, []);
 
-  const handleViewProfile = (entrepreneurId: string) => {
-    router.push(`/entrepreneur/explore/entrepreneurs/${entrepreneurId}`);
+  const handleViewMentorProfile = (mentorId: string) => {
+    router.push(`/profil/mentor/${mentorId}`);
+  };
+
+  const handleViewEntrepreneurProfile = (entrepreneurId: string) => {
+    router.push(`/profil/entrepreneur/${entrepreneurId}`);
   };
 
   const handleRequestMentorship = (mentorId: string, mentorName: string) => {
@@ -219,7 +223,8 @@ export default function ExplorePage() {
           mentors={mentors}
           entrepreneurs={entrepreneurs}
           onRequestMentorship={handleRequestMentorship}
-          onViewProfile={handleViewProfile}
+          onViewMentorProfile={handleViewMentorProfile}
+          onViewEntrepreneurProfile={handleViewEntrepreneurProfile}
         />
       )}
 

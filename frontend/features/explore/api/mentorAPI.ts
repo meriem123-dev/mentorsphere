@@ -4,7 +4,11 @@ import type {
   GetMentorsResponse,
   GetMentorsParams,
 } from "../../../types/mentorTypes";
-import type { Entrepreneur,GetEntrepreneursParams,GetEntrepreneursResponse } from "@/types/entrepreneurTypes";
+import type {
+  Entrepreneur,
+  GetEntrepreneursParams,
+  GetEntrepreneursResponse,
+} from "@/types/entrepreneurTypes";
 
 export const mentorApi = {
   // liste + filtres (recherche, domaine, pagination)
@@ -18,13 +22,16 @@ export const mentorApi = {
   },
 
   // détail d'un mentor
-  getById: async (id: string): Promise<{ mentor: Mentor }> => {
+  getById: async (
+    id: string,
+    config?: Parameters<typeof api.get>[1],
+  ): Promise<{ mentor: Mentor }> => {
     const res = await api.get<{ mentor: Mentor }>(
       `/api/mentorship/mentors/${id}`,
+      config,
     );
     return res.data;
   },
-
   getEntrepreneurs: async (
     params?: GetEntrepreneursParams,
   ): Promise<GetEntrepreneursResponse> => {
@@ -37,9 +44,11 @@ export const mentorApi = {
 
   getByIdEntrep: async (
     id: string,
+    config?: Parameters<typeof api.get>[1],
   ): Promise<{ entrepreneur: Entrepreneur }> => {
     const res = await api.get<{ entrepreneur: Entrepreneur }>(
       `/api/mentorship/entrepreneurs/${id}`,
+      config,
     );
     return res.data;
   },

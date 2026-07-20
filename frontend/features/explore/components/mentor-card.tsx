@@ -57,10 +57,12 @@ export function MentorCard({
   mentor,
   index = 0,
   onRequestMentorship,
+  onViewProfile,
 }: {
   mentor: MentorCardData;
   index?: number;
   onRequestMentorship?: (mentorId: string, mentorName: string) => void;
+  onViewProfile?: (mentorId: string) => void;
 }) {
   const domain =
     EXPERTISE_STYLES[mentor.expertise] ?? Object.values(EXPERTISE_STYLES)[0];
@@ -88,7 +90,8 @@ export function MentorCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={{ y: -4 }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
+       onClick={() => onViewProfile?.(mentor.id)}
+      className="group relative flex flex-col overflow-hidden rounded-2xl cursor-pointer border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
     >
       <span
         className={`absolute inset-y-0 left-0 w-1 ${domain.dot}`}
@@ -162,7 +165,10 @@ export function MentorCard({
       ) : (
         <button
           type="button"
-          onClick={() => onRequestMentorship?.(mentor.id, mentor.name)}
+          onClick={(e) => {
+            e.stopPropagation(); // empêche de déclencher onViewProfile
+            onRequestMentorship?.(mentor.id, mentor.name);
+          }}
           disabled={mentor.hasRequestedAll}
           className="relative mt-auto flex items-center justify-center gap-1.5 bg-gradient-brand py-3 text-sm font-medium text-white transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >

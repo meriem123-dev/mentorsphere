@@ -37,7 +37,7 @@ export function EntrepreneurCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4 }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
+      className="group relative flex flex-col overflow-hidden rounded-2xl cursor-pointer border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
     >
       <span className={`absolute inset-y-0 left-0 w-1 ${domain.dot}`} aria-hidden />
 
