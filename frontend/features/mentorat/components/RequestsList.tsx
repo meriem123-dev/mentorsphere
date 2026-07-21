@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { RequestCard, type MentorshipRequestData } from "./RequestCard";
+import { useRouter } from "next/navigation";
 
 interface RequestsListProps {
   requests: MentorshipRequestData[];
@@ -13,6 +14,7 @@ interface RequestsListProps {
 
 //cmpst
 export function RequestsList({ requests, onAccept, onDecline, onViewDetails }: RequestsListProps) {
+  const router= useRouter();
   return (
     <AnimatePresence mode="popLayout" initial={false}>
       {requests.length > 0 ? (
@@ -24,6 +26,7 @@ export function RequestsList({ requests, onAccept, onDecline, onViewDetails }: R
               onAccept={onAccept}
               onDecline={onDecline}
               onViewDetails={onViewDetails}
+              onViewProfile={(entrepreneurId) => router.push(`/profil/entrepreneur/${entrepreneurId}`)}
             />
           ))}
         </motion.ul>

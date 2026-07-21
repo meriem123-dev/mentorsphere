@@ -8,7 +8,7 @@ datasource db {
 }
 
 
-//Enums pour User
+//Enums
 enum UserRole {
   MENTOR
   ENTREPRENEUR
@@ -304,7 +304,7 @@ model StartupStep {
   updatedAt   DateTime @updatedAt
 }
 
-//********Modèle DEmande de rejoindre une startup**********
+//********Modèle Demande de rejoindre une startup**********
 model ProjectJoinRequest {
   id          String            @id @default(cuid())
   message     String?           @db.Text

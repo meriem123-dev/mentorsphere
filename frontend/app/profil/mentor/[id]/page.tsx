@@ -5,13 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { mentorApi } from "@/features/explore/api/mentorAPI";
 import { MentorProfileView } from "@/features/profile/components/MentorProfileView";
-import type { Mentor } from "@/types/mentorTypes";
+import type { MentorProfile } from "@/types/mentorTypes";
 
 export default function MentorProfilePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [mentor, setMentor] = useState<Mentor | null>(null);
+  const [mentor, setMentor] = useState<MentorProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 

@@ -3,9 +3,10 @@ import type {
   Mentor,
   GetMentorsResponse,
   GetMentorsParams,
+  MentorProfile,
 } from "../../../types/mentorTypes";
 import type {
-  Entrepreneur,
+  EntrepreneurProfile,
   GetEntrepreneursParams,
   GetEntrepreneursResponse,
 } from "@/types/entrepreneurTypes";
@@ -25,8 +26,8 @@ export const mentorApi = {
   getById: async (
     id: string,
     config?: Parameters<typeof api.get>[1],
-  ): Promise<{ mentor: Mentor }> => {
-    const res = await api.get<{ mentor: Mentor }>(
+  ): Promise<{ mentor: MentorProfile }> => {
+    const res = await api.get<{ mentor: MentorProfile }>(
       `/api/mentorship/mentors/${id}`,
       config,
     );
@@ -45,8 +46,8 @@ export const mentorApi = {
   getByIdEntrep: async (
     id: string,
     config?: Parameters<typeof api.get>[1],
-  ): Promise<{ entrepreneur: Entrepreneur }> => {
-    const res = await api.get<{ entrepreneur: Entrepreneur }>(
+  ): Promise<{ entrepreneur: EntrepreneurProfile }> => {
+    const res = await api.get<{ entrepreneur: EntrepreneurProfile }>(
       `/api/mentorship/entrepreneurs/${id}`,
       config,
     );

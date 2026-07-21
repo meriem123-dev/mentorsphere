@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Users2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { CollabRequestCard } from "./CollabRequestCard";
 import type { CollabRequest } from "@/types/startupTypes";
 
@@ -16,6 +17,7 @@ export function CollabRequestsList({
   onAccept,
   onReject,
 }: CollabRequestsListProps) {
+  const router = useRouter();
   const pending = requests.filter((r) => r.status === "PENDING");
 
   if (pending.length === 0) {
@@ -49,6 +51,7 @@ export function CollabRequestsList({
             request={request}
             onAccept={onAccept}
             onReject={onReject}
+            onViewProfile={(entrepreneurId) => router.push(`/profil/entrepreneur/${entrepreneurId}`)}
           />
         ))}
       </AnimatePresence>

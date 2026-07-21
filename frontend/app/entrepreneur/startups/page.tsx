@@ -92,7 +92,8 @@ function mapJoinRequestToCollabRequest(request: JoinRequest): CollabRequest {
     projectId: request.startupId,
     projectName: request.startup.name,
     requester: {
-      id: request.requester.userId,
+      id: request.requester.id, // id Entrepreneur — utilisé pour /profil/entrepreneur/[id]
+      userId: request.requester.userId,
       name: `${firstName} ${lastName}`,
       initials: getInitials(firstName, lastName),
       avatarUrl: profilePicture,
@@ -142,29 +143,28 @@ export default function MyProjectsPage() {
 
   //mine
   useEffect(() => {
-  let ignore = false;
+    let ignore = false;
 
-  const load = async () => {
-    setIsLoading(true);
-    try {
-      const res = await startupApi.getMine();
-      if (ignore) return;
-      setStartups(res.data.startups);
-      setProjects(res.data.startups.map(mapStartupToProjectData));
-    } finally {
-      if (!ignore) setIsLoading(false);
-    }
-  };
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await startupApi.getMine();
+        if (ignore) return;
+        setStartups(res.data.startups);
+        setProjects(res.data.startups.map(mapStartupToProjectData));
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    };
 
-  load();
+    load();
 
-  return () => {
-    ignore = true;
-  };
-}, []);
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
-
- //requests
+  //requests
   useEffect(() => {
     if (view !== "requests") return;
 
@@ -216,7 +216,6 @@ export default function MyProjectsPage() {
       ignore = true;
     };
   }, [view, hasLoadedPublic]);
-
 
   //gérer création + modification (même modal)
   const handleSubmitModal = async (values: CreateStartupFormValues) => {

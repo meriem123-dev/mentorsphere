@@ -66,11 +66,11 @@ export interface GetStartupResponse {
   data: { startup: Startup; isOwner: boolean };
 }
 
-
 export type CollabRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 
 export interface CollabRequestUser {
-  id: string;
+  id: string; 
+  userId: string;
   name: string;
   initials: string;
   avatarUrl?: string | null;
@@ -121,4 +121,3 @@ export interface RespondJoinRequestResponse {
   message: string;
   data: { request: JoinRequest };
 }
-

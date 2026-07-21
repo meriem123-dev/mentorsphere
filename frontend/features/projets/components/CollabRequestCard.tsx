@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, X, Loader2, Clock, Tag, MessageSquare } from "lucide-react";
+import { Check, X, Loader2, Clock, Tag, MessageSquare, ExternalLink } from "lucide-react";
 import { RejectReasonModal } from "./RejectReasonModal";
 import type { CollabRequest } from "@/types/startupTypes";
 
@@ -10,12 +10,14 @@ interface CollabRequestCardProps {
   request: CollabRequest;
   onAccept: (id: string) => Promise<void> | void;
   onReject: (id: string, reason: string) => Promise<void> | void;
+  onViewProfile?: (entrepreneurId: string) => void;
 }
 
 export function CollabRequestCard({
   request,
   onAccept,
   onReject,
+  onViewProfile,
 }: CollabRequestCardProps) {
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -66,9 +68,21 @@ export function CollabRequestCard({
               </div>
             )}
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                {request.requester.name}
-              </h3>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-semibold text-foreground">
+                  {request.requester.name}
+                </h3>
+                {onViewProfile && (
+                  <button
+                    type="button"
+                    onClick={() => onViewProfile(request.requester.id)}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
+                  >
+                    Voir profil
+                    <ExternalLink className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 souhaite rejoindre{" "}
                 <span className="font-medium text-foreground">

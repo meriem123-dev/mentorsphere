@@ -5,13 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { mentorApi } from "@/features/explore/api/mentorAPI";
 import { EntrepreneurProfileView } from "@/features/profile/components/EntrepreneurProfileView";
-import type { Entrepreneur } from "@/types/entrepreneurTypes";
+import type { EntrepreneurProfile } from "@/types/entrepreneurTypes";
 
 export default function EntrepreneurProfilePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [entrepreneur, setEntrepreneur] = useState<Entrepreneur | null>(null);
+   const [entrepreneur, setEntrepreneur] = useState<EntrepreneurProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 

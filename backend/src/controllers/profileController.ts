@@ -124,6 +124,7 @@ export class ProfileController {
       next(error);
     }
   }
+
   //compléter le profil mentor (wizard)
   static async completeMentorProfile(
     req: Request,
@@ -246,7 +247,7 @@ export class ProfileController {
   }
 }
 
-//parse un champ envoyé en JSON string (multipart/form-data) ou déjà en array
+//parse un champ envoyé en JSON string
 function safeParseArray(value: unknown): any[] {
   if (Array.isArray(value)) return value;
   if (typeof value === "string") {

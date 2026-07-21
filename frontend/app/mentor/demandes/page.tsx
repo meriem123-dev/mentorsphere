@@ -31,6 +31,7 @@ function mapMentorshipToRequestData(m: Mentorship): MentorshipRequestData | null
 
   return {
     id: m.id,
+    entrepreneurId: m.entrepreneur.id,
     entrepreneurName: `${user.firstName} ${user.lastName}`,
     initials: getInitials(user.firstName, user.lastName),
     accent: "blue",
@@ -39,7 +40,6 @@ function mapMentorshipToRequestData(m: Mentorship): MentorshipRequestData | null
     stage: STAGE_LABELS[m.startup.stage] ?? "Idée",
     message: m.message ?? "",
     timeAgo: timeAgo(m.createdAt),
-    // pas de système de compatibilité côté backend pour l'instant — omis volontairement
   };
 }
 
