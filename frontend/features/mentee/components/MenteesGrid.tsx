@@ -8,6 +8,7 @@ import type { Mentee } from "../../../types/mentoratTypes";
 interface MenteesGridProps {
   mentees: Mentee[];
   onOpenMentee?: (mentee: Mentee) => void;
+  onViewProfile?: (entrepreneurId: string) => void;
 }
 
 const container = {
@@ -22,7 +23,7 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-export function MenteesGrid({ mentees, onOpenMentee }: MenteesGridProps) {
+export function MenteesGrid({ mentees, onOpenMentee, onViewProfile }: MenteesGridProps) {
   if (mentees.length === 0) {
     return <EmptyMenteesState />;
   }
@@ -36,7 +37,7 @@ export function MenteesGrid({ mentees, onOpenMentee }: MenteesGridProps) {
     >
       {mentees.map((mentee) => (
         <motion.div key={mentee.id} variants={item}>
-          <MenteeCard mentee={mentee} onOpen={onOpenMentee} />
+          <MenteeCard mentee={mentee} onOpen={onOpenMentee} onViewProfile={onViewProfile} />
         </motion.div>
       ))}
     </motion.div>

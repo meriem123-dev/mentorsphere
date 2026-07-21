@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { MenteesToolbar } from "@/features/mentee/components/MenteeToolBar";
 import { MenteesGrid } from "@/features/mentee/components/MenteesGrid";
 import { menteeApi, type MenteeApiResponse } from "@/features/mentee/api/menteeAPI";
@@ -32,6 +33,7 @@ function mapToMentee(raw: MenteeApiResponse, index: number): Mentee {
 
   return {
     id: raw.mentorshipId,
+    entrepreneurId: raw.entrepreneur.id,
     name: `${user.firstName} ${user.lastName}`,
     initials,
     avatarUrl: user.profilePicture,
@@ -46,6 +48,7 @@ function mapToMentee(raw: MenteeApiResponse, index: number): Mentee {
 }
 
 export default function MenteesPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<MenteeStatus | "tous">("tous");
   const [sortKey, setSortKey] = useState<SortKey>("recent");
@@ -121,9 +124,10 @@ export default function MenteesPage() {
         <MenteesGrid
           mentees={filteredMentees}
           onOpenMentee={(mentee) => {
-            // TODO: router.push
+            // TODO: router.push vers l'espace de mentorat 
             console.log("Ouvrir l'espace de", mentee.name);
           }}
+          onViewProfile={(entrepreneurId) => router.push(`/profil/entrepreneur/${entrepreneurId}`)}
         />
       )}
     </div>

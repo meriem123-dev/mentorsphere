@@ -68,6 +68,7 @@ export type MenteeStatus = "actif" | "inactif";
 
 export interface Mentee {
   id: string;
+  entrepreneurId: string;
   name: string;
   initials: string;
   avatarUrl?: string | null;

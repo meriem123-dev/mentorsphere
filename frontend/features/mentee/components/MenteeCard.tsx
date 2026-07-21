@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Clock, MessageSquare } from "lucide-react";
+import { ArrowUpRight, Clock, MessageSquare, ExternalLink } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { MenteeStatusBadge } from "./MenteeStatusBadge";
 import { MenteeProgressBar } from "./MenteeProgressBar";
@@ -10,9 +10,10 @@ import type { Mentee } from "../../../types/mentoratTypes";
 interface MenteeCardProps {
   mentee: Mentee;
   onOpen?: (mentee: Mentee) => void;
+  onViewProfile?: (entrepreneurId: string) => void;
 }
 
-export function MenteeCard({ mentee, onOpen }: MenteeCardProps) {
+export function MenteeCard({ mentee, onOpen, onViewProfile }: MenteeCardProps) {
   return (
     <motion.button
       type="button"
@@ -33,9 +34,32 @@ export function MenteeCard({ mentee, onOpen }: MenteeCardProps) {
             accent={mentee.accent}
           />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              {mentee.name}
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold text-foreground">
+                {mentee.name}
+              </h3>
+              {onViewProfile && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewProfile(mentee.entrepreneurId);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onViewProfile(mentee.entrepreneurId);
+                    }
+                  }}
+                  className="inline-flex items-center text-muted-foreground transition-colors hover:text-brand-blue"
+                  aria-label="Voir le profil"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               {mentee.projectName} · {mentee.stage}
             </p>
