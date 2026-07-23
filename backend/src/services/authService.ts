@@ -75,8 +75,14 @@ export class AuthService {
       throw error;
     }
 
-    const token = generateToken({ userId: user.id, role: user.role });
-    const { password, ...safeUser } = user;
+    // Mise à jour de la dernière connexion
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const token = generateToken({ userId: updatedUser.id, role: updatedUser.role });
+    const { password, ...safeUser } = updatedUser;
 
     return { user: safeUser, token };
   }
@@ -92,4 +98,79 @@ static async getMe(userId: string) {
   const { password, ...safeUser } = user;
   return safeUser;
 }
+
+//métier update password
+  static async updatePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      const error: any = new Error("Utilisateur introuvable");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      const error: any = new Error("Mot de passe actuel incorrect");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
+
+  //métier update email
+  static async updateEmail(
+    userId: string,
+    newEmail: string,
+    currentPassword: string,
+  ) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      const error: any = new Error("Utilisateur introuvable");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      const error: any = new Error("Mot de passe incorrect");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+    if (existingUser && existingUser.id !== userId) {
+      const error: any = new Error("Cet email est déjà utilisé");
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail },
+    });
+
+    const { password, ...safeUser } = updatedUser;
+    return safeUser;
+  }
+
 }
+
+

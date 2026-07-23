@@ -66,6 +66,7 @@ export interface EntrepreneurProfile {
     firstName: string;
     lastName: string;
     bio: string | null;
+    birthDate: string | null;
     profilePicture: string | null;
     coverPicture: string | null;
     city: string | null;

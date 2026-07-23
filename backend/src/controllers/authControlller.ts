@@ -134,4 +134,76 @@ export class AuthController {
       next(error);
     }
   }
+
+  //modif pass
+  static async updatePassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    const errors: Record<string, string> = {};
+    if (!currentPassword) {
+      errors.currentPassword = "Mot de passe actuel requis";
+    }
+    if (!newPassword || newPassword.length < 6) {
+      errors.newPassword = "Nouveau mot de passe requis (min 6 caractères)";
+    }
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Données invalides",
+        errors,
+      });
+    }
+
+    await AuthService.updatePassword(userId, currentPassword, newPassword);
+
+    res.status(200).json({
+      success: true,
+      message: "Mot de passe mis à jour avec succès",
+    });
+  } catch (error) {
+    next(error);
+  }
 }
+
+//modif mail
+static async updateEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.userId;
+    const { newEmail, currentPassword } = req.body;
+
+    const errors: Record<string, string> = {};
+    if (!newEmail || !EMAIL_REGEX.test(newEmail)) {
+      errors.newEmail = "Email invalide";
+    }
+    if (!currentPassword) {
+      errors.currentPassword = "Mot de passe actuel requis";
+    }
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Données invalides",
+        errors,
+      });
+    }
+
+    const user = await AuthService.updateEmail(
+      userId,
+      newEmail.trim().toLowerCase(),
+      currentPassword,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Email mis à jour avec succès",
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+}
+
+

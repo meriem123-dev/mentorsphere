@@ -12,10 +12,10 @@ interface ComboBoxProps {
   onChange: (value: string) => void;
   error?: string;
   searchable?: boolean;
+  size?: "md" | "sm";
+  hideLabel?: boolean;
 }
 
-
-//mon cmpst select plus moderne
 export const ComboBox = ({
   label,
   placeholder = "Sélectionnez une option",
@@ -24,6 +24,8 @@ export const ComboBox = ({
   onChange,
   error,
   searchable = true,
+  size = "md",
+  hideLabel = false,
 }: ComboBoxProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -34,7 +36,6 @@ export const ComboBox = ({
     option.toLowerCase().includes(search.toLowerCase())
   );
 
-  //
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
@@ -52,8 +53,10 @@ export const ComboBox = ({
     }
   }, [isOpen, searchable]);
 
+  const buttonPadding = size === "sm" ? "px-3 py-2" : "px-4 py-3";
+  const buttonRadius = size === "sm" ? "rounded-lg" : "rounded-2xl";
+  const buttonText = size === "sm" ? "text-xs" : "text-base";
 
-  //rendu
   return (
     <motion.div
       className="w-full"
@@ -61,15 +64,18 @@ export const ComboBox = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <label className="block text-sm font-medium text-foreground mb-2">
-        {label}
-      </label>
+      {!hideLabel && (
+        <label className="block text-sm font-medium text-foreground mb-2">
+          {label}
+        </label>
+      )}
 
       <div className="relative" ref={comboboxRef}>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-4 py-3 rounded-2xl border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between ${
+          aria-label={hideLabel ? label : undefined}
+          className={`w-full ${buttonPadding} ${buttonRadius} ${buttonText} border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between ${
             error ? "border-destructive" : "border-input"
           }`}
         >
@@ -80,7 +86,7 @@ export const ComboBox = ({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown size={20} className="text-muted-foreground" />
+            <ChevronDown size={size === "sm" ? 16 : 20} className="text-muted-foreground" />
           </motion.div>
         </button>
 
@@ -109,7 +115,7 @@ export const ComboBox = ({
                 </div>
               )}
 
-              <div className="max-h-60 overflow-y-auto overflow-y">
+              <div className="max-h-60 overflow-y-auto">
                 {filteredOptions.length > 0 ? (
                   filteredOptions.map((option) => (
                     <motion.button
@@ -120,7 +126,7 @@ export const ComboBox = ({
                         setIsOpen(false);
                         setSearch("");
                       }}
-                      className=" bg-background w-full px-4 py-3 text-left flex items-center justify-between hover:bg-muted transition"
+                      className="bg-background w-full px-4 py-3 text-left flex items-center justify-between hover:bg-muted transition"
                     >
                       <span className="text-foreground">{option}</span>
                       {value === option && (

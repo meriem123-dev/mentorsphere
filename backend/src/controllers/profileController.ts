@@ -245,6 +245,296 @@ export class ProfileController {
       next(error);
     }
   }
+
+  //modifier le profil entrepreneur
+  static async updateEntrepreneurProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId = req.user!.userId;
+
+      const {
+        firstName,
+        lastName,
+        bio,
+        birthDate,
+        country,
+        city,
+        languages,
+        domains,
+        skills,
+        profession,
+        level,
+        lookingFor,
+        availability,
+        linkedin,
+        github,
+        portfolio,
+        avatarColor,
+        removePhoto,
+        removeCv,
+        removeDocumentIds,
+      } = req.body;
+
+      const errors: Record<string, string> = {};
+
+      if (avatarColor && !ALLOWED_AVATAR_COLORS.includes(avatarColor)) {
+        errors.avatarColor = "Couleur d'avatar invalide";
+      }
+
+      if (firstName !== undefined && !firstName.trim()) {
+        errors.firstName = "Le prénom ne peut pas être vide";
+      }
+      if (lastName !== undefined && !lastName.trim()) {
+        errors.lastName = "Le nom ne peut pas être vide";
+      }
+
+      if (bio !== undefined && bio.trim().length < 10) {
+        errors.bio = "Biographie requise (min 10 caractères)";
+      }
+
+      if (birthDate !== undefined) {
+        const date = new Date(birthDate);
+        if (isNaN(date.getTime()) || calculateAge(date) < 15) {
+          errors.birthDate = "Vous devez avoir au moins 15 ans";
+        }
+      }
+
+      const parsedLanguages =
+        languages !== undefined ? safeParseArray(languages) : undefined;
+      const parsedDomains =
+        domains !== undefined ? safeParseArray(domains) : undefined;
+      const parsedSkills =
+        skills !== undefined ? safeParseArray(skills) : undefined;
+      const parsedLookingFor =
+        lookingFor !== undefined ? safeParseArray(lookingFor) : undefined;
+      const parsedAvailability =
+        availability !== undefined ? safeParseArray(availability) : undefined;
+
+      if (parsedLanguages !== undefined && parsedLanguages.length === 0) {
+        errors.languages = "Au moins une langue requise";
+      }
+      if (parsedDomains !== undefined && parsedDomains.length === 0) {
+        errors.domains = "Au moins un domaine d'intérêt requis";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Données invalides",
+          errors,
+        });
+      }
+
+      const photo = (req.files as any)?.photo?.[0] ?? null;
+      const cv = (req.files as any)?.cv?.[0] ?? null;
+      const documents = (req.files as any)?.documents ?? [];
+      const shouldRemovePhoto = removePhoto === "true" || removePhoto === true;
+      const socialLinks =
+        linkedin !== undefined ||
+        github !== undefined ||
+        portfolio !== undefined
+          ? buildSocialLinks({ linkedin, github, portfolio })
+          : undefined;
+
+      const parsedRemoveDocumentIds = removeDocumentIds
+        ? safeParseArray(removeDocumentIds)
+        : [];
+
+      const updatedUser = await ProfileService.updateEntrepreneurProfile({
+        userId,
+        ...(firstName !== undefined ? { firstName: firstName.trim() } : {}),
+        ...(lastName !== undefined ? { lastName: lastName.trim() } : {}),
+        ...(bio !== undefined ? { bio: bio.trim() } : {}),
+        ...(birthDate !== undefined ? { birthDate: new Date(birthDate) } : {}),
+        ...(country !== undefined ? { country } : {}),
+        ...(city !== undefined ? { city } : {}),
+        ...(parsedLanguages !== undefined
+          ? { languages: parsedLanguages }
+          : {}),
+        ...(parsedDomains !== undefined ? { domains: parsedDomains } : {}),
+        ...(parsedSkills !== undefined ? { skills: parsedSkills } : {}),
+        ...(profession !== undefined ? { profession: profession || null } : {}),
+        ...(level !== undefined ? { level: level || null } : {}),
+        ...(parsedLookingFor !== undefined
+          ? { lookingFor: parsedLookingFor }
+          : {}),
+        ...(parsedAvailability !== undefined
+          ? { availability: parsedAvailability }
+          : {}),
+        ...(socialLinks !== undefined ? { socialLinks } : {}),
+        ...(shouldRemovePhoto
+          ? { removePhoto: true, avatarColor: avatarColor || null }
+          : photo
+            ? { avatarColor: null }
+            : avatarColor !== undefined
+              ? { avatarColor }
+              : {}),
+        ...(photo ? { photoFile: photo } : {}),
+        ...(cv ? { cvFile: cv } : {}),
+        ...(documents.length ? { documentFiles: documents } : {}),
+        ...(removeCv === "true" || removeCv === true ? { removeCv: true } : {}),
+        ...(parsedRemoveDocumentIds.length
+          ? { removeDocumentIds: parsedRemoveDocumentIds }
+          : {}),
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Profil entrepreneur mis à jour avec succès",
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //modifier le profil mentor
+  static async updateMentorProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const userId = req.user!.userId;
+
+      const {
+        bio,
+        birthDate,
+        country,
+        city,
+        languages,
+        domains,
+        skills,
+        profession,
+        yearsOfExperience,
+        availability,
+        linkedin,
+        github,
+        portfolio,
+        website,
+        avatarColor,
+        removePhoto,
+      } = req.body;
+
+      const errors: Record<string, string> = {};
+
+      if (avatarColor && !ALLOWED_AVATAR_COLORS.includes(avatarColor)) {
+        errors.avatarColor = "Couleur d'avatar invalide";
+      }
+
+      if (bio !== undefined && bio.trim().length < 10) {
+        errors.bio = "Biographie requise (min 10 caractères)";
+      }
+
+      if (birthDate !== undefined) {
+        const date = new Date(birthDate);
+        if (isNaN(date.getTime()) || calculateAge(date) < 15) {
+          errors.birthDate = "Vous devez avoir au moins 15 ans";
+        }
+      }
+
+      if (profession !== undefined && profession.trim().length < 2) {
+        errors.profession = "Profession requise";
+      }
+
+      const parsedLanguages =
+        languages !== undefined ? safeParseArray(languages) : undefined;
+      const parsedDomains =
+        domains !== undefined ? safeParseArray(domains) : undefined;
+      const parsedSkills =
+        skills !== undefined ? safeParseArray(skills) : undefined;
+      const parsedAvailability =
+        availability !== undefined ? safeParseArray(availability) : undefined;
+
+      if (parsedDomains !== undefined && parsedDomains.length === 0) {
+        errors.domains = "Au moins un domaine d'expertise requis";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Données invalides",
+          errors,
+        });
+      }
+
+      const photo = (req.files as any)?.photo?.[0] ?? null;
+      const cv = (req.files as any)?.cv?.[0] ?? null;
+      const documents = (req.files as any)?.documents ?? [];
+      const shouldRemovePhoto = removePhoto === "true" || removePhoto === true;
+
+      const socialLinks =
+        linkedin !== undefined ||
+        github !== undefined ||
+        portfolio !== undefined ||
+        website !== undefined
+          ? buildSocialLinks({ linkedin, github, portfolio, website })
+          : undefined;
+
+      const updatedUser = await ProfileService.updateMentorProfile({
+        userId,
+        ...(bio !== undefined ? { bio: bio.trim() } : {}),
+        ...(birthDate !== undefined ? { birthDate: new Date(birthDate) } : {}),
+        ...(country !== undefined ? { country } : {}),
+        ...(city !== undefined ? { city } : {}),
+        ...(parsedLanguages !== undefined
+          ? { languages: parsedLanguages }
+          : {}),
+        ...(parsedDomains !== undefined ? { domains: parsedDomains } : {}),
+        ...(parsedSkills !== undefined ? { skills: parsedSkills } : {}),
+        ...(profession !== undefined ? { profession: profession.trim() } : {}),
+        ...(yearsOfExperience !== undefined ? { yearsOfExperience } : {}),
+        ...(parsedAvailability !== undefined
+          ? { availability: parsedAvailability }
+          : {}),
+        ...(socialLinks !== undefined ? { socialLinks } : {}),
+        ...(shouldRemovePhoto
+          ? { removePhoto: true, avatarColor: avatarColor || null }
+          : photo
+            ? { avatarColor: null }
+            : avatarColor !== undefined
+              ? { avatarColor }
+              : {}),
+        ...(photo ? { photoFile: photo } : {}),
+        ...(cv ? { cvFile: cv } : {}),
+        ...(documents.length ? { documentFiles: documents } : {}),
+      });
+      res.status(200).json({
+        success: true,
+        message: "Profil mentor mis à jour avec succès",
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // recup profil complet
+  static async getMyProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const role = req.user!.role as "MENTOR" | "ENTREPRENEUR";
+
+      const profile =
+        role === "ENTREPRENEUR"
+          ? await ProfileService.getFullEntrepreneurProfile(userId)
+          : await ProfileService.getFullMentorProfile(userId);
+
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Profil introuvable",
+        });
+      }
+
+      res.status(200).json({ success: true, data: { profile } });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 //parse un champ envoyé en JSON string

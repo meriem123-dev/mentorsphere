@@ -78,7 +78,7 @@ export function CollabRequestCard({
                     onClick={() => onViewProfile(request.requester.id)}
                     className="inline-flex items-center gap-1 text-xs font-medium text-brand-blue hover:underline"
                   >
-                    Voir profil
+                   <span className="hidden sm:inline">Voir profil</span>
                     <ExternalLink className="h-3 w-3" />
                   </button>
                 )}
@@ -111,7 +111,7 @@ export function CollabRequestCard({
               className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
               aria-hidden
             />
-            <p className="text-sm text-foreground/90">{request.message}</p>
+            <p className="min-w-0 text-sm text-foreground/90 wrap-break-word">{request.message}</p>
           </div>
         )}
 

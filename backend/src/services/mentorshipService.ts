@@ -140,7 +140,16 @@ export const respondToRequest = async (
   });
 };
 
-//liste des mentorés
+type MenteeStatus = "actif" | "inactif";
+const INACTIVITY_THRESHOLD_DAYS = 30;
+
+function computeMenteeStatus(lastLoginAt: Date | null): MenteeStatus {
+  if (!lastLoginAt) return "inactif";
+  const daysSinceLogin = (Date.now() - lastLoginAt.getTime()) / (1000 * 60 * 60 * 24);
+  return daysSinceLogin <= INACTIVITY_THRESHOLD_DAYS ? "actif" : "inactif";
+}
+
+///liste des mentorés
 export const getMentees = async (mentorUserId: string) => {
   const mentor = await prisma.mentor.findUnique({
     where: { userId: mentorUserId },
@@ -165,6 +174,7 @@ export const getMentees = async (mentorUserId: string) => {
               lastName: true,
               profilePicture: true,
               isActive: true,
+              lastLoginAt: true,
             },
           },
         },
@@ -190,13 +200,15 @@ export const getMentees = async (mentorUserId: string) => {
         ? { id: m.startup.id, name: m.startup.name, stage: m.startup.stage }
         : null,
       progression,
-      // approximation : dernière mise à jour de la relation de mentorat
-      lastInteractionAt: m.updatedAt,
+      // si le mentoré ne s'est jamais reconnecté depuis l'acceptation
+      lastInteractionAt: m.entrepreneur.user.lastLoginAt ?? m.updatedAt,
+      status: computeMenteeStatus(m.entrepreneur.user.lastLoginAt),
       // pas de modèle de suivi de sessions/réunions en base pour l'instant
       sessionsCount: 0,
     };
   });
 };
+
 
 //count demandes en attente (badge sidebar mentor)
 export const getPendingRequestsCount = async (mentorUserId: string) => {

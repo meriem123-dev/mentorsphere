@@ -1,3 +1,5 @@
+import type { EntrepreneurProfile } from "@/types/entrepreneurTypes";
+
 export type Role = "entrepreneur" | "mentor";
 
 export interface RegisterPayload {
@@ -16,7 +18,7 @@ export interface LoginPayload {
 export interface ProfileCompletionResponse {
   success: boolean;
   message: string;
-  data: { user: User }; 
+  data: { user: User };
 }
 
 export interface User {
@@ -61,6 +63,8 @@ export interface ApiErrorResponse {
 }
 //base user puis héritage
 export interface BaseProfileFormData {
+  firstName: string;
+  lastName: string;
   bio: string;
   birthDate: string;
   country: string;
@@ -68,6 +72,7 @@ export interface BaseProfileFormData {
   languages: string[];
   photo: File | null;
   avatarColor?: string;
+  removePhoto?: boolean;
 }
 
 //type entrepreneur
@@ -88,12 +93,10 @@ export interface ProfileFormData extends BaseProfileFormData {
   documents: File[];
 }
 
-
 export type SetProfileFormData = (data: ProfileFormData) => void;
 
 //type Mentor
 export interface MentorProfileFormData extends BaseProfileFormData {
-
   // étape 2
   profession: string;
   yearsOfExperience: string;
@@ -109,3 +112,4 @@ export interface MentorProfileFormData extends BaseProfileFormData {
 
   documents: File[];
 }
+

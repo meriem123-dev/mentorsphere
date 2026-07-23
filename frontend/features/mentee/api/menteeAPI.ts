@@ -10,6 +10,7 @@ export interface MenteeApiResponse {
       lastName: string;
       profilePicture: string | null;
       isActive: boolean;
+      lastLoginAt: string | null;
     };
   };
   startup: {

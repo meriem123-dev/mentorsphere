@@ -24,4 +24,23 @@ router.post(
   ProfileController.completeEntrepreneurProfile
 );
 
+router.patch(
+  "/mentor",
+  requireAuth,
+  requireRole("MENTOR"),
+  uploadMentorProfileFiles,
+  ProfileController.updateMentorProfile
+);
+
+router.patch(
+  "/entrepreneur",
+  requireAuth,
+  requireRole("ENTREPRENEUR"),
+  uploadEntrepreneurProfileFiles,
+  ProfileController.updateEntrepreneurProfile
+);
+
+
+router.get("/me", requireAuth, ProfileController.getMyProfile);
+
 export default router;

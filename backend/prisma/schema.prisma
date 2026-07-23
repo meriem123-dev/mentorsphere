@@ -71,6 +71,7 @@ model User {
   isEmailVerified   Boolean  @default(false)
   isActive          Boolean  @default(true)
   profileCompleted Boolean @default(false)
+  lastLoginAt   DateTime?
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

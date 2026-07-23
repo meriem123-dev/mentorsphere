@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import type { MenteeStatus, SortKey } from "../../../types/mentoratTypes";
+import { ComboBox } from "@/components/ui/ComboBox";
 
 interface MenteesToolbarProps {
   search: string;
@@ -19,6 +20,12 @@ const statusOptions: { value: MenteeStatus | "tous"; label: string }[] = [
   { value: "inactif", label: "Inactifs" },
 ];
 
+const sortOptions: { value: SortKey; label: string }[] = [
+  { value: "recent", label: "Vus récemment" },
+  { value: "progression", label: "Progression" },
+  { value: "name", label: "Nom (A-Z)" },
+];
+
 export function MenteesToolbar({
   search,
   onSearchChange,
@@ -28,6 +35,16 @@ export function MenteesToolbar({
   onSortKeyChange,
   resultCount,
 }: MenteesToolbarProps) {
+  const currentSortLabel =
+    sortOptions.find((o) => o.value === sortKey)?.label ?? sortOptions[0].label;
+
+  const handleSortChange = (label: string) => {
+    const found = sortOptions.find((o) => o.label === label);
+    if (found) {
+      onSortKeyChange(found.value);
+    }
+  };
+
   return (
     <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="relative w-full sm:max-w-xs">
@@ -39,12 +56,12 @@ export function MenteesToolbar({
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Rechercher un mentoré ou un projet..."
+          placeholder="Rechercher un mentoré ou un projet "
           className="w-full rounded-xl border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-rose/40"
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="lg:flex items-center gap-3 grid grid-cols-1">
         <div className="flex items-center rounded-xl border border-border bg-card p-1">
           {statusOptions.map((option) => (
             <button
@@ -62,15 +79,17 @@ export function MenteesToolbar({
           ))}
         </div>
 
-        <select
-          value={sortKey}
-          onChange={(e) => onSortKeyChange(e.target.value as SortKey)}
-          className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-brand-rose/40"
-        >
-          <option value="recent">Vus récemment</option>
-          <option value="progression">Progression</option>
-          <option value="name">Nom (A-Z)</option>
-        </select>
+        <div className="w-44">
+          <ComboBox
+            label="Trier par"
+            hideLabel
+            value={currentSortLabel}
+            onChange={handleSortChange}
+            options={sortOptions.map((o) => o.label)}
+            searchable={false}
+            size="sm"
+          />
+        </div>
       </div>
 
       <span className="hidden text-xs text-muted-foreground sm:block">

@@ -37,12 +37,12 @@ function mapToMentee(raw: MenteeApiResponse, index: number): Mentee {
     name: `${user.firstName} ${user.lastName}`,
     initials,
     avatarUrl: user.profilePicture,
-    accent: index % 2 === 0 ? "rose" : "blue", // pas de préférence stockée, alternance déterministe
+    accent: index % 2 === 0 ? "rose" : "blue",
     projectName: raw.startup?.name ?? "Sans projet",
     stage: raw.startup ? (STAGE_LABELS[raw.startup.stage] ?? raw.startup.stage) : "—",
-    status: user.isActive ? "actif" : "inactif", // approximation, pas un vrai signal de présence
+    status: user.isActive ? "actif" : "inactif", 
     lastSeenLabel: formatLastInteraction(raw.lastInteractionAt),
-    sessionsCount: raw.sessionsCount, // toujours 0 tant qu'il n'y a pas de modèle de suivi de sessions
+    sessionsCount: raw.sessionsCount, 
     progression: raw.progression,
   };
 }

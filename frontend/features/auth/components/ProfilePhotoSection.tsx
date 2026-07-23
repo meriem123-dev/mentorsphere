@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { X } from "lucide-react";
 import { BaseProfileFormData } from "@/types/authTypes";
 
-//bg colors photo
 const AVATAR_COLORS = [
   "bg-brand-blue",
   "bg-brand-rose",
@@ -17,29 +17,61 @@ const AVATAR_COLORS = [
 interface ProfilePhotoSectionProps<T extends BaseProfileFormData> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
+  existingPhotoUrl?: string | null;
+   initials: string;
 }
 
 export default function ProfilePhotoSection<T extends BaseProfileFormData>({
   formData,
   setFormData,
+  existingPhotoUrl = null,
+  initials,
 }: ProfilePhotoSectionProps<T>) {
-  const [selectedColor, setSelectedColor] = useState("bg-brand-blue");
+  const [selectedColor, setSelectedColor] = useState(
+    formData.avatarColor || "bg-brand-blue",
+  );
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  //gérer upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUploadedImage(reader.result as string); // aperçu local uniquement
+        setUploadedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      setFormData({ ...formData, photo: file }); // File réel envoyé au backend
+      // une nouvelle photo annule toute demande de suppression
+      setFormData((prev) => ({ ...prev, photo: file, removePhoto: false }));
     }
   };
 
-  //mon rendu
+  const handleRemovePhoto = () => {
+    setUploadedImage(null);
+    setFormData((prev) => ({
+      ...prev,
+      photo: null,
+      removePhoto: true,
+    }));
+  };
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+    setFormData((prev) => ({
+      ...prev,
+      avatarColor: color,
+      photo: null,
+      // s'il y avait une photo (nouvelle ou existante), on la retire
+      removePhoto: Boolean(uploadedImage || existingPhotoUrl),
+    }));
+    // si l'utilisateur avait uploadé une image localement, on l'enlève aussi
+    setUploadedImage(null);
+  };
+
+  // photo supprimée explicitement > nouvelle photo > photo existante > initiales/couleur
+  const displayImage = formData.removePhoto
+    ? null
+    : (uploadedImage ?? existingPhotoUrl);
+
   return (
     <div className="border-b border-border pb-8">
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
@@ -47,19 +79,33 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
       </h3>
 
       <div className="flex items-center gap-6">
-        <div
-          className={`w-20 h-20 ${selectedColor} rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 ring-2 ring-offset-2 ring-offset-card ring-transparent`}
-        >
-          {uploadedImage ? (
-            <Image
-              src={uploadedImage}
-              alt="Profile"
-              width={80}
-              height={80}
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ) : (
-            "MM"
+        <div className="relative flex-shrink-0">
+          <div
+            className={`w-20 h-20 ${displayImage ? "" : selectedColor} rounded-2xl flex items-center justify-center text-white text-2xl font-bold ring-2 ring-offset-2 ring-offset-card ring-transparent overflow-hidden`}
+          >
+            {displayImage ? (
+              <Image
+                src={displayImage}
+                alt="Profile"
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+                unoptimized={displayImage.startsWith("data:")}
+              />
+            ) : (
+              initials
+            )}
+          </div>
+
+          {displayImage && (
+            <button
+              type="button"
+              onClick={handleRemovePhoto}
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:opacity-90"
+              aria-label="Supprimer la photo"
+            >
+              <X size={14} />
+            </button>
           )}
         </div>
 
@@ -72,15 +118,10 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
             {AVATAR_COLORS.map((color) => (
               <button
                 key={color}
-                onClick={() => {
-                  setSelectedColor(color);
-                  setFormData((prev) => ({
-                    ...prev,
-                    avatarColor: color,
-                  }));
-                }}
+                type="button"
+                onClick={() => handleColorSelect(color)}
                 className={`w-6 h-6 rounded-full ${color} cursor-pointer border-2 transition ${
-                  selectedColor === color
+                  selectedColor === color && !displayImage
                     ? "border-foreground"
                     : "border-transparent"
                 }`}

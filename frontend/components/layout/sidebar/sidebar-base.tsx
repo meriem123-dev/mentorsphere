@@ -48,6 +48,10 @@ const ACCENT = {
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card";
 
+
+const PROFILE_PATH = "/profil/modifier";
+
+
 export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -136,7 +140,7 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
     </nav>
   );
 
-  const renderFooter = () => (
+ const renderFooter = () => (
     <div className="space-y-1 border-t border-border pt-1">
       <button
         type="button"
@@ -156,7 +160,10 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
         Déconnexion
       </button>
 
-      <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2">
+      <NextLink
+        href={PROFILE_PATH}
+        className={`flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2 transition-colors hover:bg-muted ${FOCUS_RING}`}
+      >
         {user.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -179,10 +186,11 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
             {user.roleLabel}
           </p>
         </div>
-      </div>
+      </NextLink>
     </div>
   );
 
+  
   return (
     <>
       {/* Backdrop mobile */}
