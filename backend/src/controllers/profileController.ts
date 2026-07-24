@@ -1,5 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { ProfileService } from "../services/profileService";
+import {
+  ALLOWED_MENTOR_DOMAINS,
+  ALLOWED_ENTREPRENEUR_DOMAINS,
+  ALLOWED_ENTREPRENEUR_PROFESSIONS,
+  ALLOWED_LEVELS,
+  ALLOWED_YEARS_OF_EXPERIENCE,
+  ALLOWED_AVAILABILITY,
+  ALLOWED_LOOKING_FOR,
+  findInvalidValues,
+} from "../constants/profileOptions";
 
 const ALLOWED_AVATAR_COLORS = [
   "bg-brand-blue",
@@ -73,6 +83,37 @@ export class ProfileController {
       const parsedSkills = safeParseArray(skills);
       const parsedLookingFor = safeParseArray(lookingFor);
       const parsedAvailability = safeParseArray(availability);
+
+      if (
+        profession &&
+        !ALLOWED_ENTREPRENEUR_PROFESSIONS.includes(profession)
+      ) {
+        errors.profession = "Profession invalide";
+      }
+      if (level && !ALLOWED_LEVELS.includes(level)) {
+        errors.level = "Niveau entrepreneurial invalide";
+      }
+      const invalidDomains = findInvalidValues(
+        parsedDomains,
+        ALLOWED_ENTREPRENEUR_DOMAINS,
+      );
+      if (invalidDomains.length > 0) {
+        errors.domains = `Domaines invalides: ${invalidDomains.join(", ")}`;
+      }
+      const invalidLookingFor = findInvalidValues(
+        parsedLookingFor,
+        ALLOWED_LOOKING_FOR,
+      );
+      if (invalidLookingFor.length > 0) {
+        errors.lookingFor = `Valeurs invalides: ${invalidLookingFor.join(", ")}`;
+      }
+      const invalidAvailability = findInvalidValues(
+        parsedAvailability,
+        ALLOWED_AVAILABILITY,
+      );
+      if (invalidAvailability.length > 0) {
+        errors.availability = `Disponibilités invalides: ${invalidAvailability.join(", ")}`;
+      }
 
       if (parsedLanguages.length === 0) {
         errors.languages = "Au moins une langue requise";
@@ -194,6 +235,27 @@ export class ProfileController {
       const parsedSkills = safeParseArray(skills);
       const parsedAvailability = safeParseArray(availability);
 
+      const invalidDomains = findInvalidValues(
+        parsedDomains,
+        ALLOWED_MENTOR_DOMAINS,
+      );
+      if (invalidDomains.length > 0) {
+        errors.domains = `Domaines invalides: ${invalidDomains.join(", ")}`;
+      }
+      if (
+        yearsOfExperience &&
+        !ALLOWED_YEARS_OF_EXPERIENCE.includes(yearsOfExperience)
+      ) {
+        errors.yearsOfExperience = "Années d'expérience invalides";
+      }
+      const invalidAvailability = findInvalidValues(
+        parsedAvailability,
+        ALLOWED_AVAILABILITY,
+      );
+      if (invalidAvailability.length > 0) {
+        errors.availability = `Disponibilités invalides: ${invalidAvailability.join(", ")}`;
+      }
+
       if (parsedDomains.length === 0) {
         errors.domains = "Au moins un domaine d'expertise requis";
       }
@@ -313,6 +375,44 @@ export class ProfileController {
       const parsedAvailability =
         availability !== undefined ? safeParseArray(availability) : undefined;
 
+      if (
+        profession !== undefined &&
+        profession &&
+        !ALLOWED_ENTREPRENEUR_PROFESSIONS.includes(profession)
+      ) {
+        errors.profession = "Profession invalide";
+      }
+      if (level !== undefined && level && !ALLOWED_LEVELS.includes(level)) {
+        errors.level = "Niveau entrepreneurial invalide";
+      }
+      if (parsedDomains !== undefined) {
+        const invalidDomains = findInvalidValues(
+          parsedDomains,
+          ALLOWED_ENTREPRENEUR_DOMAINS,
+        );
+        if (invalidDomains.length > 0) {
+          errors.domains = `Domaines invalides: ${invalidDomains.join(", ")}`;
+        }
+      }
+      if (parsedLookingFor !== undefined) {
+        const invalidLookingFor = findInvalidValues(
+          parsedLookingFor,
+          ALLOWED_LOOKING_FOR,
+        );
+        if (invalidLookingFor.length > 0) {
+          errors.lookingFor = `Valeurs invalides: ${invalidLookingFor.join(", ")}`;
+        }
+      }
+      if (parsedAvailability !== undefined) {
+        const invalidAvailability = findInvalidValues(
+          parsedAvailability,
+          ALLOWED_AVAILABILITY,
+        );
+        if (invalidAvailability.length > 0) {
+          errors.availability = `Disponibilités invalides: ${invalidAvailability.join(", ")}`;
+        }
+      }
+
       if (parsedLanguages !== undefined && parsedLanguages.length === 0) {
         errors.languages = "Au moins une langue requise";
       }
@@ -417,6 +517,8 @@ export class ProfileController {
         website,
         avatarColor,
         removePhoto,
+        removeCv,
+        removeDocumentIds,
       } = req.body;
 
       const errors: Record<string, string> = {};
@@ -444,6 +546,7 @@ export class ProfileController {
         languages !== undefined ? safeParseArray(languages) : undefined;
       const parsedDomains =
         domains !== undefined ? safeParseArray(domains) : undefined;
+
       const parsedSkills =
         skills !== undefined ? safeParseArray(skills) : undefined;
       const parsedAvailability =
@@ -451,6 +554,32 @@ export class ProfileController {
 
       if (parsedDomains !== undefined && parsedDomains.length === 0) {
         errors.domains = "Au moins un domaine d'expertise requis";
+      }
+
+      if (parsedDomains !== undefined) {
+        const invalidDomains = findInvalidValues(
+          parsedDomains,
+          ALLOWED_MENTOR_DOMAINS,
+        );
+        if (invalidDomains.length > 0) {
+          errors.domains = `Domaines invalides: ${invalidDomains.join(", ")}`;
+        }
+      }
+      if (
+        yearsOfExperience !== undefined &&
+        yearsOfExperience &&
+        !ALLOWED_YEARS_OF_EXPERIENCE.includes(yearsOfExperience)
+      ) {
+        errors.yearsOfExperience = "Années d'expérience invalides";
+      }
+      if (parsedAvailability !== undefined) {
+        const invalidAvailability = findInvalidValues(
+          parsedAvailability,
+          ALLOWED_AVAILABILITY,
+        );
+        if (invalidAvailability.length > 0) {
+          errors.availability = `Disponibilités invalides: ${invalidAvailability.join(", ")}`;
+        }
       }
 
       if (Object.keys(errors).length > 0) {
@@ -465,6 +594,9 @@ export class ProfileController {
       const cv = (req.files as any)?.cv?.[0] ?? null;
       const documents = (req.files as any)?.documents ?? [];
       const shouldRemovePhoto = removePhoto === "true" || removePhoto === true;
+      const parsedRemoveDocumentIds = removeDocumentIds
+        ? safeParseArray(removeDocumentIds)
+        : [];
 
       const socialLinks =
         linkedin !== undefined ||
@@ -501,7 +633,12 @@ export class ProfileController {
         ...(photo ? { photoFile: photo } : {}),
         ...(cv ? { cvFile: cv } : {}),
         ...(documents.length ? { documentFiles: documents } : {}),
+        ...(removeCv === "true" || removeCv === true ? { removeCv: true } : {}),
+        ...(parsedRemoveDocumentIds.length
+          ? { removeDocumentIds: parsedRemoveDocumentIds }
+          : {}),
       });
+      [];
       res.status(200).json({
         success: true,
         message: "Profil mentor mis à jour avec succès",
@@ -563,7 +700,7 @@ function buildSocialLinks(links: {
     platforms.push({ platform: "LINKEDIN", url: links.linkedin });
   if (links.github) platforms.push({ platform: "GITHUB", url: links.github });
   if (links.portfolio)
-    platforms.push({ platform: "WEBSITE", url: links.portfolio });
+    platforms.push({ platform: "PORTFOLIO", url: links.portfolio }); // était WEBSITE
   if (links.website)
     platforms.push({ platform: "WEBSITE", url: links.website });
   return platforms;

@@ -85,6 +85,8 @@ interface UpdateMentorProfileInput {
   cvFile?: Express.Multer.File;
   documentFiles?: Express.Multer.File[];
   removePhoto?: boolean;
+  removeCv?: boolean;
+  removeDocumentIds?: string[];
 }
 
 export class ProfileService {
@@ -596,6 +598,10 @@ export class ProfileService {
           });
         }
 
+        if (input.removeCv && !cvUrl) {
+          await tx.cV.deleteMany({ where: { userId: input.userId } });
+        }
+
         if (
           input.profession !== undefined ||
           input.yearsOfExperience !== undefined ||
@@ -681,6 +687,15 @@ export class ProfileService {
           await tx.document.createMany({ data: documentsData });
         }
 
+        if (input.removeDocumentIds?.length) {
+          await tx.document.deleteMany({
+            where: {
+              id: { in: input.removeDocumentIds },
+              userId: input.userId,
+            },
+          });
+        }
+
         return user;
       },
       { timeout: 15000, maxWait: 5000 },
@@ -757,6 +772,7 @@ export class ProfileService {
         socialLinks: { select: { id: true, platform: true, url: true } },
         availabilities: { select: { id: true, slot: true } },
         cv: { select: { id: true, fileName: true, fileUrl: true } },
+        documents: { select: { id: true, fileName: true, fileUrl: true } },
         mentor: {
           select: {
             id: true,

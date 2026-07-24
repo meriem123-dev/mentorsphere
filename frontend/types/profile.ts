@@ -67,5 +67,7 @@ export interface MentorEditProfile {
   profession: string | null;
   yearsOfExperience: string | null;
   domains: EditProfileDomain[];
-  user: EditProfileUserBase;
+  user: EditProfileUserBase & {
+    documents: EditProfileFile[];
+  };
 }

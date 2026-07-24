@@ -4,38 +4,21 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import SectionCard from "@/components/ui/SectionCard";
-import { CheckboxGroup } from "@/components/ui/CheckBoxGroup";
 import { ChoicePills } from "@/components/ui/ChoicePills";
 import { TextInput } from "@/features/auth/components/TextInput";
 import { FileUploadInput } from "@/components/ui/FileUploadInput";
 import { Button } from "@/components/ui/button";
-import { SearchCheck, Link, CalendarClock, FileText, X } from "lucide-react";
+import { Link, CalendarClock, FileText, X } from "lucide-react";
 import { profileApi } from "@/features/profile/api/profileAPI";
 import { useAuth } from "@/context/AuthContext";
 import type { ApiErrorResponse } from "@/types/authTypes";
-import type { EntrepreneurEditProfile } from "@/types/profile";
-
-const LOOKING_FOR_OPTIONS = [
-  { value: "find_mentor", label: "Trouver un mentor" },
-  { value: "validate_idea", label: "Valider mon idée" },
-  { value: "business_model", label: "Conseils sur le business model" },
-  { value: "build_mvp", label: "Créer un MVP" },
-  { value: "find_cofounders", label: "Trouver des cofondateurs" },
-  { value: "networking", label: "Développer mon réseau" },
-  { value: "fundraising", label: "Préparer une levée de fonds" },
-  { value: "find_investors", label: "Trouver des investisseurs" },
-  { value: "legal_advice", label: "Conseils juridiques" },
-  { value: "marketing_advice", label: "Conseils marketing" },
-  { value: "technical_advice", label: "Conseils techniques" },
-  { value: "skill_development", label: "Développer mes compétences" },
-  { value: "startup_growth", label: "Accélérer la croissance de ma startup" },
-  { value: "join_community", label: "Rejoindre une communauté" },
-];
+import type { MentorEditProfile } from "@/types/profile";
+import { isValidUrl } from "@/features/auth/utils/validation";
 
 const AVAILABILITY_OPTIONS = ["Jours de semaine", "Soirées", "Week-end"];
 
-interface EntrepreneurStep3FormProps {
-  initialData: EntrepreneurEditProfile;
+interface MentorStep3FormProps {
+  initialData: MentorEditProfile;
   onSuccess: () => void;
 }
 
@@ -46,15 +29,12 @@ function findSocialUrl(
   return links.find((l) => l.platform === platform)?.url ?? "";
 }
 
-export function EntrepreneurStep3Form({
+export function MentorStep3Form({
   initialData,
   onSuccess,
-}: EntrepreneurStep3FormProps) {
+}: MentorStep3FormProps) {
   const { refetch } = useAuth();
 
-  const [lookingFor, setLookingFor] = useState<string[]>(
-    initialData.lookingFor,
-  );
   const [linkedin, setLinkedin] = useState(
     findSocialUrl(initialData.user.socialLinks, "LINKEDIN"),
   );
@@ -62,8 +42,11 @@ export function EntrepreneurStep3Form({
     findSocialUrl(initialData.user.socialLinks, "GITHUB"),
   );
   const [portfolio, setPortfolio] = useState(
-  findSocialUrl(initialData.user.socialLinks, "PORTFOLIO"),
-);
+    findSocialUrl(initialData.user.socialLinks, "PORTFOLIO"),
+  );
+  const [website, setWebsite] = useState(
+    findSocialUrl(initialData.user.socialLinks, "WEBSITE"),
+  );
   const [availability, setAvailability] = useState<string[]>(
     initialData.user.availabilities.map((a) => a.slot),
   );
@@ -75,13 +58,30 @@ export function EntrepreneurStep3Form({
   const [removedDocumentIds, setRemovedDocumentIds] = useState<string[]>([]);
 
   async function handleSubmit() {
+    if (!isValidUrl(linkedin)) {
+      toast.error("Le lien LinkedIn n'est pas une URL valide");
+      return;
+    }
+    if (!isValidUrl(github)) {
+      toast.error("Le lien GitHub n'est pas une URL valide");
+      return;
+    }
+    if (!isValidUrl(portfolio)) {
+      toast.error("Le lien Portfolio n'est pas une URL valide");
+      return;
+    }
+    if (!isValidUrl(website)) {
+      toast.error("Le lien du site web n'est pas une URL valide");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await profileApi.updateEntrepreneurProfile({
-        lookingFor,
+      await profileApi.updateMentorProfile({
         linkedin,
         github,
         portfolio,
+        website,
         availability,
         cvFile: cv,
         removeCv: !keepExistingCv && !cv,
@@ -106,14 +106,6 @@ export function EntrepreneurStep3Form({
 
   return (
     <div className="space-y-4">
-      <SectionCard title="Ce que je recherche" icon={<SearchCheck />}>
-        <CheckboxGroup
-          options={LOOKING_FOR_OPTIONS}
-          value={lookingFor}
-          onChange={setLookingFor}
-        />
-      </SectionCard>
-
       <SectionCard title="Réseaux sociaux" icon={<Link />}>
         <div className="space-y-3">
           <TextInput
@@ -133,6 +125,12 @@ export function EntrepreneurStep3Form({
             placeholder="portfolio URL"
             value={portfolio}
             onChange={(e) => setPortfolio(e.target.value)}
+          />
+          <TextInput
+            label="Site web"
+            placeholder="website URL"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
           />
         </div>
       </SectionCard>
@@ -186,7 +184,7 @@ export function EntrepreneurStep3Form({
             {(initialData.user.documents ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">Aucun document</p>
             )}
-            {initialData.user.documents
+            {(initialData.user.documents ?? [])
               .filter((doc) => !removedDocumentIds.includes(doc.id))
               .map((doc) => (
                 <div

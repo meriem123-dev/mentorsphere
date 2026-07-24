@@ -8,12 +8,7 @@ import { Calendar, Calendar1, FileText, Link } from "lucide-react";
 import SectionCard from "@/components/ui/SectionCard";
 import { FileUploadInput } from "@/components/ui/FileUploadInput";
 
-const AVAILABILITY_SLOTS = [
-  "Matin (8h-12h)",
-  "Après-midi (13h-17h)",
-  "Soir (18h-21h)",
-  "Week-end",
-];
+const AVAILABILITY_SLOTS = ["Jours de semaine", "Soirées", "Week-end"];
 
 interface AvailabilityLinksStepProps {
   formData: MentorProfileFormData;
