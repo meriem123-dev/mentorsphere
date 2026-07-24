@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ApiErrorResponse, MentorProfileFormData } from "@/types/authTypes";
 import ProfilePhotoSection from "./ProfilePhotoSection";
@@ -17,35 +17,39 @@ import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
 import { getDashboardPath } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 
-const INITIAL_FORM_DATA: MentorProfileFormData = {
-  bio: "",
-  birthDate: "",
-  country: "Algérie",
-  city: "",
-  languages: ["Français"],
-  photo: null,
-  avatarColor: "bg-brand-blue",
-  profession: "",
-  yearsOfExperience: "",
-  domains: [],
-  skills: [],
-  availability: [],
-  linkedin: "",
-  github: "",
-  portfolio: "",
-  website: "",
-  cv: null,
-  documents: [],
-};
-
 //intégrer les étapes
 export function MentorCompletionWizard() {
+  const { user, refetch } = useAuth();
+
   const [step, setStep] = useState(1);
-  const [formData, setFormData] =
-    useState<MentorProfileFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<MentorProfileFormData>(() => ({
+    firstName: "",
+    lastName: "",
+    bio: "",
+    birthDate: "",
+    country: "Algérie",
+    city: "",
+    languages: ["Français"],
+    photo: null,
+    avatarColor: "bg-brand-blue",
+    profession: "",
+    yearsOfExperience: "",
+    domains: [],
+    skills: [],
+    availability: [],
+    linkedin: "",
+    github: "",
+    portfolio: "",
+    website: "",
+    cv: null,
+    documents: [],
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const {refetch} = useAuth();
+
+  // valeurs dérivées, calculées au render
+  const displayFirstName = formData.firstName || user?.firstName || "";
+  const displayLastName = formData.lastName || user?.lastName || "";
 
   //valide les champs de l'étape 1 avant de continuer
   const validateStep1 = () => {
@@ -131,6 +135,11 @@ export function MentorCompletionWizard() {
     if (!validateStep3()) return;
     setIsSubmitting(true);
     try {
+      const payload: MentorProfileFormData = {
+        ...formData,
+        firstName: displayFirstName,
+        lastName: displayLastName,
+      };
       const res = await authApi.completeMentorProfile(formData);
       toast.success("Profil complété avec succès");
       await refetch();
@@ -161,7 +170,14 @@ export function MentorCompletionWizard() {
         icon={User}
       >
         <div className="space-y-8">
-          <ProfilePhotoSection formData={formData} setFormData={setFormData} />
+          <ProfilePhotoSection
+            formData={{
+              ...formData,
+              firstName: displayFirstName,
+              lastName: displayLastName,
+            }}
+            setFormData={setFormData}
+          />
           <AboutSection formData={formData} setFormData={setFormData} />
         </div>
         <Button onClick={goNext} variant="default" className="w-full mt-8">

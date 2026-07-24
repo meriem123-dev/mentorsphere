@@ -10,19 +10,11 @@ import { profileApi } from "@/features/profile/api/profileAPI";
 import { useAuth } from "@/context/AuthContext";
 import { isValidAge, isValidCity } from "@/features/auth/utils/validation";
 import { TextInput } from "@/features/auth/components/TextInput";
-import { getInitials } from "@/lib/user-display";
 import type {
   ApiErrorResponse,
   BaseProfileFormData,
 } from "@/types/authTypes";
 import type { EntrepreneurEditProfile } from "@/types/profile";
-
-//util
-function getInitialsFromNames(firstName: string, lastName: string): string {
-  const first = firstName?.[0] ?? "";
-  const last = lastName?.[0] ?? "";
-  return `${first}${last}`.toUpperCase();
-}
 
 interface EntrepreneurStep1FormProps {
   initialData: EntrepreneurEditProfile;
@@ -54,7 +46,6 @@ export function EntrepreneurStep1Form({
       toast.error("Merci de renseigner votre prénom et votre nom");
       return;
     }
-
     if (!formData.bio || formData.bio.trim().length < 10) {
       toast.error("Merci de renseigner une biographie (min 10 caractères)");
       return;
@@ -109,7 +100,6 @@ export function EntrepreneurStep1Form({
         formData={formData}
         setFormData={setFormData}
         existingPhotoUrl={initialData.user.profilePicture}
-        initials={getInitialsFromNames(formData.firstName, formData.lastName)}
       />
       <div className="grid grid-cols-2 gap-3">
         <TextInput

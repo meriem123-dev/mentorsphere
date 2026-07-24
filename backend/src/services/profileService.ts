@@ -395,6 +395,7 @@ export class ProfileService {
               : {}),
           },
         });
+
         if (languageIds) {
           await tx.userLanguage.deleteMany({ where: { userId: input.userId } });
           await tx.userLanguage.createMany({
@@ -415,22 +416,43 @@ export class ProfileService {
           });
         }
 
-        if (domainIds) {
+        // --- profession / level / lookingFor / domaines ---
+        if (
+          input.profession !== undefined ||
+          input.level !== undefined ||
+          input.lookingFor !== undefined ||
+          domainIds
+        ) {
           const entrepreneur = await tx.entrepreneur.upsert({
             where: { userId: input.userId },
-            create: { userId: input.userId },
-            update: {},
+            create: {
+              userId: input.userId,
+              profession: input.profession ?? null,
+              level: input.level ?? null,
+              lookingFor: input.lookingFor ?? [],
+            },
+            update: {
+              ...(input.profession !== undefined
+                ? { profession: input.profession }
+                : {}),
+              ...(input.level !== undefined ? { level: input.level } : {}),
+              ...(input.lookingFor !== undefined
+                ? { lookingFor: input.lookingFor }
+                : {}),
+            },
           });
 
-          await tx.entrepreneurDomain.deleteMany({
-            where: { entrepreneurId: entrepreneur.id },
-          });
-          await tx.entrepreneurDomain.createMany({
-            data: domainIds.map((domainId) => ({
-              entrepreneurId: entrepreneur.id,
-              domainId,
-            })),
-          });
+          if (domainIds) {
+            await tx.entrepreneurDomain.deleteMany({
+              where: { entrepreneurId: entrepreneur.id },
+            });
+            await tx.entrepreneurDomain.createMany({
+              data: domainIds.map((domainId) => ({
+                entrepreneurId: entrepreneur.id,
+                domainId,
+              })),
+            });
+          }
         }
 
         // --- CV : remplacement ---
@@ -474,8 +496,31 @@ export class ProfileService {
           await tx.document.deleteMany({
             where: {
               id: { in: input.removeDocumentIds },
-              userId: input.userId, // évite de supprimer le document d'un autre user
+              userId: input.userId,
             },
+          });
+        }
+
+        // --- Disponibilités (Step3) ---
+        if (input.availability) {
+          await tx.availability.deleteMany({ where: { userId: input.userId } });
+          await tx.availability.createMany({
+            data: input.availability.map((slot) => ({
+              userId: input.userId,
+              slot,
+            })),
+          });
+        }
+
+        // --- Réseaux sociaux (Step3) ---
+        if (input.socialLinks) {
+          await tx.socialLink.deleteMany({ where: { userId: input.userId } });
+          await tx.socialLink.createMany({
+            data: input.socialLinks.map((link) => ({
+              userId: input.userId,
+              platform: link.platform as any,
+              url: link.url,
+            })),
           });
         }
 

@@ -89,7 +89,7 @@ export function EmailPasswordForm() {
   return (
     <div className="space-y-8 max-w-md">
       <form onSubmit={handleEmailSubmit} className="space-y-4">
-        <h3 className="text-base font-semibold text-brand-navy">Adresse email</h3>
+        <h3 className="text-base font-semibold text-primary">Adresse email</h3>
         <div>
           <TextInput
             type="email"
@@ -123,7 +123,7 @@ export function EmailPasswordForm() {
       </form>
 
       <form onSubmit={handlePasswordSubmit} className="space-y-4 border-t pt-6">
-        <h3 className="text-base font-semibold text-brand-navy">Mot de passe</h3>
+        <h3 className="text-base font-semibold text-primary">Mot de passe</h3>
         <div>
           <TextInput
             type="password"

@@ -18,19 +18,25 @@ interface ProfilePhotoSectionProps<T extends BaseProfileFormData> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
   existingPhotoUrl?: string | null;
-   initials: string;
+}
+
+function getInitialsFromNames(firstName: string, lastName: string): string {
+  const first = firstName?.[0] ?? "";
+  const last = lastName?.[0] ?? "";
+  return `${first}${last}`.toUpperCase() || "MM";
 }
 
 export default function ProfilePhotoSection<T extends BaseProfileFormData>({
   formData,
   setFormData,
   existingPhotoUrl = null,
-  initials,
 }: ProfilePhotoSectionProps<T>) {
   const [selectedColor, setSelectedColor] = useState(
     formData.avatarColor || "bg-brand-blue",
   );
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const initials = getInitialsFromNames(formData.firstName, formData.lastName);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -40,7 +46,6 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
         setUploadedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      // une nouvelle photo annule toute demande de suppression
       setFormData((prev) => ({ ...prev, photo: file, removePhoto: false }));
     }
   };
@@ -60,14 +65,11 @@ export default function ProfilePhotoSection<T extends BaseProfileFormData>({
       ...prev,
       avatarColor: color,
       photo: null,
-      // s'il y avait une photo (nouvelle ou existante), on la retire
       removePhoto: Boolean(uploadedImage || existingPhotoUrl),
     }));
-    // si l'utilisateur avait uploadé une image localement, on l'enlève aussi
     setUploadedImage(null);
   };
 
-  // photo supprimée explicitement > nouvelle photo > photo existante > initiales/couleur
   const displayImage = formData.removePhoto
     ? null
     : (uploadedImage ?? existingPhotoUrl);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ApiErrorResponse, ProfileFormData } from "@/types/authTypes";
 import ProfilePhotoSection from "./ProfilePhotoSection";
@@ -17,35 +17,40 @@ import { isValidAge, isValidCity, isValidUrl } from "../utils/validation";
 import { getDashboardPath } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 
-const INITIAL_FORM_DATA: ProfileFormData = {
-  bio: "",
-  birthDate: "",
-  country: "Algérie",
-  city: "",
-  languages: ["Français"],
-  photo: null,
-  avatarColor: "bg-brand-blue",
-  profession: "",
-  level: "",
-  domains: [],
-  skills: [],
-  lookingFor: [],
-  linkedin: "",
-  github: "",
-  portfolio: "",
-  website: "",
-  availability: [],
-  cv: null,
-  documents: [],
-};
-
 //composant qui enveloppe toutes les étapes
 export function ProfileCompletionWizard() {
+  const { user, refetch } = useAuth();
+
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<ProfileFormData>(() => ({
+    firstName: "",
+    lastName: "",
+    bio: "",
+    birthDate: "",
+    country: "Algérie",
+    city: "",
+    languages: ["Français"],
+    photo: null,
+    avatarColor: "bg-brand-blue",
+    profession: "",
+    level: "",
+    domains: [],
+    skills: [],
+    lookingFor: [],
+    linkedin: "",
+    github: "",
+    portfolio: "",
+    website: "",
+    availability: [],
+    cv: null,
+    documents: [],
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const {refetch}=useAuth();
+
+  // valeurs dérivées, calculées au render
+  const displayFirstName = formData.firstName || user?.firstName || "";
+  const displayLastName = formData.lastName || user?.lastName || "";
 
   //valide les champs de l'étape 1 avant de continuer
   const validateStep1 = () => {
@@ -123,6 +128,11 @@ export function ProfileCompletionWizard() {
     setIsSubmitting(true);
 
     try {
+      const payload: ProfileFormData = {
+        ...formData,
+        firstName: displayFirstName,
+        lastName: displayLastName,
+      };
       const res = await authApi.completeEntrepreneurProfile(formData);
       toast.success("Profil complété avec succès");
       await refetch();
@@ -153,7 +163,14 @@ export function ProfileCompletionWizard() {
         icon={User}
       >
         <div className="space-y-8">
-          <ProfilePhotoSection formData={formData} setFormData={setFormData} />
+          <ProfilePhotoSection
+            formData={{
+              ...formData,
+              firstName: displayFirstName,
+              lastName: displayLastName,
+            }}
+            setFormData={setFormData}
+          />
           <AboutSection formData={formData} setFormData={setFormData} />
         </div>
         <Button onClick={goNext} variant="default" className="w-full mt-8">
