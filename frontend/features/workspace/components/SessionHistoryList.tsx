@@ -32,7 +32,6 @@ export function SessionHistoryList({ sessions, onViewDetails, onNewSession }: Pr
             status={session.status === "cancelled" ? "cancelled" : "completed"}
             date={session.date}
             durationMinutes={session.durationMinutes}
-            partnerName={session.partnerName}
             onViewDetails={() => onViewDetails(session.id)}
           />
         ))}

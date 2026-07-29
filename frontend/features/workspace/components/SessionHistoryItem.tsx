@@ -6,7 +6,6 @@ type Props = {
   status: "completed" | "cancelled";
   date: string;
   durationMinutes: number;
-  partnerName: string;
   onViewDetails: () => void;
   onMenuClick?: () => void;
 };
@@ -16,7 +15,6 @@ export function SessionHistoryItem({
   status,
   date,
   durationMinutes,
-  partnerName,
   onViewDetails,
   onMenuClick,
 }: Props) {
@@ -39,7 +37,7 @@ export function SessionHistoryItem({
             <SessionStatusBadge status={status} />
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {dateLabel} · {durationMinutes} min · {partnerName}
+            {dateLabel} · {durationMinutes} min
           </p>
         </div>
       </div>
