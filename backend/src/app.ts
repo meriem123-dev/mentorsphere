@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import profileRoutes from "./routes/profileRoutes";
 import startupRoutes from "./routes/startupRoutes";
 import mentorshipRoutes from "./routes/mentorshipRoutes";
+import workspaceRoutes from "./routes/workpsaceRoutes";
 
 import cookieParser from "cookie-parser";
 
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/startups", startupRoutes);
 app.use("/api/mentorship",mentorshipRoutes);
+app.use("/api/workspace", workspaceRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {

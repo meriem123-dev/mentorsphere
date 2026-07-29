@@ -13,6 +13,7 @@ import type { NavItem } from "@/types/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { useSidebarMobile } from "./sidebar-mobile-context";
 import { useNavBadges } from "@/features/auth/hooks/use-nav-badges";
+import { WorkspaceNavSection } from "@/features/workspace/components/WorkspaceNavSection";
 
 export type SidebarRole = "entrepreneur" | "mentor";
 
@@ -48,9 +49,7 @@ const ACCENT = {
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card";
 
-
 const PROFILE_PATH = "/profil/modifier";
-
 
 export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
   const pathname = usePathname();
@@ -100,6 +99,17 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
   const renderNav = () => (
     <nav className="flex flex-1 flex-col gap-1 overflow-hidden">
       {navItems.map((item) => {
+        if (item.href.endsWith("/workspace")) {
+          return (
+            <WorkspaceNavSection
+              key={item.href}
+              basePath={item.href}
+              hoverClass={accent.hover}
+              focusRing={FOCUS_RING}
+            />
+          );
+        }
+
         const isActive = pathname === item.href;
         const Icon = item.icon;
 
@@ -140,7 +150,7 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
     </nav>
   );
 
- const renderFooter = () => (
+  const renderFooter = () => (
     <div className="space-y-1 border-t border-border pt-1">
       <button
         type="button"
@@ -190,7 +200,6 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
     </div>
   );
 
-  
   return (
     <>
       {/* Backdrop mobile */}

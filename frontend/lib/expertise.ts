@@ -58,3 +58,14 @@ export const EXPERTISE_STYLES: Record<
   "Data & IA": { icon: BrainCircuit, dot: PALETTE_CYCLE[0], accent: ACCENT_CYCLE[1] },
   Cybersécurité: { icon: ShieldCheck, dot: PALETTE_CYCLE[1], accent: ACCENT_CYCLE[0] },
 };
+
+export function getDomainBadgeClasses(dot: string): string {
+  const colorToken = dot.replace(/^bg-/, "");
+  return `bg-${colorToken}/10 text-${colorToken}`;
+}
+
+export function resolveExpertiseDomain(raw: string): ExpertiseDomain | null {
+  const normalized = raw.trim().toLowerCase();
+  const match = EXPERTISE_DOMAINS.find((d) => d.toLowerCase() === normalized);
+  return match ?? null;
+}
