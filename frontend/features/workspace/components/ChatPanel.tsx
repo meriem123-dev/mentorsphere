@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
-import type { WorkspaceMessage } from "../../types/workspaceTypes";
+import type { WorkspaceMessage } from "../../../types/workspaceTypes";
 
 type Props = {
   messages: WorkspaceMessage[];
