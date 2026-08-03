@@ -1,4 +1,3 @@
-// features/workspace/components/ChatPanel.tsx
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
@@ -7,11 +6,11 @@ import type { WorkspaceMessage } from "../../../types/workspaceTypes";
 type Props = {
   messages: WorkspaceMessage[];
   partnerName: string;
-  selfRole: "mentor" | "entrepreneur";
+  selfId: string; 
   onSend: (content: string) => void;
 };
 
-export function ChatPanel({ messages, partnerName, selfRole, onSend }: Props) {
+export function ChatPanel({ messages, partnerName, selfId, onSend }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export function ChatPanel({ messages, partnerName, selfRole, onSend }: Props) {
             content={m.content}
             createdAt={m.createdAt}
             senderInitials={m.senderInitials}
-            isOwn={m.senderRole === selfRole}
+            isOwn={m.senderId === selfId}
           />
         ))}
         <div ref={bottomRef} />

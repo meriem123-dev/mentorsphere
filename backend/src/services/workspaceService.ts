@@ -8,15 +8,14 @@ const STAGE_LABELS: Record<string, string> = {
   CROISSANCE: "Croissance",
 };
 
-// Type minimal commun à Mentor et Entrepreneur
 type MemberSource = {
   id: string;
   profession: string | null;
   user: { firstName: string; lastName: string; email: string };
 };
 
-//métier infos workspace et membres
-export async function getWorkspaceOverview(mentorshipId: string, userId: string) {
+//fct réutilisable pour vérifier access
+export async function getWorkspaceAccess(mentorshipId: string, userId: string) {
   const mentorship = await prisma.mentorship.findUnique({
     where: { id: mentorshipId },
     include: {
@@ -25,6 +24,7 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
       startup: {
         include: {
           entrepreneur: { include: { user: true } },
+          steps: true,
           joinRequests: {
             where: { status: "ACCEPTED" },
             include: { requester: { include: { user: true } } },
@@ -36,13 +36,36 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
 
   if (!mentorship) return null;
 
-  // seuls le mentor ou l'entrepreneur concernés peuvent voir ce workspace
   const isMentor = mentorship.mentor.userId === userId;
-  const isEntrepreneur = mentorship.entrepreneur.userId === userId;
-  if (!isMentor && !isEntrepreneur) return "FORBIDDEN" as const;
+  const isOwner = mentorship.entrepreneur.userId === userId;
+  const isCollaborator =
+    mentorship.startup?.joinRequests.some(
+      (jr) => jr.requester.userId === userId,
+    ) ?? false;
 
-  const owner: MemberSource = mentorship.startup?.entrepreneur ?? mentorship.entrepreneur;
-  const startupName = mentorship.startup?.name ?? `Projet de ${owner.user.firstName}`;
+  if (!isMentor && !isOwner && !isCollaborator) return "FORBIDDEN" as const;
+
+  return { mentorship, isMentor, isOwner, isCollaborator };
+}
+
+//métier infos workspace et membres
+export async function getWorkspaceOverview(mentorshipId: string, userId: string) {
+  const access = await getWorkspaceAccess(mentorshipId, userId);
+  if (!access) return null;
+  if (access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const { mentorship } = access;
+
+  const owner: MemberSource =
+    mentorship.startup?.entrepreneur ?? mentorship.entrepreneur;
+  const startupName =
+    mentorship.startup?.name ?? `Projet de ${owner.user.firstName}`;
+
+  const steps = mentorship.startup?.steps ?? [];
+  const progress =
+    steps.length > 0
+      ? Math.round((steps.filter((s) => s.completed).length / steps.length) * 100)
+      : 0;
 
   const header = {
     startupName,
@@ -50,12 +73,13 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
     since: mentorship.createdAt,
     stage: mentorship.startup ? STAGE_LABELS[mentorship.startup.stage] : "Idée",
     domain: mentorship.startup?.domain ?? "Non défini",
+    progress,
   };
 
   const toMember = (
     entity: MemberSource,
     role: "owner" | "mentor" | "editor",
-    avatarAccent: "navy" | "rose" | "blue"
+    avatarAccent: "navy" | "rose" | "blue",
   ) => ({
     id: entity.id,
     name: `${entity.user.firstName} ${entity.user.lastName}`,
@@ -71,28 +95,48 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
   const members = [
     toMember(owner, "owner", "navy"),
     toMember(mentorship.mentor, "mentor", "rose"),
-    ...(mentorship.startup?.joinRequests.map((jr) => toMember(jr.requester, "editor", "blue")) ?? []),
+    ...(mentorship.startup?.joinRequests.map((jr) =>
+      toMember(jr.requester, "editor", "blue"),
+    ) ?? []),
   ];
 
   return { header, members };
 }
 
 //métier recup worspaces du user
-export async function getWorkspaceSummaries(userId: string, role: "MENTOR" | "ENTREPRENEUR") {
+export async function getWorkspaceSummaries(
+  userId: string,
+  role: "MENTOR" | "ENTREPRENEUR",
+) {
   const mentorships = await prisma.mentorship.findMany({
     where:
       role === "MENTOR"
         ? { mentor: { userId }, status: "ACCEPTED" }
-        : { entrepreneur: { userId }, status: "ACCEPTED" },
+        : {
+            status: "ACCEPTED",
+            OR: [
+              { entrepreneur: { userId } },
+              {
+                startup: {
+                  joinRequests: {
+                    some: { status: "ACCEPTED", requester: { userId } },
+                  },
+                },
+              },
+            ],
+          },
     include: {
       startup: { select: { name: true } },
-      entrepreneur: { include: { user: { select: { firstName: true, lastName: true } } } },
+      entrepreneur: {
+        include: { user: { select: { firstName: true, lastName: true } } },
+      },
     },
     orderBy: { updatedAt: "desc" },
   });
 
   return mentorships.map((m) => {
-    const startupName = m.startup?.name ?? `Projet de ${m.entrepreneur.user.firstName}`;
+    const startupName =
+      m.startup?.name ?? `Projet de ${m.entrepreneur.user.firstName}`;
     return {
       id: m.id,
       startupName,
@@ -100,4 +144,25 @@ export async function getWorkspaceSummaries(userId: string, role: "MENTOR" | "EN
       isActive: m.status === "ACCEPTED",
     };
   });
+}
+
+//métier recup messages du workspace
+export async function getWorkspaceMessages(mentorshipId: string, userId: string) {
+  const access = await getWorkspaceAccess(mentorshipId, userId);
+  if (!access) return null;
+  if (access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const messages = await prisma.message.findMany({
+    where: { mentorshipId },
+    orderBy: { createdAt: "asc" },
+    include: { sender: { select: { firstName: true, lastName: true } } },
+  });
+
+  return messages.map((m) => ({
+    id: m.id,
+    content: m.content,
+    senderId: m.senderId,
+    senderInitials: `${m.sender.firstName[0]}${m.sender.lastName[0]}`,
+    createdAt: m.createdAt,
+  }));
 }

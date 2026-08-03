@@ -23,19 +23,26 @@ import type {
   WorkspaceMember,
   WorkspaceOverview,
 } from "@/types/workspaceTypes";
+import { useWorkspaceSocket } from "@/hooks/use-workspace-socket";
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
 
-  const [header, setHeader] = useState<WorkspaceOverview["header"] | null>(null);
+  const [header, setHeader] = useState<WorkspaceOverview["header"] | null>(
+    null,
+  );
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
-  // TODO: brancher sur de vrais endpoints (progress, nextSession, chat, sessions, objectifs, documents)
-  const [progress, setProgress] = useState(0);
   const [messages, setMessages] = useState<WorkspaceMessage[]>([]);
+  const { sendMessage } = useWorkspaceSocket(id, (message) => {
+    setMessages((prev) => [...prev, message]);
+  });
+
   const [nextSession, setNextSession] = useState<Session | null>(null);
-  const [nextSessionMeetingUrl, setNextSessionMeetingUrl] = useState<string | undefined>();
+  const [nextSessionMeetingUrl, setNextSessionMeetingUrl] = useState<
+    string | undefined
+  >();
   const [pastSessions, setPastSessions] = useState<Session[]>([]);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [documents, setDocuments] = useState<WorkspaceDocument[]>([]);
@@ -48,13 +55,17 @@ export default function WorkspacePageClient() {
 
     const load = async () => {
       try {
-        const overview = await workspaceApi.getOverview(id);
+        const [overview, history] = await Promise.all([
+          workspaceApi.getOverview(id),
+          workspaceApi.getMessages(id),
+        ]);
         if (cancelled) return;
+
         setHeader(overview.header);
         setMembers(overview.members);
+        setMessages(history);
 
-        // le reste (progress, sessions, objectifs, documents, chat) sera branché
-        // sur leurs propres endpoints au fur et à mesure ; vide pour l'instant
+        // reste
       } catch (err) {
         if (!cancelled) toast.error("Impossible de charger le workspace");
       } finally {
@@ -69,17 +80,6 @@ export default function WorkspacePageClient() {
   }, [id]);
 
   const selfInitials = user ? `${user.firstName[0]}${user.lastName[0]}` : "";
-
-  const handleSend = (content: string) => {
-    const newMessage: WorkspaceMessage = {
-      id: crypto.randomUUID(),
-      senderInitials: user ? `${user.firstName[0]}${user.lastName[0]}` : "??",
-      senderRole: user?.role === "MENTOR" ? "mentor" : "entrepreneur",
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-  };
 
   const handleJoinSession = () => {
     if (nextSessionMeetingUrl) window.open(nextSessionMeetingUrl, "_blank");
@@ -118,7 +118,7 @@ export default function WorkspacePageClient() {
         domain={header.domain}
       />
 
-      <WorkspaceProgress progress={progress} />
+      <WorkspaceProgress progress={header.progress} />
 
       {nextSession && (
         <NextSessionCard
@@ -136,8 +136,8 @@ export default function WorkspacePageClient() {
         <ChatPanel
           messages={messages}
           partnerName={header.startupName}
-          selfRole={user?.role === "MENTOR" ? "mentor" : "entrepreneur"}
-          onSend={handleSend}
+          selfId={user?.id ?? ""}
+          onSend={sendMessage}
         />
       )}
 

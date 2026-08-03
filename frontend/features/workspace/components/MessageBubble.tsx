@@ -13,7 +13,7 @@ export function MessageBubble({ content, createdAt, senderInitials, isOwn }: Pro
     <div className={`flex items-end gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ${
-          isOwn ? "bg-brand-navy" : "bg-brand-rose"
+          isOwn ? "bg-brand-blue" : "bg-brand-rose"
         }`}
       >
         {senderInitials}
@@ -21,7 +21,7 @@ export function MessageBubble({ content, createdAt, senderInitials, isOwn }: Pro
       <div className={`flex max-w-[70%] flex-col ${isOwn ? "items-end" : "items-start"}`}>
         <div
           className={`rounded-2xl px-4 py-2.5 text-sm ${
-            isOwn ? "bg-brand-navy text-white" : "bg-muted text-foreground"
+            isOwn ? "bg-brand-blue text-white" : "bg-brand-rose text-white"
           }`}
         >
           {content}

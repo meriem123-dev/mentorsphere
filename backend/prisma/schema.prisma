@@ -87,6 +87,7 @@ model User {
   cv                CV?
   mentor            Mentor?
   entrepreneur      Entrepreneur?
+  messages          Message[]
 }
 
 //************Tables pour User *********
@@ -264,6 +265,8 @@ model Mentorship {
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  messages         Message[]
 }
 
 
@@ -323,4 +326,22 @@ model ProjectJoinRequest {
   updatedAt   DateTime @updatedAt
 
   @@unique([startupId, requesterId])
+}
+
+
+//*****model message du workspace (chat de groupe)********
+model Message {
+  id             String   @id @default(cuid())
+
+  content        String   @db.Text
+
+  mentorshipId   String
+  mentorship     Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  senderId       String
+  sender         User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime @default(now())
+
+  @@index([mentorshipId, createdAt])
 }

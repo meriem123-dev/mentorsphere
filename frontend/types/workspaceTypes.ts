@@ -1,6 +1,9 @@
-
-
-export type WorkspaceTab = "chat" | "sessions" | "objectifs" | "documents" | "members";
+export type WorkspaceTab =
+  | "chat"
+  | "sessions"
+  | "objectifs"
+  | "documents"
+  | "members";
 
 export type WorkspaceSummary = {
   id: string;
@@ -14,11 +17,11 @@ export type WorkspaceDetail = {
   startupName: string;
   startupInitials: string;
   since: string;
-  stage: string; 
-  domain: string; 
-  progress: number; 
+  stage: string;
+  domain: string;
+  progress: number;
   nextSession?: {
-    date: string; 
+    date: string;
     durationMinutes: number;
     meetingUrl?: string;
   };
@@ -27,9 +30,9 @@ export type WorkspaceDetail = {
 export type WorkspaceMessage = {
   id: string;
   senderInitials: string;
-  senderRole: "mentor" | "entrepreneur";
+  senderId: string;
   content: string;
-  createdAt: string; 
+  createdAt: string;
 };
 
 export type SessionStatus = "upcoming" | "completed" | "cancelled";
@@ -100,6 +103,7 @@ export type WorkspaceOverview = {
     since: string;
     stage: string;
     domain: string;
+    progress: number;
   };
   members: WorkspaceMember[];
 };
