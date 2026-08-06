@@ -55,15 +55,20 @@ export default function WorkspacePageClient() {
 
     const load = async () => {
       try {
-        const [overview, history] = await Promise.all([
-          workspaceApi.getOverview(id),
-          workspaceApi.getMessages(id),
-        ]);
+        const [overview, history, objectivesData, documentsData] =
+          await Promise.all([
+            workspaceApi.getOverview(id),
+            workspaceApi.getMessages(id),
+            workspaceApi.getObjectives(id),
+            workspaceApi.getDocuments(id),
+          ]);
         if (cancelled) return;
 
         setHeader(overview.header);
         setMembers(overview.members);
         setMessages(history);
+        setObjectives(objectivesData);
+        setDocuments(documentsData);
 
         // reste
       } catch (err) {
@@ -85,18 +90,21 @@ export default function WorkspacePageClient() {
     if (nextSessionMeetingUrl) window.open(nextSessionMeetingUrl, "_blank");
   };
   const handleReschedule = () => toast.info("Reprogrammation à venir");
+
   const handleViewSessionDetails = (sessionId: string) =>
     toast.info(`Détails de la session ${sessionId} à venir`);
+
   const handleNewSession = () => toast.info("Création de session à venir");
-  const handleViewObjective = (objectiveId: string) =>
-    toast.info(`Détails de l'objectif ${objectiveId} à venir`);
-  const handleAddGoal = () => toast.info("Ajout d'objectif à venir");
+
   const handleDownloadDocument = (documentId: string) => {
     const doc = documents.find((d) => d.id === documentId);
     if (doc) window.open(doc.downloadUrl, "_blank");
   };
+
   const handleUpload = () => toast.info("Upload de document à venir");
+
   const handleInviteMember = () => toast.info("Invitation de membre à venir");
+
   const handleMemberMenuClick = (memberId: string) =>
     toast.info(`Actions pour le membre ${memberId} à venir`);
 
@@ -156,17 +164,18 @@ export default function WorkspacePageClient() {
 
       {activeTab === "objectifs" && (
         <ObjectifsTab
+          mentorshipId={id}
           objectives={objectives}
-          onViewObjective={handleViewObjective}
-          onAddGoal={handleAddGoal}
+          onObjectivesChange={setObjectives}
         />
       )}
 
       {activeTab === "documents" && (
         <DocumentsTab
+          mentorshipId={id}
           documents={documents}
+          onDocumentsChange={setDocuments}
           onDownload={handleDownloadDocument}
-          onUpload={handleUpload}
         />
       )}
 

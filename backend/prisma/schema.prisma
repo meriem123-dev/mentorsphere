@@ -45,6 +45,14 @@ enum JoinRequestStatus {
   REJECTED
 }
 
+enum WorkspaceDocumentType {
+  PDF
+  EXCEL
+  WORD
+  IMAGE
+  OTHER
+}
+
 
 
 //************** Modèle User************
@@ -88,6 +96,7 @@ model User {
   mentor            Mentor?
   entrepreneur      Entrepreneur?
   messages          Message[]
+  workspaceDocuments WorkspaceDocument[]
 }
 
 //************Tables pour User *********
@@ -267,6 +276,8 @@ model Mentorship {
   updatedAt        DateTime @updatedAt
 
   messages         Message[]
+  objectives  Objective[]
+  workspaceDocuments WorkspaceDocument[]
 }
 
 
@@ -342,6 +353,43 @@ model Message {
   sender         User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   createdAt      DateTime @default(now())
+
+  @@index([mentorshipId, createdAt])
+}
+
+//***modèle Objectif dans workspace***
+model Objective {
+  id           String   @id @default(cuid())
+  title        String
+  category     String
+  progress     Int      @default(0)
+
+  mentorshipId String
+  mentorship   Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([mentorshipId])
+}
+
+//***modèle document pour le workspace ***
+model WorkspaceDocument {
+  id            String                @id @default(cuid())
+
+  name          String
+  fileType      WorkspaceDocumentType
+  fileUrl       String
+  sizeBytes     Int
+  sessionNumber Int?
+
+  mentorshipId  String
+  mentorship    Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  uploadedById  String
+  uploadedBy    User @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
 
   @@index([mentorshipId, createdAt])
 }

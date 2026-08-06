@@ -24,7 +24,7 @@ export function ObjectiveCard({ title, category, progress, onClick }: Props) {
         <div className="mt-2 flex items-center gap-3">
           <div className="h-1.5 flex-1 rounded-full bg-muted">
             <div
-              className="h-1.5 rounded-full bg-gradient-rose-fade transition-all"
+              className="h-1.5 rounded-full bg-gradient-brand transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
