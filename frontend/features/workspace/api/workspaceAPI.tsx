@@ -9,6 +9,8 @@ import type {
 } from "@/types/workspaceTypes";
 
 export const workspaceApi = {
+
+  //général
   getOverview: async (mentorshipId: string): Promise<WorkspaceOverview> => {
     const { data } = await api.get(`api/workspace/${mentorshipId}/overview`);
     return data;
@@ -17,11 +19,15 @@ export const workspaceApi = {
     const { data } = await api.get(`api/workspace/summaries`);
     return data;
   },
+
+  //chat
   getMessages: async (mentorshipId: string): Promise<WorkspaceMessage[]> => {
   const { data } = await api.get(`api/workspace/${mentorshipId}/messages`);
   return data;
 },
 
+
+//objectifs
 getObjectives: (mentorshipId: string) =>
   api.get<Objective[]>(`api/workspace/${mentorshipId}/objectives`).then((r) => r.data),
 
@@ -42,6 +48,7 @@ updateObjective: (
 deleteObjective: (mentorshipId: string, objectiveId: string) =>
   api.delete(`api/workspace/${mentorshipId}/objectives/${objectiveId}`),
 
+//docs
 getDocuments: (mentorshipId: string) =>
   api.get<WorkspaceDocument[]>(`api/workspace/${mentorshipId}/documents`).then((r) => r.data),
 

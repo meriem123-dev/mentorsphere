@@ -1,4 +1,3 @@
-import { MoreHorizontal } from "lucide-react";
 import { MemberRoleBadge } from "./MemberRoleBadge";
 import type { MemberRole } from "../../../types/workspaceTypes";
 
@@ -9,7 +8,6 @@ type Props = {
   title: string;
   email: string;
   avatarAccent: "rose" | "navy" | "blue" | "muted";
-  onMenuClick?: () => void;
 };
 
 const ACCENT_CLASSES: Record<Props["avatarAccent"], string> = {
@@ -26,33 +24,26 @@ export function MemberListItem({
   title,
   email,
   avatarAccent,
-  onMenuClick,
 }: Props) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-card p-4">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
         <span
-          className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold text-white ${ACCENT_CLASSES[avatarAccent]}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${ACCENT_CLASSES[avatarAccent]}`}
         >
           {initials}
         </span>
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-foreground">{name}</p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-medium text-foreground">{name}</p>
             <MemberRoleBadge role={role} />
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">{title}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{title}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-muted-foreground">{email}</span>
-        <button
-          onClick={onMenuClick}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
+      <div className="min-w-0 pl-[52px] sm:pl-0">
+        <span className="block truncate text-xs text-muted-foreground">{email}</span>
       </div>
     </div>
   );

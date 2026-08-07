@@ -78,7 +78,7 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
 
   const toMember = (
     entity: MemberSource,
-    role: "owner" | "mentor" | "editor",
+    role: "owner" | "mentor" | "collaborator",
     avatarAccent: "navy" | "rose" | "blue",
   ) => ({
     id: entity.id,
@@ -96,7 +96,7 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
     toMember(owner, "owner", "navy"),
     toMember(mentorship.mentor, "mentor", "rose"),
     ...(mentorship.startup?.joinRequests.map((jr) =>
-      toMember(jr.requester, "editor", "blue"),
+      toMember(jr.requester, "collaborator", "blue"),
     ) ?? []),
   ];
 

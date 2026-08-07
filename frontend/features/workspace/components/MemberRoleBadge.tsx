@@ -1,11 +1,10 @@
-import { Crown, CircleDot, Pencil, Eye } from "lucide-react";
+import { Crown, CircleDot, Pencil } from "lucide-react";
 import type { MemberRole } from "../../../types/workspaceTypes";
 
 const ROLE_CONFIG: Record<MemberRole, { icon: typeof Crown; label: string; className: string }> = {
   owner: { icon: Crown, label: "Owner", className: "bg-brand-blue/10 text-brand-blue" },
   mentor: { icon: CircleDot, label: "Mentor", className: "bg-brand-rose/10 text-brand-rose" },
-  editor: { icon: Pencil, label: "Editor", className: "bg-emerald-500/10 text-emerald-600" },
-  viewer: { icon: Eye, label: "Viewer", className: "bg-muted text-muted-foreground" },
+  collaborator: { icon: Pencil, label: "Collaborator", className: "bg-emerald-500/10 text-emerald-600" },
 };
 
 export function MemberRoleBadge({ role }: { role: MemberRole }) {

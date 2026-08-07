@@ -40,6 +40,17 @@ export function DocumentsTab({
     }
   };
 
+  //appel API supp
+const handleDeleteDocument = async (documentId: string) => {
+  try {
+    await workspaceApi.deleteDocument(mentorshipId, documentId);
+    onDocumentsChange(documents.filter((d) => d.id !== documentId));
+    toast.success("Document supprimé");
+  } catch (err) {
+    toast.error("Impossible de supprimer le document");
+  }
+};
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -52,7 +63,7 @@ export function DocumentsTab({
           className="flex items-center gap-1.5 rounded-lg bg-gradient-hero px-3 py-2 text-xs font-medium text-white disabled:opacity-60"
         >
           <Upload className="h-3.5 w-3.5" />
-          {isUploading ? "Envoi..." : "Upload"}
+          {isUploading ? "Envoi..." : "Ajouter un document"}
         </button>
         <input
           ref={inputRef}
@@ -72,6 +83,7 @@ export function DocumentsTab({
             uploadedAt={doc.uploadedAt}
             sessionNumber={doc.sessionNumber}
             onDownload={() => onDownload(doc.id)}
+            onDelete={()=>handleDeleteDocument(doc.id)}
           />
         ))}
       </div>

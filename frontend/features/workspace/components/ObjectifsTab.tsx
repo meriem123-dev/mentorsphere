@@ -28,6 +28,7 @@ export function ObjectifsTab({ mentorshipId, objectives, onObjectivesChange }: P
     setModalOpen(true);
   };
 
+  //appel API create ou maj
   const handleSubmit = async (data: ObjectiveFormData) => {
     if (editTarget) {
       const updated = await workspaceApi.updateObjective(mentorshipId, editTarget.id, data);
@@ -42,6 +43,20 @@ export function ObjectifsTab({ mentorshipId, objectives, onObjectivesChange }: P
     }
   };
 
+
+
+//appel API supp
+const handleDeleteObjective = async (objectiveId: string) => {
+  try {
+    await workspaceApi.deleteObjective(mentorshipId, objectiveId);
+    onObjectivesChange(objectives.filter((o) => o.id !== objectiveId));
+    toast.success("Objectif supprimé");
+  } catch (err) {
+    toast.error("Impossible de supprimer l'objectif");
+  }
+};
+
+  //parent
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -65,6 +80,7 @@ export function ObjectifsTab({ mentorshipId, objectives, onObjectivesChange }: P
             category={objective.category}
             progress={objective.progress}
             onClick={() => openEdit(objective)}
+            onDelete={()=>handleDeleteObjective(objective.id)}
           />
         ))}
       </div>

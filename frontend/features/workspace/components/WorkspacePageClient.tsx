@@ -50,6 +50,8 @@ export default function WorkspacePageClient() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("chat");
   const [isLoading, setIsLoading] = useState(true);
 
+
+  //appels API workspace
   useEffect(() => {
     let cancelled = false;
 
@@ -96,17 +98,14 @@ export default function WorkspacePageClient() {
 
   const handleNewSession = () => toast.info("Création de session à venir");
 
+
+  //gérer download doc
   const handleDownloadDocument = (documentId: string) => {
     const doc = documents.find((d) => d.id === documentId);
     if (doc) window.open(doc.downloadUrl, "_blank");
   };
 
-  const handleUpload = () => toast.info("Upload de document à venir");
 
-  const handleInviteMember = () => toast.info("Invitation de membre à venir");
-
-  const handleMemberMenuClick = (memberId: string) =>
-    toast.info(`Actions pour le membre ${memberId} à venir`);
 
   if (isLoading || !header) {
     return (
@@ -116,8 +115,10 @@ export default function WorkspacePageClient() {
     );
   }
 
+
+  //affichage workspace
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-6">
       <WorkspaceHeader
         startupName={header.startupName}
         startupInitials={header.startupInitials}
@@ -182,8 +183,6 @@ export default function WorkspacePageClient() {
       {activeTab === "members" && (
         <MembersTab
           members={members}
-          onInvite={handleInviteMember}
-          onMemberMenuClick={handleMemberMenuClick}
         />
       )}
     </div>

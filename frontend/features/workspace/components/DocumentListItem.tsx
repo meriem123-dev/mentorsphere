@@ -1,4 +1,4 @@
-import { Download, MoreHorizontal } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { DocumentFileIcon } from "./DocumentFileIcon";
 import type { DocumentFileType } from "../../../types/workspaceTypes";
 
@@ -10,15 +10,11 @@ type Props = {
   sessionNumber?: number;
   onDownload: () => void;
   onMenuClick?: () => void;
+  onDelete?: () => void;
 };
 
-const FILE_TYPE_LABELS: Record<DocumentFileType, string> = {
-  pdf: "PDF",
-  excel: "Excel",
-  word: "Word",
-  image: "Image",
-  other: "Fichier",
-};
+
+
 
 export function DocumentListItem({
   name,
@@ -28,6 +24,7 @@ export function DocumentListItem({
   sessionNumber,
   onDownload,
   onMenuClick,
+  onDelete,
 }: Props) {
   const dateLabel = new Date(uploadedAt).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -56,15 +53,15 @@ export function DocumentListItem({
       <div className="flex items-center gap-1">
         <button
           onClick={onDownload}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
         >
           <Download className="h-4 w-4" />
         </button>
         <button
           onClick={onMenuClick}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <Trash2 className="h-4 w-4 text-brand-rose" onClick={onDelete}/>
         </button>
       </div>
     </div>

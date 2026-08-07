@@ -17,7 +17,7 @@ type Props = {
 
 export function WorkspaceTabNav({ active, onChange }: Props) {
   return (
-    <div className="flex w-fit gap-1 rounded-xl bg-muted p-1">
+    <div className="flex flex-wrap sm:w-fit gap-1 rounded-xl bg-muted p-1">
       {TABS.map(({ key, label, icon: Icon }) => {
         const isActive = key === active;
         return (

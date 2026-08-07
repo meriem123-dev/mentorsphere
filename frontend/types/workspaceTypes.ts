@@ -78,13 +78,13 @@ export type WorkspaceDocument = {
   id: string;
   name: string;
   fileType: DocumentFileType;
-  sizeLabel: string; // ex: "2.4 MB"
-  uploadedAt: string; // ISO string
+  sizeLabel: string;
+  uploadedAt: string;
   sessionNumber?: number; // lien optionnel vers une session
   downloadUrl: string;
 };
 
-export type MemberRole = "owner" | "mentor" | "editor" | "viewer";
+export type MemberRole = "owner" | "mentor" | "collaborator";
 
 export type WorkspaceMember = {
   id: string;
