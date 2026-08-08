@@ -3,6 +3,8 @@ import { requireAuth } from "../middlewares/authMiddleware";
 import { getWorkspaceOverviewHandler,getWorkspaceSummariesHandler,getWorkspaceMessagesHandler } from "../controllers/workspaceController";
 import {createObjectiveHandler,listObjectivesHandler,updateObjectiveHandler,deleteObjectiveHandler} from "../controllers/objectiveController";
 import { listDocumentsHandler, uploadDocumentHandler, deleteDocumentHandler } from "../controllers/documentController";
+import {createSessionHandler,listSessionsHandler} from "../controllers/sessionController"
+
 import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -20,5 +22,8 @@ router.delete("/:id/objectives/:objectiveId",requireAuth, deleteObjectiveHandler
 router.get("/:id/documents",requireAuth, listDocumentsHandler);
 router.post("/:id/documents",requireAuth, upload.single("file"), uploadDocumentHandler);
 router.delete("/:id/documents/:documentId",requireAuth, deleteDocumentHandler);
+
+router.get("/:mentorshipId/sessions", requireAuth,listSessionsHandler);
+router.post("/:mentorshipId/sessions", requireAuth, createSessionHandler);
 
 export default router;

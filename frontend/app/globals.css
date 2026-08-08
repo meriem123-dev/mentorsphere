@@ -166,3 +166,7 @@
   --color-brand-blue: hsl(var(--brand-blue));
   /* ... */
 }
+
+@theme {
+  --shadow-sidebar-glow: inset -1px 0 0 0 rgb(255 255 255 / 0.06), 4px 0 24px -8px hsl(var(--brand-blue) / 0.2);
+}

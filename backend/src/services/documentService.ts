@@ -3,6 +3,8 @@ import { uploadToCloudinary } from "../utils/cloudinary"; // adapte le chemin
 import { getWorkspaceAccess } from "./workspaceService";
 import { resolveDocumentType, formatFileSize } from "../utils/fileHelpers";
 
+
+//métier recup docs
 export async function listWorkspaceDocuments(mentorshipId: string, userId: string) {
   const access = await getWorkspaceAccess(mentorshipId, userId);
   if (!access) return null;
@@ -24,6 +26,8 @@ export async function listWorkspaceDocuments(mentorshipId: string, userId: strin
   }));
 }
 
+
+//métier upload doc
 export async function uploadWorkspaceDocument(
   mentorshipId: string,
   userId: string,
@@ -59,6 +63,7 @@ export async function uploadWorkspaceDocument(
   };
 }
 
+//métier supp un doc
 export async function deleteWorkspaceDocument(
   mentorshipId: string,
   documentId: string,

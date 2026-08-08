@@ -50,7 +50,7 @@ export function TopBar({
     "Dashboard";
 
   return (
-    <header className="sticky rounded-2xl ml-2 top-0 z-30 flex h-16 items-center justify-between border-b border-border/60 bg-card/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 sm:px-6">
+    <header className="sticky rounded-2xl ml-2 top-0 z-30 shadow-sidebar-glow flex h-16 items-center justify-between border border-white/10 bg-card/60 px-4 backdrop-blur-md supports-backdrop-filter:bg-card/40 sm:px-6 ">
       <div className="flex items-center gap-3">
         <button
           type="button"

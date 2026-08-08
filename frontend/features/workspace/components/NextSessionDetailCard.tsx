@@ -12,11 +12,7 @@ type Props = {
   onReschedule: () => void;
 };
 
-const ACCENT_CLASSES: Record<NonNullable<Participant["accent"]>, string> = {
-  blue: "bg-brand-blue",
-  rose: "bg-brand-rose",
-  navy: "bg-brand-navy",
-};
+const AVATAR_COLORS = ["bg-brand-rose", "bg-brand-navy", "bg-brand-blue"];
 
 export function NextSessionDetailCard({
   sessionNumber,
@@ -72,15 +68,13 @@ export function NextSessionDetailCard({
           <p className="text-xs text-muted-foreground">Participants</p>
           <div className="mt-1 flex -space-x-2">
             {participants.map((p, i) => (
-              <span
-                key={i}
-                className={`flex h-6 w-6 items-center justify-center rounded-full border-2 border-card text-[10px] font-semibold text-white ${
-                  ACCENT_CLASSES[p.accent ?? "navy"]
-                }`}
-              >
-                {p.initials}
-              </span>
-            ))}
+            <span
+              key={i}
+              className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}
+            >
+              {p.initials}
+            </span>
+          ))}
           </div>
         </div>
       </div>

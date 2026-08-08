@@ -1,0 +1,100 @@
+import { Request, Response } from "express";
+import { createSession, listSessions } from "../services/sessionService";
+
+//créer session
+export async function createSessionHandler(req: Request, res: Response) {
+  try {
+    const userId = req.user!.userId;
+    const mentorshipIdParam = req.params.mentorshipId;
+    const mentorshipId = Array.isArray(mentorshipIdParam)
+      ? mentorshipIdParam[0]
+      : mentorshipIdParam;
+
+    if (!mentorshipId) {
+      return res
+        .status(400)
+        .json({ message: "Identifiant de workspace manquant." });
+    }
+
+    const { scheduledAt, durationMinutes, agenda, participantIds } = req.body;
+
+    // validation manuelle inline (pas de Zod)
+    if (!scheduledAt || isNaN(Date.parse(scheduledAt))) {
+      return res.status(400).json({ message: "Date de session invalide." });
+    }
+
+    const parsedDuration = Number(durationMinutes);
+    if (!Number.isInteger(parsedDuration) || parsedDuration <= 0) {
+      return res.status(400).json({ message: "Durée invalide." });
+    }
+
+    if (
+      !Array.isArray(participantIds) ||
+      participantIds.some((id) => typeof id !== "string")
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Liste de participants invalide." });
+    }
+
+    if (agenda !== undefined && typeof agenda !== "string") {
+      return res.status(400).json({ message: "Agenda invalide." });
+    }
+
+    const result = await createSession(mentorshipId, userId, {
+      scheduledAt: new Date(scheduledAt),
+      durationMinutes: parsedDuration,
+      agenda: agenda ?? undefined,
+      participantIds,
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: "Workspace introuvable." });
+    }
+
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+
+    if (result === "NOT_ALLOWED_TO_CREATE") {
+      return res
+        .status(403)
+        .json({
+          message: "Seuls le mentor et le fondateur peuvent créer une session.",
+        });
+    }
+
+    if ("error" in result && result.error === "INVALID_PARTICIPANTS") {
+      return res.status(400).json({
+        message: "Certains participants ne font pas partie de ce workspace.",
+        invalidIds: result.invalidIds,
+      });
+    }
+
+    return res.status(201).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la création de la session." });
+  }
+}
+
+
+//recup sessions
+export async function listSessionsHandler(req: Request, res: Response) {
+  try {
+    const mentorshipId = req.params.mentorshipId as string;
+    const userId = req.user!.userId;
+
+    const result = await listSessions(mentorshipId, userId);
+
+    if (result === null) return res.status(404).json({ message: "Workspace introuvable" });
+    if (result === "FORBIDDEN") return res.status(403).json({ message: "Accès non autorisé" });
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: ("Erreur lors du chargement des sessions") });
+  }
+}

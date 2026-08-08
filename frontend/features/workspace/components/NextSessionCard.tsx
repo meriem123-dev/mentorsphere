@@ -1,15 +1,20 @@
-
 import { Video } from "lucide-react";
+
+type Participant = {
+  id: string;
+  initials: string;
+};
 
 type Props = {
   date: string;
   durationMinutes: number;
-  partnerInitials: string;
-  selfInitials: string;
+  participants: Participant[];
   onJoin: () => void;
 };
 
-export function NextSessionCard({ date, durationMinutes, partnerInitials, selfInitials, onJoin }: Props) {
+const AVATAR_COLORS = ["bg-brand-rose", "bg-brand-navy", "bg-brand-blue"];
+
+export function NextSessionCard({ date, durationMinutes, participants, onJoin }: Props) {
   const label = new Date(date).toLocaleString("fr-FR", {
     weekday: "short",
     day: "numeric",
@@ -34,12 +39,14 @@ export function NextSessionCard({ date, durationMinutes, partnerInitials, selfIn
 
       <div className="flex items-center gap-3">
         <div className="flex -space-x-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-brand-rose text-[10px] font-semibold text-white">
-            {partnerInitials}
-          </span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-brand-navy text-[10px] font-semibold text-white">
-            {selfInitials}
-          </span>
+          {participants.map((p, i) => (
+            <span
+              key={p.id}
+              className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-card text-[10px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}
+            >
+              {p.initials}
+            </span>
+          ))}
         </div>
         <button
           onClick={onJoin}

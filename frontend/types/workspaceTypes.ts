@@ -35,15 +35,8 @@ export type WorkspaceMessage = {
   createdAt: string;
 };
 
-export type SessionStatus = "upcoming" | "completed" | "cancelled";
 
-export type Session = {
-  id: string;
-  number: number;
-  status: SessionStatus;
-  date: string; // ISO string
-  durationMinutes: number;
-};
+
 
 export type ObjectiveCategory =
   | "Vision & stratégie"
@@ -88,6 +81,7 @@ export type MemberRole = "owner" | "mentor" | "collaborator";
 
 export type WorkspaceMember = {
   id: string;
+  userId: string;
   name: string;
   initials: string;
   role: MemberRole;
@@ -106,4 +100,33 @@ export type WorkspaceOverview = {
     progress: number;
   };
   members: WorkspaceMember[];
+};
+
+
+export type SessionParticipant = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export type SessionStatus = "upcoming" | "completed" | "cancelled";
+
+export type Session = {
+  id: string;
+  number: number;
+  status: SessionStatus;
+  scheduledAt: string;
+  durationMinutes: number;
+  agenda?: string;
+  meetingUrl?: string;
+  participants?: SessionParticipant[];
+};
+
+
+export type CreateSessionPayload = {
+  scheduledAt: string; // ISO string
+  durationMinutes: number;
+  agenda?: string;
+  participantIds: string[];
 };

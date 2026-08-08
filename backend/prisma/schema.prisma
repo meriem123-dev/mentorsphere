@@ -53,6 +53,12 @@ enum WorkspaceDocumentType {
   OTHER
 }
 
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 
 
 //************** Modèle User************
@@ -97,6 +103,8 @@ model User {
   entrepreneur      Entrepreneur?
   messages          Message[]
   workspaceDocuments WorkspaceDocument[]
+  sessionsCreated      Session[]            @relation("SessionCreatedBy")
+  sessionParticipations SessionParticipant[] @relation("SessionParticipations")
 }
 
 //************Tables pour User *********
@@ -278,6 +286,7 @@ model Mentorship {
   messages         Message[]
   objectives  Objective[]
   workspaceDocuments WorkspaceDocument[]
+  sessions Session[]
 }
 
 
@@ -392,4 +401,46 @@ model WorkspaceDocument {
   createdAt     DateTime @default(now())
 
   @@index([mentorshipId, createdAt])
+}
+
+//***modèle session***
+model Session {
+  id              String        @id @default(cuid())
+  number          Int
+  scheduledAt     DateTime
+  durationMinutes Int
+  status          SessionStatus @default(SCHEDULED)
+
+  meetingUrl      String?
+  agenda          String?       @db.Text
+  rawNotes        String?       @db.Text
+  aiSummary       Json?
+
+  mentorshipId    String
+  mentorship      Mentorship    @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  createdById     String
+  createdBy       User          @relation("SessionCreatedBy", fields: [createdById], references: [id])
+
+  participants    SessionParticipant[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([mentorshipId, scheduledAt])
+}
+
+//**modèle participant dans une session***
+model SessionParticipant {
+  id         String   @id @default(cuid())
+
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation("SessionParticipations", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@unique([sessionId, userId])
 }

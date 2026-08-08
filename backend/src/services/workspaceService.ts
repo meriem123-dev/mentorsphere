@@ -11,7 +11,7 @@ const STAGE_LABELS: Record<string, string> = {
 type MemberSource = {
   id: string;
   profession: string | null;
-  user: { firstName: string; lastName: string; email: string };
+  user: { id: string; firstName: string; lastName: string; email: string };
 };
 
 //fct réutilisable pour vérifier access
@@ -49,7 +49,10 @@ export async function getWorkspaceAccess(mentorshipId: string, userId: string) {
 }
 
 //métier infos workspace et membres
-export async function getWorkspaceOverview(mentorshipId: string, userId: string) {
+export async function getWorkspaceOverview(
+  mentorshipId: string,
+  userId: string,
+) {
   const access = await getWorkspaceAccess(mentorshipId, userId);
   if (!access) return null;
   if (access === "FORBIDDEN") return "FORBIDDEN" as const;
@@ -64,7 +67,9 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
   const steps = mentorship.startup?.steps ?? [];
   const progress =
     steps.length > 0
-      ? Math.round((steps.filter((s) => s.completed).length / steps.length) * 100)
+      ? Math.round(
+          (steps.filter((s) => s.completed).length / steps.length) * 100,
+        )
       : 0;
 
   const header = {
@@ -82,12 +87,19 @@ export async function getWorkspaceOverview(mentorshipId: string, userId: string)
     avatarAccent: "navy" | "rose" | "blue",
   ) => ({
     id: entity.id,
+    userId: entity.user.id, // ← ajouté
     name: `${entity.user.firstName} ${entity.user.lastName}`,
-    initials: getInitialsFromName(`${entity.user.firstName} ${entity.user.lastName}`),
+    initials: getInitialsFromName(
+      `${entity.user.firstName} ${entity.user.lastName}`,
+    ),
     role,
     title:
       entity.profession ??
-      (role === "owner" ? "Fondateur" : role === "mentor" ? "Mentor" : "Collaborateur"),
+      (role === "owner"
+        ? "Fondateur"
+        : role === "mentor"
+          ? "Mentor"
+          : "Collaborateur"),
     email: entity.user.email,
     avatarAccent,
   });
@@ -147,7 +159,10 @@ export async function getWorkspaceSummaries(
 }
 
 //métier recup messages du workspace
-export async function getWorkspaceMessages(mentorshipId: string, userId: string) {
+export async function getWorkspaceMessages(
+  mentorshipId: string,
+  userId: string,
+) {
   const access = await getWorkspaceAccess(mentorshipId, userId);
   if (!access) return null;
   if (access === "FORBIDDEN") return "FORBIDDEN" as const;

@@ -6,6 +6,8 @@ import {
   deleteObjective,
 } from "../services/objectiveService";
 
+
+//recup objectifs
 export async function listObjectivesHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;
@@ -24,6 +26,8 @@ export async function listObjectivesHandler(req: Request, res: Response) {
   }
 }
 
+
+//créer un objectif
 export async function createObjectiveHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;
@@ -47,6 +51,7 @@ export async function createObjectiveHandler(req: Request, res: Response) {
   }
 }
 
+//maj objectif
 export async function updateObjectiveHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;
@@ -71,6 +76,7 @@ export async function updateObjectiveHandler(req: Request, res: Response) {
   }
 }
 
+//supp objectif
 export async function deleteObjectiveHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;

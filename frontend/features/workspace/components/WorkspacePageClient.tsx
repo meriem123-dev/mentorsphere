@@ -22,8 +22,16 @@ import type {
   WorkspaceDocument,
   WorkspaceMember,
   WorkspaceOverview,
+  SessionStatus,
 } from "@/types/workspaceTypes";
 import { useWorkspaceSocket } from "@/hooks/use-workspace-socket";
+import { SessionModal } from "./SessionModal";
+
+function mapSessionStatus(backendStatus: string): SessionStatus {
+  if (backendStatus === "SCHEDULED") return "upcoming";
+  if (backendStatus === "COMPLETED") return "completed";
+  return "cancelled";
+}
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
@@ -39,17 +47,28 @@ export default function WorkspacePageClient() {
     setMessages((prev) => [...prev, message]);
   });
 
-  const [nextSession, setNextSession] = useState<Session | null>(null);
-  const [nextSessionMeetingUrl, setNextSessionMeetingUrl] = useState<
-    string | undefined
-  >();
-  const [pastSessions, setPastSessions] = useState<Session[]>([]);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [documents, setDocuments] = useState<WorkspaceDocument[]>([]);
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("chat");
   const [isLoading, setIsLoading] = useState(true);
 
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+
+  const [nextSessionMeetingUrl, setNextSessionMeetingUrl] = useState<
+    string | undefined
+  >();
+
+  const upcomingSessions = sessions
+    .filter((s) => s.status === "upcoming")
+    .sort(
+      (a, b) =>
+        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+    );
+
+  const nextSession = upcomingSessions[0] ?? null;
+  const pastSessions = sessions.filter((s) => s.status !== "upcoming");
 
   //appels API workspace
   useEffect(() => {
@@ -57,12 +76,13 @@ export default function WorkspacePageClient() {
 
     const load = async () => {
       try {
-        const [overview, history, objectivesData, documentsData] =
+        const [overview, history, objectivesData, documentsData, sessionsData] =
           await Promise.all([
             workspaceApi.getOverview(id),
             workspaceApi.getMessages(id),
             workspaceApi.getObjectives(id),
             workspaceApi.getDocuments(id),
+            workspaceApi.getSessions(id),
           ]);
         if (cancelled) return;
 
@@ -71,6 +91,12 @@ export default function WorkspacePageClient() {
         setMessages(history);
         setObjectives(objectivesData);
         setDocuments(documentsData);
+        setSessions(
+          sessionsData.map((s) => ({
+            ...s,
+            status: mapSessionStatus(s.status),
+          })),
+        );
 
         // reste
       } catch (err) {
@@ -88,6 +114,22 @@ export default function WorkspacePageClient() {
 
   const selfInitials = user ? `${user.firstName[0]}${user.lastName[0]}` : "";
 
+  //gérer download doc
+  const handleDownloadDocument = (documentId: string) => {
+    const doc = documents.find((d) => d.id === documentId);
+    if (doc) window.open(doc.downloadUrl, "_blank");
+  };
+
+  //gérer sessions
+  const handleNewSession = () => setIsSessionModalOpen(true);
+
+  const handleSessionCreated = (newSession: Session) => {
+    setSessions((prev) => [
+      ...prev,
+      { ...newSession, status: mapSessionStatus(newSession.status) },
+    ]);
+  };
+
   const handleJoinSession = () => {
     if (nextSessionMeetingUrl) window.open(nextSessionMeetingUrl, "_blank");
   };
@@ -96,17 +138,6 @@ export default function WorkspacePageClient() {
   const handleViewSessionDetails = (sessionId: string) =>
     toast.info(`Détails de la session ${sessionId} à venir`);
 
-  const handleNewSession = () => toast.info("Création de session à venir");
-
-
-  //gérer download doc
-  const handleDownloadDocument = (documentId: string) => {
-    const doc = documents.find((d) => d.id === documentId);
-    if (doc) window.open(doc.downloadUrl, "_blank");
-  };
-
-
-
   if (isLoading || !header) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
@@ -114,7 +145,6 @@ export default function WorkspacePageClient() {
       </div>
     );
   }
-
 
   //affichage workspace
   return (
@@ -131,10 +161,15 @@ export default function WorkspacePageClient() {
 
       {nextSession && (
         <NextSessionCard
-          date={nextSession.date}
+          date={nextSession.scheduledAt}
           durationMinutes={nextSession.durationMinutes}
-          partnerInitials={header.startupInitials}
-          selfInitials={selfInitials}
+          participants={(nextSession.participants ?? []).map((p) => {
+            const member = members.find((m) => m.userId === p.userId);
+            return {
+              id: p.userId,
+              initials: member?.initials ?? `${p.firstName[0]}${p.lastName[0]}`,
+            };
+          })}
           onJoin={handleJoinSession}
         />
       )}
@@ -152,7 +187,7 @@ export default function WorkspacePageClient() {
 
       {activeTab === "sessions" && (
         <SessionsTab
-          nextSession={nextSession}
+          upcomingSessions={upcomingSessions}
           partnerInitials={header.startupInitials}
           selfInitials={selfInitials}
           pastSessions={pastSessions}
@@ -160,6 +195,8 @@ export default function WorkspacePageClient() {
           onReschedule={handleReschedule}
           onViewDetails={handleViewSessionDetails}
           onNewSession={handleNewSession}
+          members={members}
+          currentUserId={user?.id ?? ""}
         />
       )}
 
@@ -180,11 +217,16 @@ export default function WorkspacePageClient() {
         />
       )}
 
-      {activeTab === "members" && (
-        <MembersTab
-          members={members}
-        />
-      )}
+      {activeTab === "members" && <MembersTab members={members} />}
+
+      <SessionModal
+        open={isSessionModalOpen}
+        onOpenChange={setIsSessionModalOpen}
+        mentorshipId={id}
+        members={members}
+        currentUserId={user?.id ?? ""}
+        onCreated={handleSessionCreated}
+      />
     </div>
   );
 }

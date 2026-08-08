@@ -222,7 +222,7 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
         role="dialog"
         aria-modal={isOpen}
         aria-label="Menu de navigation"
-        className={`fixed rounded-3xl inset-y-0 left-0 z-50 flex h-full w-1/2 -translate-x-full flex-col border-r border-border bg-card px-3 py-3 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed rounded-3xl inset-y-0 left-0 z-50 shadow-sidebar-glow flex h-full w-1/2 -translate-x-full flex-col border-r border-border bg-card px-3 py-3  transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? "translate-x-0" : ""
         }`}
       >
@@ -246,7 +246,7 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
       <aside
         role="navigation"
         aria-label="Menu de navigation"
-        className="hidden h-screen w-1/6 flex-col border-r border-border bg-card px-3 py-3 lg:flex rounded-3xl"
+        className="hidden h-screen w-1/6 flex-col border-r border-border bg-card px-3 py-3 lg:flex rounded-3xl shadow-sidebar-glow z-50"
       >
         <div className="px-1 pb-3">
           <Logo />
