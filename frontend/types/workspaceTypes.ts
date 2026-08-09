@@ -110,7 +110,7 @@ export type SessionParticipant = {
   email: string;
 };
 
-export type SessionStatus = "upcoming" | "completed" | "cancelled";
+export type SessionStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
 
 export type Session = {
   id: string;
@@ -120,6 +120,7 @@ export type Session = {
   durationMinutes: number;
   agenda?: string;
   meetingUrl?: string;
+  rawNotes?: string;
   participants?: SessionParticipant[];
 };
 

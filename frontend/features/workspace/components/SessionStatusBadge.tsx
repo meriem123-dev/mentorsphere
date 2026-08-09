@@ -1,15 +1,15 @@
-type SessionStatus = "upcoming" | "completed" | "cancelled";
+import type { SessionStatus } from "@/types/workspaceTypes";
 
 const STATUS_STYLES: Record<SessionStatus, string> = {
-  upcoming: "bg-brand-blue/10 text-brand-blue",
-  completed: "bg-emerald-500/10 text-emerald-600",
-  cancelled: "bg-brand-rose/10 text-brand-rose",
+  SCHEDULED: "bg-brand-blue/10 text-brand-blue",
+  COMPLETED: "bg-emerald-500/10 text-emerald-600",
+  CANCELLED: "bg-brand-rose/10 text-brand-rose",
 };
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
-  upcoming: "À venir",
-  completed: "Terminée",
-  cancelled: "Annulée",
+  SCHEDULED: "À venir",
+  COMPLETED: "Terminée",
+  CANCELLED: "Annulée",
 };
 
 export function SessionStatusBadge({ status }: { status: SessionStatus }) {

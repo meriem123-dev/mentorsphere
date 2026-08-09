@@ -1,10 +1,29 @@
 import prisma from "../lib/prisma";
 import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
+import { randomUUID } from "crypto";
+
+
+//helpers
+function buildMeetingUrl(manualUrl?: string | null) {
+  return manualUrl ?? `https://meet.jit.si/mentorsphere-${randomUUID()}`;
+}
+
+async function getAccessBySessionId(sessionId: string, userId: string) {
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { mentorshipId: true },
+  });
+  if (!session) return { session: null, access: null };
+
+  const access = await getWorkspaceAccess(session.mentorshipId, userId);
+  return { session, access };
+}
 
 type CreateSessionInput = {
   scheduledAt: Date;
   durationMinutes: number;
   agenda?: string;
+  meetingUrl?: string;
   participantIds: string[];
 };
 
@@ -46,6 +65,7 @@ export async function createSession(
       scheduledAt: input.scheduledAt,
       durationMinutes: input.durationMinutes,
       agenda: input.agenda ?? null,
+      meetingUrl: buildMeetingUrl(input.meetingUrl),
       mentorshipId,
       createdById: userId,
       participants: {
@@ -91,3 +111,56 @@ export async function listSessions(mentorshipId: string, userId: string) {
     })),
   }));
 }
+
+//métier changement de statut
+export async function updateSessionStatus(
+  sessionId: string,
+  userId: string,
+  status: "SCHEDULED" | "COMPLETED" | "CANCELLED",
+) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+  if (!access.isMentor) return "NOT_ALLOWED_TO_CREATE" as const;
+
+  return prisma.session.update({
+    where: { id: sessionId },
+    data: { status },
+  });
+}
+
+//métier notes partagées
+export async function updateSessionNotes(
+  sessionId: string,
+  userId: string,
+  rawNotes: string,
+) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  return prisma.session.update({
+    where: { id: sessionId },
+    data: { rawNotes },
+  });
+}
+
+//métier recup d'une session (room + notes)
+export async function getSessionById(sessionId: string, userId: string) {
+  const { session: exists, access } = await getAccessBySessionId(sessionId, userId);
+  if (!exists) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    include: {
+      participants: {
+        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      },
+    },
+  });
+
+  return session;
+}
+
+

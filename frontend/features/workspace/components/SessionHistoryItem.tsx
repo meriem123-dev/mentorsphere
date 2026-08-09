@@ -3,7 +3,7 @@ import { SessionStatusBadge } from "./SessionStatusBadge";
 
 type Props = {
   sessionNumber: number;
-  status: "completed" | "cancelled";
+  status: "COMPLETED" | "CANCELLED";
   date: string;
   durationMinutes: number;
   onViewDetails: () => void;

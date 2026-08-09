@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createSession, listSessions } from "../services/sessionService";
+import { createSession, listSessions,getSessionById,updateSessionNotes,updateSessionStatus } from "../services/sessionService";
 
 //créer session
 export async function createSessionHandler(req: Request, res: Response) {
@@ -39,6 +39,11 @@ export async function createSessionHandler(req: Request, res: Response) {
 
     if (agenda !== undefined && typeof agenda !== "string") {
       return res.status(400).json({ message: "Agenda invalide." });
+    }
+
+    const { meetingUrl } = req.body;
+    if (meetingUrl !== undefined && typeof meetingUrl !== "string") {
+      return res.status(400).json({ message: "Lien de réunion invalide." });
     }
 
     const result = await createSession(mentorshipId, userId, {
@@ -96,5 +101,115 @@ export async function listSessionsHandler(req: Request, res: Response) {
     return res
       .status(500)
       .json({ message: ("Erreur lors du chargement des sessions") });
+  }
+}
+
+//changer le statut d'une session
+export async function updateSessionStatusHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Identifiant de session manquant." });
+    }
+
+    const { status } = req.body;
+    const validStatuses = ["SCHEDULED", "COMPLETED", "CANCELLED"];
+    if (typeof status !== "string" || !validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Statut invalide." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await updateSessionStatus(
+      sessionId,
+      userId,
+      status as "SCHEDULED" | "COMPLETED" | "CANCELLED",
+    );
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+    if (result === "NOT_ALLOWED_TO_CREATE") {
+      return res
+        .status(403)
+        .json({ message: "Seul le mentor peut changer le statut de la session." });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la mise à jour du statut." });
+  }
+}
+
+//mettre à jour les notes partagées
+export async function updateSessionNotesHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Identifiant de session manquant." });
+    }
+
+    const { rawNotes } = req.body;
+    if (typeof rawNotes !== "string") {
+      return res.status(400).json({ message: "Notes invalides." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await updateSessionNotes(sessionId, userId, rawNotes);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la sauvegarde des notes." });
+  }
+}
+
+//récupérer une session (room + détail)
+export async function getSessionByIdHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Identifiant de session manquant." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await getSessionById(sessionId, userId);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors du chargement de la session." });
   }
 }

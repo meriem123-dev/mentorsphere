@@ -8,8 +8,9 @@ import type {
   WorkspaceDocument,
   Session,
   CreateSessionPayload,
-
+ SessionStatus
 } from "@/types/workspaceTypes";
+
 
 export const workspaceApi = {
   //général
@@ -100,5 +101,37 @@ export const workspaceApi = {
   api
     .get<Session[]>(`api/workspace/${mentorshipId}/sessions`)
     .then((r) => r.data),
+  getSessionById: (mentorshipId: string, sessionId: string) =>
+    api
+      .get<Session>(`api/workspace/${mentorshipId}/sessions/${sessionId}`)
+      .then((r) => r.data),
+      
+
+  updateSessionStatus: (
+    mentorshipId: string,
+    sessionId: string,
+    status: SessionStatus,
+  ) =>
+    api
+      .patch<Session>(
+        `api/workspace/${mentorshipId}/sessions/${sessionId}/status`,
+        { status },
+      )
+      .then((r) => r.data),
+
+
+  updateSessionNotes: (
+    mentorshipId: string,
+    sessionId: string,
+    rawNotes: string,
+  ) =>
+    api
+      .patch<Session>(
+        `api/workspace/${mentorshipId}/sessions/${sessionId}/notes`,
+        { rawNotes },
+      )
+      .then((r) => r.data),
+
+  
 
 };

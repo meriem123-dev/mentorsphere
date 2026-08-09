@@ -39,7 +39,7 @@ export function NextSessionDetailCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-foreground">Prochaine session</h2>
-          <SessionStatusBadge status="upcoming" />
+          <SessionStatusBadge status="SCHEDULED" />
         </div>
         <button
           onClick={onReschedule}

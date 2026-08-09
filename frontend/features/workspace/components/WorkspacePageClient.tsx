@@ -14,6 +14,7 @@ import { ObjectifsTab } from "@/features/workspace/components/ObjectifsTab";
 import { DocumentsTab } from "@/features/workspace/components/DocumentsTab";
 import { MembersTab } from "@/features/workspace/components/MembersTab";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import type {
   WorkspaceMessage,
   WorkspaceTab,
@@ -26,16 +27,15 @@ import type {
 } from "@/types/workspaceTypes";
 import { useWorkspaceSocket } from "@/hooks/use-workspace-socket";
 import { SessionModal } from "./SessionModal";
-
-function mapSessionStatus(backendStatus: string): SessionStatus {
-  if (backendStatus === "SCHEDULED") return "upcoming";
-  if (backendStatus === "COMPLETED") return "completed";
-  return "cancelled";
-}
+import { usePathname } from "next/navigation";
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const router = useRouter();
+
+  const pathname = usePathname();
+  const rolePrefix = pathname.startsWith("/mentor") ? "mentor" : "entrepreneur";
 
   const [header, setHeader] = useState<WorkspaceOverview["header"] | null>(
     null,
@@ -61,14 +61,14 @@ export default function WorkspacePageClient() {
   >();
 
   const upcomingSessions = sessions
-    .filter((s) => s.status === "upcoming")
+    .filter((s) => s.status === "SCHEDULED")
     .sort(
       (a, b) =>
         new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
     );
 
   const nextSession = upcomingSessions[0] ?? null;
-  const pastSessions = sessions.filter((s) => s.status !== "upcoming");
+  const pastSessions = sessions.filter((s) => s.status !== "SCHEDULED");
 
   //appels API workspace
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function WorkspacePageClient() {
         setSessions(
           sessionsData.map((s) => ({
             ...s,
-            status: mapSessionStatus(s.status),
+            status: s.status,
           })),
         );
 
@@ -126,13 +126,14 @@ export default function WorkspacePageClient() {
   const handleSessionCreated = (newSession: Session) => {
     setSessions((prev) => [
       ...prev,
-      { ...newSession, status: mapSessionStatus(newSession.status) },
+      { ...newSession, status: newSession.status },
     ]);
   };
 
-  const handleJoinSession = () => {
-    if (nextSessionMeetingUrl) window.open(nextSessionMeetingUrl, "_blank");
-  };
+  function handleJoinSession(sessionId: string) {
+    router.push(`/${rolePrefix}/workspace/${id}/sessions/${sessionId}/room`);
+  }
+
   const handleReschedule = () => toast.info("Reprogrammation à venir");
 
   const handleViewSessionDetails = (sessionId: string) =>
@@ -170,7 +171,7 @@ export default function WorkspacePageClient() {
               initials: member?.initials ?? `${p.firstName[0]}${p.lastName[0]}`,
             };
           })}
-          onJoin={handleJoinSession}
+          onJoin={() => handleJoinSession(nextSession.id)}
         />
       )}
 

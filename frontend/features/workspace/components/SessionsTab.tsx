@@ -7,9 +7,9 @@ type Props = {
   partnerInitials: string;
   selfInitials: string;
   pastSessions: Session[];
+  onJoin: (sessionId: string) => void;
   members: WorkspaceMember[];
   currentUserId: string;
-  onJoin: () => void;
   onReschedule: () => void;
   onViewDetails: (sessionId: string) => void;
   onNewSession: () => void;
@@ -17,8 +17,6 @@ type Props = {
 
 export function SessionsTab({
   upcomingSessions,
-  partnerInitials,
-  selfInitials,
   pastSessions,
   members,
   currentUserId,
@@ -46,7 +44,7 @@ export function SessionsTab({
               initials: member?.initials ?? `${p.firstName[0]}${p.lastName[0]}`,
             };
           })}
-          onJoin={onJoin}
+          onJoin={() => onJoin(session.id)}
           onReschedule={onReschedule}
         />
       ))}
