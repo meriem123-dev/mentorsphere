@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
-import { createSession, listSessions,getSessionById,updateSessionNotes,updateSessionStatus } from "../services/sessionService";
+import {
+  createSession,
+  listSessions,
+  getSessionById,
+  updateSessionNotes,
+  updateSessionStatus,
+  getSessionRoomCredentials,
+} from "../services/sessionService";
 
 //créer session
 export async function createSessionHandler(req: Request, res: Response) {
@@ -62,11 +69,9 @@ export async function createSessionHandler(req: Request, res: Response) {
     }
 
     if (result === "NOT_ALLOWED_TO_CREATE") {
-      return res
-        .status(403)
-        .json({
-          message: "Seuls le mentor et le fondateur peuvent créer une session.",
-        });
+      return res.status(403).json({
+        message: "Seuls le mentor et le fondateur peuvent créer une session.",
+      });
     }
 
     if ("error" in result && result.error === "INVALID_PARTICIPANTS") {
@@ -84,7 +89,6 @@ export async function createSessionHandler(req: Request, res: Response) {
   }
 }
 
-
 //recup sessions
 export async function listSessionsHandler(req: Request, res: Response) {
   try {
@@ -93,14 +97,16 @@ export async function listSessionsHandler(req: Request, res: Response) {
 
     const result = await listSessions(mentorshipId, userId);
 
-    if (result === null) return res.status(404).json({ message: "Workspace introuvable" });
-    if (result === "FORBIDDEN") return res.status(403).json({ message: "Accès non autorisé" });
+    if (result === null)
+      return res.status(404).json({ message: "Workspace introuvable" });
+    if (result === "FORBIDDEN")
+      return res.status(403).json({ message: "Accès non autorisé" });
 
     return res.status(200).json(result);
   } catch (err) {
     return res
       .status(500)
-      .json({ message: ("Erreur lors du chargement des sessions") });
+      .json({ message: "Erreur lors du chargement des sessions" });
   }
 }
 
@@ -113,7 +119,9 @@ export async function updateSessionStatusHandler(req: Request, res: Response) {
       : sessionIdParam;
 
     if (!sessionId) {
-      return res.status(400).json({ message: "Identifiant de session manquant." });
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
     }
 
     const { status } = req.body;
@@ -138,7 +146,9 @@ export async function updateSessionStatusHandler(req: Request, res: Response) {
     if (result === "NOT_ALLOWED_TO_CREATE") {
       return res
         .status(403)
-        .json({ message: "Seul le mentor peut changer le statut de la session." });
+        .json({
+          message: "Seul le mentor peut changer le statut de la session.",
+        });
     }
 
     return res.status(200).json(result);
@@ -158,7 +168,9 @@ export async function updateSessionNotesHandler(req: Request, res: Response) {
       : sessionIdParam;
 
     if (!sessionId) {
-      return res.status(400).json({ message: "Identifiant de session manquant." });
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
     }
 
     const { rawNotes } = req.body;
@@ -193,7 +205,9 @@ export async function getSessionByIdHandler(req: Request, res: Response) {
       : sessionIdParam;
 
     if (!sessionId) {
-      return res.status(400).json({ message: "Identifiant de session manquant." });
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
     }
 
     const userId = req.user!.userId;
@@ -212,4 +226,46 @@ export async function getSessionByIdHandler(req: Request, res: Response) {
       .status(500)
       .json({ message: "Erreur lors du chargement de la session." });
   }
+}
+
+//récupérer les credentials JaaS (appId + token) pour rejoindre la room
+export async function getSessionRoomCredentialsHandler(
+  req: Request,
+  res: Response,
+) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await getSessionRoomCredentials(sessionId, userId);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+
+    if (result === "NO_ROOM") {
+      return res
+        .status(404)
+        .json({ message: "Aucune room configurée pour cette session." });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+  console.error("getSessionRoomCredentials error:", err); // <-- ajoute ça
+  return res
+    .status(500)
+    .json({ message: "Erreur lors de la génération des accès à la session." });
+}
 }

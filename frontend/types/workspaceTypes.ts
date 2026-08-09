@@ -131,3 +131,11 @@ export type CreateSessionPayload = {
   agenda?: string;
   participantIds: string[];
 };
+
+
+export type SessionRoomCredentials = {
+  appId: string;
+  room: string;
+  token: string;
+  sessionNumber: number;
+};

@@ -1,42 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 
-type Props = {
-  mentorshipId: string;
-  meetingUrl: string;
-  sessionNumber: number;
+type SessionRoomProps = {
+  appId: string;
+  room: string;
+  jwt: string;
   userName: string;
+  userEmail: string;
 };
 
-export function SessionRoom({
-  mentorshipId,
-  meetingUrl,
-  sessionNumber,
-  userName,
-}: Props) {
-  const router = useRouter();
-
+export function SessionRoom({ appId, room, jwt, userName,userEmail }: SessionRoomProps) {
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">
-          Session #{sessionNumber}
-        </p>
-        <button
-          onClick={() => router.push(`/workspace/${mentorshipId}`)}
-          className="flex items-center gap-1.5 rounded-3xl bg-card px-3 py-1.5 text-xs font-medium text-foreground"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Quitter
-        </button>
-      </div>
-
-      <iframe
-        src={`${meetingUrl}#config.prejoinPageEnabled=false&config.disableModeratorIndicator=true&config.startWithAudioMuted=false&userInfo.displayName="${encodeURIComponent(userName)}"`}
-        allow="camera; microphone; fullscreen; display-capture"
-        className="h-[80vh] w-full rounded-2xl border-0"
+    <div className="h-[80vh] w-full overflow-hidden rounded-xl border border-border">
+      <JitsiMeeting
+        domain="8x8.vc"
+        roomName={`${appId}/${room}`}
+        jwt={jwt}
+        userInfo={{ displayName: userName,email:userEmail }}
+        configOverwrite={{
+          prejoinPageEnabled: true,
+          disableThirdPartyRequests: true,
+        }}
+        getIFrameRef={(iframeRef) => {
+          iframeRef.style.height = "100%";
+          iframeRef.style.width = "100%";
+        }}
       />
     </div>
   );

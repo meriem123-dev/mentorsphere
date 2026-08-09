@@ -1,11 +1,11 @@
 import prisma from "../lib/prisma";
 import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
 import { randomUUID } from "crypto";
-
+import { generateJaasToken, jaasAppId } from "../lib/jaas";
 
 //helpers
-function buildMeetingUrl(manualUrl?: string | null) {
-  return manualUrl ?? `https://meet.jit.si/mentorsphere-${randomUUID()}`;
+function buildRoomName() {
+  return `mentorsphere-${randomUUID()}`;
 }
 
 async function getAccessBySessionId(sessionId: string, userId: string) {
@@ -26,7 +26,6 @@ type CreateSessionInput = {
   meetingUrl?: string;
   participantIds: string[];
 };
-
 
 //métier création de session
 export async function createSession(
@@ -65,7 +64,7 @@ export async function createSession(
       scheduledAt: input.scheduledAt,
       durationMinutes: input.durationMinutes,
       agenda: input.agenda ?? null,
-      meetingUrl: buildMeetingUrl(input.meetingUrl),
+      meetingUrl: input.meetingUrl ?? buildRoomName(),
       mentorshipId,
       createdById: userId,
       participants: {
@@ -76,7 +75,9 @@ export async function createSession(
     },
     include: {
       participants: {
-        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
       },
     },
   });
@@ -84,8 +85,7 @@ export async function createSession(
   return session;
 }
 
-
-//métier recup sessions 
+//métier recup sessions
 export async function listSessions(mentorshipId: string, userId: string) {
   const access = await getWorkspaceAccess(mentorshipId, userId);
   if (!access) return null;
@@ -96,7 +96,9 @@ export async function listSessions(mentorshipId: string, userId: string) {
     orderBy: { createdAt: "asc" },
     include: {
       participants: {
-        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
       },
     },
   });
@@ -147,7 +149,10 @@ export async function updateSessionNotes(
 
 //métier recup d'une session (room + notes)
 export async function getSessionById(sessionId: string, userId: string) {
-  const { session: exists, access } = await getAccessBySessionId(sessionId, userId);
+  const { session: exists, access } = await getAccessBySessionId(
+    sessionId,
+    userId,
+  );
   if (!exists) return null;
   if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
 
@@ -155,7 +160,9 @@ export async function getSessionById(sessionId: string, userId: string) {
     where: { id: sessionId },
     include: {
       participants: {
-        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
       },
     },
   });
@@ -163,4 +170,41 @@ export async function getSessionById(sessionId: string, userId: string) {
   return session;
 }
 
+export async function getSessionRoomCredentials(
+  sessionId: string,
+  userId: string,
+) {
+  const { session: exists, access } = await getAccessBySessionId(
+    sessionId,
+    userId,
+  );
+  if (!exists) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
 
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { meetingUrl: true, number: true },
+  });
+  if (!session) return null;
+  if (!session.meetingUrl) return "NO_ROOM" as const;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstName: true, lastName: true, email: true },
+  });
+  if (!user) return null;
+
+  const token = generateJaasToken(session.meetingUrl, {
+    id: userId,
+    name: `${user.firstName} ${user.lastName}`,
+    email: user.email,
+    moderator: access.isMentor || access.isOwner,
+  });
+
+  return {
+    appId: jaasAppId,
+    room: session.meetingUrl,
+    token,
+    sessionNumber: session.number,
+  };
+}
