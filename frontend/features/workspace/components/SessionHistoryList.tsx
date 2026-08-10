@@ -4,12 +4,23 @@ import type { Session } from "../../../types/workspaceTypes";
 
 type Props = {
   sessions: Session[];
+  currentUserId: string;
+  canManageSessions: boolean;
   onViewDetails: (sessionId: string) => void;
   onNewSession: () => void;
+  onDelete: (sessionId: string) => void;
   canCreateSession: boolean;
 };
 
-export function SessionHistoryList({ sessions, onViewDetails, onNewSession,canCreateSession }: Props) {
+export function SessionHistoryList({
+  sessions,
+  currentUserId,
+  canManageSessions,
+  onViewDetails,
+  onNewSession,
+  onDelete,
+  canCreateSession,
+}: Props) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
@@ -28,16 +39,24 @@ export function SessionHistoryList({ sessions, onViewDetails, onNewSession,canCr
       </div>
 
       <div className="space-y-2">
-        {sessions.map((session) => (
-          <SessionHistoryItem
-            key={session.id}
-            sessionNumber={session.number}
-            status={session.status === "CANCELLED" ? "CANCELLED" : "COMPLETED"}
-            date={session.scheduledAt}
-            durationMinutes={session.durationMinutes}
-            onViewDetails={() => onViewDetails(session.id)}
-          />
-        ))}
+        {sessions.map((session) => {
+          const status = session.status === "CANCELLED" ? "CANCELLED" : "COMPLETED";
+          const canDeleteThis =
+            status === "CANCELLED" &&
+            (canManageSessions || session.createdById === currentUserId);
+
+          return (
+            <SessionHistoryItem
+              key={session.id}
+              sessionNumber={session.number}
+              status={status}
+              date={session.scheduledAt}
+              durationMinutes={session.durationMinutes}
+              onViewDetails={() => onViewDetails(session.id)}
+              onDelete={canDeleteThis ? () => onDelete(session.id) : undefined}
+            />
+          );
+        })}
       </div>
     </div>
   );

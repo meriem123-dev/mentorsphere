@@ -8,10 +8,10 @@ import type {
   WorkspaceDocument,
   Session,
   CreateSessionPayload,
- SessionStatus,
- SessionRoomCredentials
+  SessionStatus,
+  SessionRoomCredentials,
+  RescheduleSessionPayload
 } from "@/types/workspaceTypes";
-
 
 export const workspaceApi = {
   //général
@@ -89,8 +89,10 @@ export const workspaceApi = {
   deleteDocument: (mentorshipId: string, documentId: string) =>
     api.delete(`api/workspace/${mentorshipId}/documents/${documentId}`),
 
-
-  createSession: async (mentorshipId: string, payload: CreateSessionPayload) => {
+  createSession: async (
+    mentorshipId: string,
+    payload: CreateSessionPayload,
+  ) => {
     const { data } = await api.post<Session>(
       `api/workspace/${mentorshipId}/sessions`,
       payload,
@@ -99,14 +101,13 @@ export const workspaceApi = {
   },
 
   getSessions: (mentorshipId: string) =>
-  api
-    .get<Session[]>(`api/workspace/${mentorshipId}/sessions`)
-    .then((r) => r.data),
+    api
+      .get<Session[]>(`api/workspace/${mentorshipId}/sessions`)
+      .then((r) => r.data),
   getSessionById: (mentorshipId: string, sessionId: string) =>
     api
       .get<Session>(`api/workspace/${mentorshipId}/sessions/${sessionId}`)
       .then((r) => r.data),
-      
 
   updateSessionStatus: (
     mentorshipId: string,
@@ -120,7 +121,6 @@ export const workspaceApi = {
       )
       .then((r) => r.data),
 
-
   updateSessionNotes: (
     mentorshipId: string,
     sessionId: string,
@@ -132,14 +132,33 @@ export const workspaceApi = {
         { rawNotes },
       )
       .then((r) => r.data),
-    
-    getSessionRoomCredentials: (mentorshipId: string, sessionId: string) =>
+
+  getSessionRoomCredentials: (mentorshipId: string, sessionId: string) =>
     api
       .get<SessionRoomCredentials>(
         `api/workspace/${mentorshipId}/sessions/${sessionId}/room`,
       )
       .then((r) => r.data),
 
-  
+  rescheduleSession: (
+    mentorshipId: string,
+    sessionId: string,
+    payload: RescheduleSessionPayload,
+  ) =>
+    api
+      .patch<Session>(
+        `api/workspace/${mentorshipId}/sessions/${sessionId}/reschedule`,
+        payload,
+      )
+      .then((r) => r.data),
 
+  cancelSession: (mentorshipId: string, sessionId: string) =>
+    api
+      .patch<Session>(
+        `api/workspace/${mentorshipId}/sessions/${sessionId}/cancel`,
+      )
+      .then((r) => r.data),
+
+  deleteSession: (mentorshipId: string, sessionId: string) =>
+    api.delete(`api/workspace/${mentorshipId}/sessions/${sessionId}`),
 };

@@ -3,7 +3,7 @@ import { requireAuth } from "../middlewares/authMiddleware";
 import { getWorkspaceOverviewHandler,getWorkspaceSummariesHandler,getWorkspaceMessagesHandler } from "../controllers/workspaceController";
 import {createObjectiveHandler,listObjectivesHandler,updateObjectiveHandler,deleteObjectiveHandler} from "../controllers/objectiveController";
 import { listDocumentsHandler, uploadDocumentHandler, deleteDocumentHandler } from "../controllers/documentController";
-import {createSessionHandler,listSessionsHandler,getSessionByIdHandler,updateSessionNotesHandler,updateSessionStatusHandler,getSessionRoomCredentialsHandler} from "../controllers/sessionController"
+import {createSessionHandler,listSessionsHandler,getSessionByIdHandler,updateSessionNotesHandler,updateSessionStatusHandler,getSessionRoomCredentialsHandler,cancelSessionHandler,deleteSessionHandler,rescheduleSessionHandler} from "../controllers/sessionController"
 
 import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -27,11 +27,10 @@ router.get("/:mentorshipId/sessions", requireAuth, listSessionsHandler);
 router.post("/:mentorshipId/sessions", requireAuth, createSessionHandler);
 router.patch("/:mentorshipId/sessions/:sessionId/status", requireAuth, updateSessionStatusHandler);
 router.patch("/:mentorshipId/sessions/:sessionId/notes", requireAuth, updateSessionNotesHandler);
+router.patch("/:mentorshipId/sessions/:sessionId/reschedule", requireAuth, rescheduleSessionHandler);
+router.patch("/:mentorshipId/sessions/:sessionId/cancel", requireAuth, cancelSessionHandler);
+router.delete("/:mentorshipId/sessions/:sessionId", requireAuth, deleteSessionHandler);
 router.get("/:mentorshipId/sessions/:sessionId", requireAuth, getSessionByIdHandler);
-router.get(
-  "/:mentorshipId/sessions/:sessionId/room",
-  requireAuth,
-  getSessionRoomCredentialsHandler,
-);
+router.get("/:mentorshipId/sessions/:sessionId/room",requireAuth,getSessionRoomCredentialsHandler);
 
 export default router;

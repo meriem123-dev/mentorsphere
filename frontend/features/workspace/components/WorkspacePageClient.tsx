@@ -15,6 +15,8 @@ import { DocumentsTab } from "@/features/workspace/components/DocumentsTab";
 import { MembersTab } from "@/features/workspace/components/MembersTab";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { SessionDetailsModal } from "@/features/sessions/components/SessionDetailModal";
+
 import type {
   WorkspaceMessage,
   WorkspaceTab,
@@ -28,6 +30,7 @@ import type {
 import { useWorkspaceSocket } from "@/hooks/use-workspace-socket";
 import { SessionModal } from "./SessionModal";
 import { usePathname } from "next/navigation";
+import { RescheduleSessionModal } from "@/features/sessions/components/RescheduleSessionModal";
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +72,14 @@ export default function WorkspacePageClient() {
 
   const nextSession = upcomingSessions[0] ?? null;
   const pastSessions = sessions.filter((s) => s.status !== "SCHEDULED");
+  const [reschedulingSession, setReschedulingSession] =
+    useState<Session | null>(null);
+
+  const currentMember = members.find((m) => m.userId === user?.id);
+  const canManageSessions =
+    currentMember?.role === "owner" || currentMember?.role === "mentor";
+  const isMentor = currentMember?.role === "mentor";
+  const [viewingSessionId, setViewingSessionId] = useState<string | null>(null);
 
   //appels API workspace
   useEffect(() => {
@@ -134,10 +145,70 @@ export default function WorkspacePageClient() {
     router.push(`/${rolePrefix}/workspace/${id}/sessions/${sessionId}/room`);
   }
 
-  const handleReschedule = () => toast.info("Reprogrammation à venir");
-
   const handleViewSessionDetails = (sessionId: string) =>
-    toast.info(`Détails de la session ${sessionId} à venir`);
+    setViewingSessionId(sessionId);
+
+  const handleReschedule = (sessionId: string) => {
+    const target = sessions.find((s) => s.id === sessionId);
+    if (target) setReschedulingSession(target);
+  };
+
+  const handleConfirmReschedule = async (
+    sessionId: string,
+    payload: { scheduledAt: string; durationMinutes: number },
+  ) => {
+    try {
+      const updated = await workspaceApi.rescheduleSession(
+        id,
+        sessionId,
+        payload,
+      );
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)),
+      );
+      toast.success("Session reprogrammée");
+    } catch {
+      toast.error("Impossible de reprogrammer la session");
+    }
+  };
+
+  const handleCancelSession = async (sessionId: string) => {
+    try {
+      const updated = await workspaceApi.cancelSession(id, sessionId);
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)),
+      );
+      toast.success("Session annulée");
+    } catch {
+      toast.error("Impossible d'annuler la session");
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await workspaceApi.deleteSession(id, sessionId);
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      toast.success("Session supprimée");
+    } catch {
+      toast.error("Impossible de supprimer la session");
+    }
+  };
+
+  const handleCompleteSession = async (sessionId: string) => {
+    try {
+      const updated = await workspaceApi.updateSessionStatus(
+        id,
+        sessionId,
+        "COMPLETED",
+      );
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)),
+      );
+      toast.success("Session marquée comme terminée");
+    } catch (err) {
+      toast.error("Impossible de marquer la session comme terminée");
+    }
+  };
 
   if (isLoading || !header) {
     return (
@@ -194,10 +265,15 @@ export default function WorkspacePageClient() {
           pastSessions={pastSessions}
           onJoin={handleJoinSession}
           onReschedule={handleReschedule}
+          onCancel={handleCancelSession}
+          onDelete={handleDeleteSession}
+          onComplete={handleCompleteSession}
           onViewDetails={handleViewSessionDetails}
           onNewSession={handleNewSession}
           members={members}
           currentUserId={user?.id ?? ""}
+          canManageSessions={canManageSessions}
+          isMentor={isMentor}
         />
       )}
 
@@ -227,6 +303,17 @@ export default function WorkspacePageClient() {
         members={members}
         currentUserId={user?.id ?? ""}
         onCreated={handleSessionCreated}
+      />
+
+      <RescheduleSessionModal
+        session={reschedulingSession}
+        onOpenChange={(open) => !open && setReschedulingSession(null)}
+        onConfirm={handleConfirmReschedule}
+      />
+      <SessionDetailsModal
+        mentorshipId={id}
+        sessionId={viewingSessionId}
+        onOpenChange={(open) => !open && setViewingSessionId(null)}
       />
     </div>
   );

@@ -6,6 +6,9 @@ import {
   updateSessionNotes,
   updateSessionStatus,
   getSessionRoomCredentials,
+  cancelSession,
+  rescheduleSession,
+  deleteSession,
 } from "../services/sessionService";
 
 //créer session
@@ -268,4 +271,158 @@ export async function getSessionRoomCredentialsHandler(
     .status(500)
     .json({ message: "Erreur lors de la génération des accès à la session." });
 }
+}
+
+//reprogrammer une session
+export async function rescheduleSessionHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
+    }
+
+    const { scheduledAt, durationMinutes, agenda } = req.body;
+
+    if (scheduledAt !== undefined && isNaN(Date.parse(scheduledAt))) {
+      return res.status(400).json({ message: "Date de session invalide." });
+    }
+
+    let parsedDuration: number | undefined;
+    if (durationMinutes !== undefined) {
+      parsedDuration = Number(durationMinutes);
+      if (!Number.isInteger(parsedDuration) || parsedDuration <= 0) {
+        return res.status(400).json({ message: "Durée invalide." });
+      }
+    }
+
+    if (agenda !== undefined && typeof agenda !== "string") {
+      return res.status(400).json({ message: "Agenda invalide." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await rescheduleSession(sessionId, userId, {
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+      durationMinutes: parsedDuration,
+      agenda,
+    });
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+    if (result === "NOT_ALLOWED_TO_RESCHEDULE") {
+      return res.status(403).json({
+        message:
+          "Seuls le mentor et le fondateur peuvent reprogrammer cette session.",
+      });
+    }
+    if (result === "SESSION_NOT_EDITABLE") {
+      return res.status(409).json({
+        message: "Cette session ne peut plus être reprogrammée.",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la reprogrammation de la session." });
+  }
+}
+
+//annuler une session
+export async function cancelSessionHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await cancelSession(sessionId, userId);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+    if (result === "NOT_ALLOWED_TO_CANCEL") {
+      return res.status(403).json({
+        message: "Seuls le mentor et le fondateur peuvent annuler cette session.",
+      });
+    }
+    if (result === "SESSION_ALREADY_COMPLETED") {
+      return res
+        .status(409)
+        .json({ message: "Cette session est déjà terminée." });
+    }
+    if (result === "SESSION_ALREADY_CANCELLED") {
+      return res
+        .status(409)
+        .json({ message: "Cette session est déjà annulée." });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de l'annulation de la session." });
+  }
+}
+
+//supprimer une session
+export async function deleteSessionHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam)
+      ? sessionIdParam[0]
+      : sessionIdParam;
+
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json({ message: "Identifiant de session manquant." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await deleteSession(sessionId, userId);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+    if (result === "NOT_ALLOWED_TO_DELETE") {
+      return res.status(403).json({
+        message: "Seuls le créateur et le mentor peuvent supprimer cette session.",
+      });
+    }
+    if (result === "SESSION_COMPLETED_LOCKED") {
+      return res.status(409).json({
+        message: "Une session terminée ne peut pas être supprimée.",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la suppression de la session." });
+  }
 }

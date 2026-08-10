@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { SessionStatusBadge } from "./SessionStatusBadge";
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   durationMinutes: number;
   onViewDetails: () => void;
   onMenuClick?: () => void;
+  onDelete?: () => void;
 };
 
 export function SessionHistoryItem({
@@ -17,6 +18,7 @@ export function SessionHistoryItem({
   durationMinutes,
   onViewDetails,
   onMenuClick,
+  onDelete,
 }: Props) {
   const dateLabel = new Date(date).toLocaleDateString("fr-FR", {
     weekday: "short",
@@ -49,12 +51,15 @@ export function SessionHistoryItem({
         >
           Voir détails
         </button>
-        <button
-          onClick={onMenuClick}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-destructive hover:bg-muted"
+            title="Supprimer la session"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );

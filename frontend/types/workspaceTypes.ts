@@ -122,6 +122,7 @@ export type Session = {
   meetingUrl?: string;
   rawNotes?: string;
   participants?: SessionParticipant[];
+  createdById: string;
 };
 
 
@@ -139,3 +140,9 @@ export type SessionRoomCredentials = {
   token: string;
   sessionNumber: number;
 };
+
+export type RescheduleSessionPayload = Partial<{
+  scheduledAt: string;
+  durationMinutes: number;
+  agenda: string;
+}>;

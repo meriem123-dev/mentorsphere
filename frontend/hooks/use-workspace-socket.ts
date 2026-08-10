@@ -6,11 +6,22 @@ import type { WorkspaceMessage } from "@/types/workspaceTypes";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+type NotesUpdatePayload = {
+  sessionId: string;
+  content: string;
+};
+
 export function useWorkspaceSocket(
   mentorshipId: string | undefined,
   onNewMessage: (message: WorkspaceMessage) => void,
+  onNotesUpdate?: (payload: NotesUpdatePayload) => void,
 ) {
   const socketRef = useRef<Socket | null>(null);
+  const onNotesUpdateRef = useRef(onNotesUpdate);
+
+  useEffect(() => {
+    onNotesUpdateRef.current = onNotesUpdate;
+  }, [onNotesUpdate]);
 
   useEffect(() => {
     if (!mentorshipId) return;
@@ -28,6 +39,10 @@ export function useWorkspaceSocket(
 
     socket.on("new_message", (message: WorkspaceMessage) => {
       onNewMessage(message);
+    });
+
+    socket.on("notes_update", (payload: NotesUpdatePayload) => {
+      onNotesUpdateRef.current?.(payload);
     });
 
     return () => {
@@ -48,5 +63,11 @@ export function useWorkspaceSocket(
     );
   }, [mentorshipId]);
 
-  return { sendMessage };
+  const sendNotesUpdate = useCallback((sessionId: string, content: string) => {
+    if (!mentorshipId || !socketRef.current) return;
+
+    socketRef.current.emit("notes_update", { mentorshipId, sessionId, content });
+  }, [mentorshipId]);
+
+  return { sendMessage, sendNotesUpdate };
 }

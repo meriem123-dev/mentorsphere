@@ -208,3 +208,104 @@ export async function getSessionRoomCredentials(
     sessionNumber: session.number,
   };
 }
+
+
+type RescheduleSessionInput = {
+  scheduledAt?: Date | undefined;
+  durationMinutes?: number | undefined;
+  agenda?: string | undefined;
+};
+
+//métier reprogrammation
+export async function rescheduleSession(
+  sessionId: string,
+  userId: string,
+  input: RescheduleSessionInput,
+) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+  if (!access.isMentor && !access.isOwner) {
+    return "NOT_ALLOWED_TO_RESCHEDULE" as const;
+  }
+
+  const current = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { status: true },
+  });
+  if (!current) return null;
+  if (current.status !== "SCHEDULED") {
+    return "SESSION_NOT_EDITABLE" as const;
+  }
+
+  const data: {
+    scheduledAt?: Date;
+    durationMinutes?: number;
+    agenda?: string;
+  } = {};
+  if (input.scheduledAt) data.scheduledAt = input.scheduledAt;
+  if (input.durationMinutes) data.durationMinutes = input.durationMinutes;
+  if (input.agenda !== undefined) data.agenda = input.agenda;
+
+  return prisma.session.update({
+    where: { id: sessionId },
+    data,
+  });
+}
+
+//métier annulation
+export async function cancelSession(sessionId: string, userId: string) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+  if (!access.isMentor && !access.isOwner) {
+    return "NOT_ALLOWED_TO_CANCEL" as const;
+  }
+
+  const current = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { status: true },
+  });
+  if (!current) return null;
+  if (current.status === "COMPLETED") {
+    return "SESSION_ALREADY_COMPLETED" as const;
+  }
+  if (current.status === "CANCELLED") {
+    return "SESSION_ALREADY_CANCELLED" as const;
+  }
+
+  return prisma.session.update({
+    where: { id: sessionId },
+    data: { status: "CANCELLED" },
+  });
+}
+
+//métier suppression définitive
+export async function deleteSession(sessionId: string, userId: string) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const existing = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { createdById: true, status: true },
+  });
+  if (!existing) return null;
+
+  const isCreator = existing.createdById === userId;
+  if (!isCreator && !access.isMentor) {
+    return "NOT_ALLOWED_TO_DELETE" as const;
+  }
+  if (existing.status === "COMPLETED") {
+    return "SESSION_COMPLETED_LOCKED" as const;
+  }
+
+  //vider la relation participants via le champ imbriqué 
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { participants: { deleteMany: {} } },
+  });
+  await prisma.session.delete({ where: { id: sessionId } });
+
+  return { success: true } as const;
+}

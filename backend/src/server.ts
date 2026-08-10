@@ -60,13 +60,18 @@ io.on("connection", (socket: AuthedSocket) => {
   socket.on("join_workspace", async (mentorshipId: string, callback) => {
     if (!socket.userId) return;
 
-    const access = await getWorkspaceAccess(mentorshipId, socket.userId);
-    if (!access || access === "FORBIDDEN") {
-      return callback?.({ error: "FORBIDDEN" });
-    }
+    try {
+      const access = await getWorkspaceAccess(mentorshipId, socket.userId);
+      if (!access || access === "FORBIDDEN") {
+        return callback?.({ error: "FORBIDDEN" });
+      }
 
-    socket.join(`workspace:${mentorshipId}`);
-    callback?.({ success: true });
+      socket.join(`workspace:${mentorshipId}`);
+      callback?.({ success: true });
+    } catch (err) {
+      console.error("join_workspace error:", err);
+      callback?.({ error: "SERVER_ERROR" });
+    }
   });
 
   socket.on(
@@ -74,40 +79,85 @@ io.on("connection", (socket: AuthedSocket) => {
     async (data: { mentorshipId: string; content: string }, callback) => {
       if (!socket.userId) return;
 
-      const { mentorshipId, content } = data;
-      if (!content?.trim()) return;
+      try {
+        const { mentorshipId, content } = data;
+        if (!content?.trim()) return;
 
-      const access = await getWorkspaceAccess(mentorshipId, socket.userId);
-      if (!access || access === "FORBIDDEN") {
-        return callback?.({ error: "FORBIDDEN" });
+        const access = await getWorkspaceAccess(mentorshipId, socket.userId);
+        if (!access || access === "FORBIDDEN") {
+          return callback?.({ error: "FORBIDDEN" });
+        }
+
+        const message = await prisma.message.create({
+          data: {
+            mentorshipId,
+            senderId: socket.userId,
+            content: content.trim(),
+          },
+          include: {
+            sender: { select: { firstName: true, lastName: true } },
+          },
+        });
+
+        io.to(`workspace:${mentorshipId}`).emit("new_message", {
+          id: message.id,
+          content: message.content,
+          senderId: message.senderId,
+          senderInitials: `${message.sender.firstName[0]}${message.sender.lastName[0]}`,
+          createdAt: message.createdAt,
+        });
+
+        callback?.({ success: true });
+      } catch (err) {
+        console.error("send_message error:", err);
+        callback?.({ error: "SERVER_ERROR" });
       }
+    },
+  );
 
-      const message = await prisma.message.create({
-        data: {
-          mentorshipId,
-          senderId: socket.userId,
-          content: content.trim(),
-        },
-        include: {
-          sender: { select: { firstName: true, lastName: true } },
-        },
-      });
+  socket.on(
+    "notes_update",
+    async (
+      data: { mentorshipId: string; sessionId: string; content: string },
+      callback,
+    ) => {
+      if (!socket.userId) return;
 
-      io.to(`workspace:${mentorshipId}`).emit("new_message", {
-        id: message.id,
-        content: message.content,
-        senderId: message.senderId,
-        senderInitials: `${message.sender.firstName[0]}${message.sender.lastName[0]}`,
-        createdAt: message.createdAt,
-      });
+      try {
+        const { mentorshipId, sessionId, content } = data;
+        if (!sessionId) return;
 
-      callback?.({ success: true });
+        const access = await getWorkspaceAccess(mentorshipId, socket.userId);
+        if (!access || access === "FORBIDDEN") {
+          return callback?.({ error: "FORBIDDEN" });
+        }
+
+        // diffusion live uniquement, persistance gérée par la route REST updateSessionNotes)
+        socket.to(`workspace:${mentorshipId}`).emit("notes_update", {
+          sessionId,
+          content,
+        });
+
+        callback?.({ success: true });
+      } catch (err) {
+        console.error("notes_update error:", err);
+        callback?.({ error: "SERVER_ERROR" });
+      }
     },
   );
 
   socket.on("disconnect", () => {
     console.log("Socket déconnecté:", socket.id);
   });
+});
+
+// Filet de sécurité : évite qu'une erreur async oubliée fasse crasher tout le process
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
 });
 
 server.listen(PORT, () => {
