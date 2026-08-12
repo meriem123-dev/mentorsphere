@@ -2,6 +2,7 @@ import prisma from "../lib/prisma";
 import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
 import { randomUUID } from "crypto";
 import { generateJaasToken, jaasAppId } from "../lib/jaas";
+import { notifySessionCreated } from "../lib/n8n";
 
 //helpers
 function buildRoomName() {
@@ -80,6 +81,20 @@ export async function createSession(
         },
       },
     },
+  });
+
+  
+
+  await notifySessionCreated({
+    sessionId: session.id,
+    scheduledAt: session.scheduledAt,
+    agenda: session.agenda,
+    meetingUrl: session.meetingUrl,
+    participants: session.participants.map((p) => ({
+      email: p.user.email,
+      firstName: p.user.firstName,
+      lastName: p.user.lastName,
+    })),
   });
 
   return session;

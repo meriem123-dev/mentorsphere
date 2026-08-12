@@ -421,6 +421,7 @@ model Session {
 
   createdById     String
   createdBy       User          @relation("SessionCreatedBy", fields: [createdById], references: [id])
+  reminderSentAt DateTime?
 
   participants    SessionParticipant[]
 

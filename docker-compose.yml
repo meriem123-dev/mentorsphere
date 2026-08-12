@@ -8,3 +8,26 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    depends_on:
+      - n8n
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=${NEON_HOST}
+      - DB_POSTGRESDB_DATABASE=${NEON_DB_NAME}
+      - DB_POSTGRESDB_USER=${NEON_USER}
+      - DB_POSTGRESDB_PASSWORD=${NEON_PASSWORD}
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - DB_POSTGRESDB_SSL_ENABLED=true
+      - GENERIC_TIMEZONE=Europe/Paris
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
