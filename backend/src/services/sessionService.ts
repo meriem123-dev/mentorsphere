@@ -2,11 +2,44 @@ import prisma from "../lib/prisma";
 import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
 import { randomUUID } from "crypto";
 import { generateJaasToken, jaasAppId } from "../lib/jaas";
-import { notifySessionCreated } from "../lib/n8n";
+import { notifySessionCancelled, notifySessionCreated, notifySessionRescheduled } from "../lib/n8n";
 
 //helpers
 function buildRoomName() {
   return `mentorsphere-${randomUUID()}`;
+}
+
+function buildJoinUrl(
+  role: "owner" | "mentor" | "collaborator",
+  mentorshipId: string,
+  sessionId: string,
+) {
+  const base = process.env.FRONTEND_URL;
+  const prefix = role === "mentor" ? "mentor" : "entrepreneur";
+  return `${base}/${prefix}/workspace/${mentorshipId}/sessions/${sessionId}/room`;
+}
+
+async function buildParticipantsPayload(
+  mentorshipId: string,
+  userId: string,
+  sessionId: string,
+  participants: { userId: string; user: { firstName: string; lastName: string; email: string } }[],
+) {
+  const overview = await getWorkspaceOverview(mentorshipId, userId);
+  if (!overview || overview === "FORBIDDEN") return null;
+
+  const roleByUserId = new Map(overview.members.map((m) => [m.userId, m.role]));
+
+  return participants.map((p) => ({
+    email: p.user.email,
+    firstName: p.user.firstName,
+    lastName: p.user.lastName,
+    joinUrl: buildJoinUrl(
+      roleByUserId.get(p.userId) ?? "collaborator",
+      mentorshipId,
+      sessionId,
+    ),
+  }));
 }
 
 async function getAccessBySessionId(sessionId: string, userId: string) {
@@ -83,19 +116,26 @@ export async function createSession(
     },
   });
 
-  
+  const roleByUserId = new Map(overview.members.map((m) => [m.userId, m.role]));
 
-  await notifySessionCreated({
+  const payloadToSend = {
     sessionId: session.id,
     scheduledAt: session.scheduledAt,
     agenda: session.agenda,
-    meetingUrl: session.meetingUrl,
     participants: session.participants.map((p) => ({
       email: p.user.email,
       firstName: p.user.firstName,
       lastName: p.user.lastName,
+      joinUrl: buildJoinUrl(
+        roleByUserId.get(p.userId) ?? "collaborator",
+        mentorshipId,
+        session.id,
+      ),
     })),
-  });
+  };
+
+
+  await notifySessionCreated(payloadToSend);
 
   return session;
 }
@@ -224,7 +264,6 @@ export async function getSessionRoomCredentials(
   };
 }
 
-
 type RescheduleSessionInput = {
   scheduledAt?: Date | undefined;
   durationMinutes?: number | undefined;
@@ -246,12 +285,14 @@ export async function rescheduleSession(
 
   const current = await prisma.session.findUnique({
     where: { id: sessionId },
-    select: { status: true },
+    select: { status: true, scheduledAt: true },
   });
   if (!current) return null;
   if (current.status !== "SCHEDULED") {
     return "SESSION_NOT_EDITABLE" as const;
   }
+
+  const previousScheduledAt = current.scheduledAt;
 
   const data: {
     scheduledAt?: Date;
@@ -262,10 +303,34 @@ export async function rescheduleSession(
   if (input.durationMinutes) data.durationMinutes = input.durationMinutes;
   if (input.agenda !== undefined) data.agenda = input.agenda;
 
-  return prisma.session.update({
+  const updated = await prisma.session.update({
     where: { id: sessionId },
     data,
+    include: {
+      participants: {
+        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      },
+    },
   });
+
+  const participantsPayload = await buildParticipantsPayload(
+    session.mentorshipId,
+    userId,
+    updated.id,
+    updated.participants,
+  );
+
+  if (participantsPayload && input.scheduledAt) {
+    await notifySessionRescheduled({
+      sessionId: updated.id,
+      previousScheduledAt,
+      newScheduledAt: updated.scheduledAt,
+      agenda: updated.agenda,
+      participants: participantsPayload,
+    });
+  }
+
+  return updated;
 }
 
 //métier annulation
@@ -289,10 +354,33 @@ export async function cancelSession(sessionId: string, userId: string) {
     return "SESSION_ALREADY_CANCELLED" as const;
   }
 
-  return prisma.session.update({
+  const updated = await prisma.session.update({
     where: { id: sessionId },
     data: { status: "CANCELLED" },
+    include: {
+      participants: {
+        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      },
+    },
   });
+
+  const participantsPayload = await buildParticipantsPayload(
+    session.mentorshipId,
+    userId,
+    updated.id,
+    updated.participants,
+  );
+
+  if (participantsPayload) {
+    await notifySessionCancelled({
+      sessionId: updated.id,
+      scheduledAt: updated.scheduledAt,
+      agenda: updated.agenda,
+      participants: participantsPayload.map(({ joinUrl, ...rest }) => rest),
+    });
+  }
+
+  return updated;
 }
 
 //métier suppression définitive
@@ -315,7 +403,7 @@ export async function deleteSession(sessionId: string, userId: string) {
     return "SESSION_COMPLETED_LOCKED" as const;
   }
 
-  //vider la relation participants via le champ imbriqué 
+  //vider la relation participants via le champ imbriqué
   await prisma.session.update({
     where: { id: sessionId },
     data: { participants: { deleteMany: {} } },
@@ -323,4 +411,52 @@ export async function deleteSession(sessionId: string, userId: string) {
   await prisma.session.delete({ where: { id: sessionId } });
 
   return { success: true } as const;
+}
+
+//métier: sessions dont le rappel 1h est dû, marque reminderSentAt de façon atomique
+export async function getAndMarkDueReminders() {
+  const now = new Date();
+  const in1Hour = new Date(now.getTime() + 60 * 60 * 1000);
+  const in70Min = new Date(now.getTime() + 70 * 60 * 1000); // fenêtre de tolérance
+
+  const dueSessions = await prisma.session.findMany({
+    where: {
+      status: "SCHEDULED",
+      reminderSentAt: null,
+      scheduledAt: { gte: in1Hour, lte: in70Min },
+    },
+    include: {
+      participants: {
+        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      },
+    },
+  });
+
+  if (dueSessions.length === 0) return [];
+
+  // marquer immédiatement pour éviter les doublons si n8n relance avant la fin du traitement
+  await prisma.session.updateMany({
+    where: { id: { in: dueSessions.map((s) => s.id) } },
+    data: { reminderSentAt: now },
+  });
+
+  const results = [];
+  for (const s of dueSessions) {
+    const participantsPayload = await buildParticipantsPayload(
+      s.mentorshipId,
+      s.createdById,
+      s.id,
+      s.participants,
+    );
+    if (participantsPayload) {
+      results.push({
+        sessionId: s.id,
+        scheduledAt: s.scheduledAt,
+        agenda: s.agenda,
+        participants: participantsPayload,
+      });
+    }
+  }
+
+  return results;
 }

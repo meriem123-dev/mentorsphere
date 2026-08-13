@@ -9,6 +9,7 @@ import {
   cancelSession,
   rescheduleSession,
   deleteSession,
+  getAndMarkDueReminders,
 } from "../services/sessionService";
 
 //créer session
@@ -424,5 +425,22 @@ export async function deleteSessionHandler(req: Request, res: Response) {
     return res
       .status(500)
       .json({ message: "Erreur lors de la suppression de la session." });
+  }
+}
+
+//recup rappels sessions 
+export async function getDueRemindersHandler(req: Request, res: Response) {
+  try {
+    const secret = req.headers["x-internal-secret"];
+    if (secret !== process.env.N8N_INTERNAL_SECRET) {
+      return res.status(403).json({ message: "Accès refusé." });
+    }
+
+    const dueReminders = await getAndMarkDueReminders();
+    return res.status(200).json({ sessions: dueReminders });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération des rappels." });
   }
 }
