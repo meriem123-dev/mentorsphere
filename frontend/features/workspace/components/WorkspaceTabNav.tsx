@@ -1,14 +1,15 @@
-
-import { MessageSquare, Calendar, Target, FileText, Users } from "lucide-react";
+import { MessageSquare, Calendar, Target, FileText, Users,ListChecks } from "lucide-react";
 import type { WorkspaceTab } from "../../../types/workspaceTypes";
 
-const TABS: { key: WorkspaceTab; label: string; icon: typeof MessageSquare }[] = [
-  { key: "chat", label: "Chat", icon: MessageSquare },
-  { key: "sessions", label: "Sessions", icon: Calendar },
-  { key: "objectifs", label: "Objectifs", icon: Target },
-  { key: "documents", label: "Documents", icon: FileText },
-  { key: "members", label: "Membres", icon: Users },
-];
+const TABS: { key: WorkspaceTab; label: string; icon: typeof MessageSquare }[] =
+  [
+    { key: "chat", label: "Chat", icon: MessageSquare },
+    { key: "sessions", label: "Sessions", icon: Calendar },
+    { key: "objectifs", label: "Objectifs", icon: Target },
+    { key: "tasks", label: "Tâches", icon: ListChecks },
+    { key: "documents", label: "Documents", icon: FileText },
+    { key: "members", label: "Membres", icon: Users },
+  ];
 
 type Props = {
   active: WorkspaceTab;

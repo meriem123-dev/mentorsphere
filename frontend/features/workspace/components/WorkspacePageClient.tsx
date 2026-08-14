@@ -26,11 +26,14 @@ import type {
   WorkspaceMember,
   WorkspaceOverview,
   SessionStatus,
+  Task,
 } from "@/types/workspaceTypes";
 import { useWorkspaceSocket } from "@/hooks/use-workspace-socket";
 import { SessionModal } from "./SessionModal";
 import { usePathname } from "next/navigation";
 import { RescheduleSessionModal } from "@/features/sessions/components/RescheduleSessionModal";
+import { TasksTab } from "./TasksTab";
+import { MOCK_TASKS } from "../data/mockTasks";
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +66,8 @@ export default function WorkspacePageClient() {
     string | undefined
   >();
 
+  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+
   const upcomingSessions = sessions
     .filter((s) => s.status === "SCHEDULED")
     .sort(
@@ -87,20 +92,27 @@ export default function WorkspacePageClient() {
 
     const load = async () => {
       try {
-        const [overview, history, objectivesData, documentsData, sessionsData] =
-          await Promise.all([
-            workspaceApi.getOverview(id),
-            workspaceApi.getMessages(id),
-            workspaceApi.getObjectives(id),
-            workspaceApi.getDocuments(id),
-            workspaceApi.getSessions(id),
-          ]);
+        const [
+          overview,
+          history,
+          objectivesData,
+          documentsData,
+          sessionsData,
+          
+        ] = await Promise.all([
+          workspaceApi.getOverview(id),
+          workspaceApi.getMessages(id),
+          workspaceApi.getObjectives(id),
+          workspaceApi.getDocuments(id),
+          workspaceApi.getSessions(id),
+        ]);
         if (cancelled) return;
 
         setHeader(overview.header);
         setMembers(overview.members);
         setMessages(history);
         setObjectives(objectivesData);
+
         setDocuments(documentsData);
         setSessions(
           sessionsData.map((s) => ({
@@ -282,6 +294,15 @@ export default function WorkspacePageClient() {
           mentorshipId={id}
           objectives={objectives}
           onObjectivesChange={setObjectives}
+        />
+      )}
+
+      {activeTab === "tasks" && (
+        <TasksTab
+          tasks={tasks}
+          members={members}
+          canManage={canManageSessions}
+          onTasksChange={setTasks}
         />
       )}
 

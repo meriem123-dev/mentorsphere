@@ -10,7 +10,10 @@ import type {
   CreateSessionPayload,
   SessionStatus,
   SessionRoomCredentials,
-  RescheduleSessionPayload
+  RescheduleSessionPayload,
+  Task,
+  CreateTaskPayload,
+  UpdateTaskPayload,
 } from "@/types/workspaceTypes";
 
 export const workspaceApi = {
@@ -161,4 +164,17 @@ export const workspaceApi = {
 
   deleteSession: (mentorshipId: string, sessionId: string) =>
     api.delete(`api/workspace/${mentorshipId}/sessions/${sessionId}`),
+
+
+  getTasks: (mentorshipId: string) =>
+  api.get<Task[]>(`api/workspace/${mentorshipId}/tasks`).then((r) => r.data),
+
+createTask: (mentorshipId: string, payload: CreateTaskPayload) =>
+  api.post<Task>(`api/workspace/${mentorshipId}/tasks`, payload).then((r) => r.data),
+
+updateTask: (mentorshipId: string, taskId: string, payload: UpdateTaskPayload) =>
+  api.patch<Task>(`api/workspace/${mentorshipId}/tasks/${taskId}`, payload).then((r) => r.data),
+
+deleteTask: (mentorshipId: string, taskId: string) =>
+  api.delete(`api/workspace/${mentorshipId}/tasks/${taskId}`),
 };

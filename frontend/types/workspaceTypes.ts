@@ -3,6 +3,7 @@ export type WorkspaceTab =
   | "sessions"
   | "objectifs"
   | "documents"
+  | "tasks"
   | "members";
 
 export type WorkspaceSummary = {
@@ -34,9 +35,6 @@ export type WorkspaceMessage = {
   content: string;
   createdAt: string;
 };
-
-
-
 
 export type ObjectiveCategory =
   | "Vision & stratégie"
@@ -102,7 +100,6 @@ export type WorkspaceOverview = {
   members: WorkspaceMember[];
 };
 
-
 export type SessionParticipant = {
   userId: string;
   firstName: string;
@@ -125,14 +122,12 @@ export type Session = {
   createdById: string;
 };
 
-
 export type CreateSessionPayload = {
   scheduledAt: string; // ISO string
   durationMinutes: number;
   agenda?: string;
   participantIds: string[];
 };
-
 
 export type SessionRoomCredentials = {
   appId: string;
@@ -146,3 +141,26 @@ export type RescheduleSessionPayload = Partial<{
   durationMinutes: number;
   agenda: string;
 }>;
+
+export type TaskPriority = "high" | "medium" | "low";
+export type TaskStatus = "todo" | "done";
+
+export type Task = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigneeId: string;
+  dueDate: string; // ISO string
+};
+
+export type CreateTaskPayload = {
+  title: string;
+  priority: TaskPriority;
+  assigneeId: string;
+  dueDate: string;
+};
+
+export type UpdateTaskPayload = Partial<CreateTaskPayload> & {
+  status?: TaskStatus;
+};
