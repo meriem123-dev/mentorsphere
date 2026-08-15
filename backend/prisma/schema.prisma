@@ -105,6 +105,7 @@ model User {
   workspaceDocuments WorkspaceDocument[]
   sessionsCreated      Session[]            @relation("SessionCreatedBy")
   sessionParticipations SessionParticipant[] @relation("SessionParticipations")
+  tasksAssigned Task[] @relation("TaskAssignee")
 }
 
 //************Tables pour User *********
@@ -287,6 +288,7 @@ model Mentorship {
   objectives  Objective[]
   workspaceDocuments WorkspaceDocument[]
   sessions Session[]
+  tasks Task[]
 }
 
 
@@ -444,4 +446,24 @@ model SessionParticipant {
   createdAt  DateTime @default(now())
 
   @@unique([sessionId, userId])
+}
+
+//***modèle tâche dans workspace***
+model Task {
+  id           String   @id @default(cuid())
+  title        String
+  status       String   @default("todo")   // "todo" | "done"
+  priority     String                      // "high" | "medium" | "low"
+  dueDate      DateTime
+
+  mentorshipId String
+  mentorship   Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  assigneeId   String
+  assignee     User       @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([mentorshipId])
 }

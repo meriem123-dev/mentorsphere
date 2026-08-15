@@ -33,7 +33,7 @@ import { SessionModal } from "./SessionModal";
 import { usePathname } from "next/navigation";
 import { RescheduleSessionModal } from "@/features/sessions/components/RescheduleSessionModal";
 import { TasksTab } from "./TasksTab";
-import { MOCK_TASKS } from "../data/mockTasks";
+
 
 export default function WorkspacePageClient() {
   const { id } = useParams<{ id: string }>();
@@ -66,7 +66,7 @@ export default function WorkspacePageClient() {
     string | undefined
   >();
 
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const upcomingSessions = sessions
     .filter((s) => s.status === "SCHEDULED")
@@ -85,6 +85,7 @@ export default function WorkspacePageClient() {
     currentMember?.role === "owner" || currentMember?.role === "mentor";
   const isMentor = currentMember?.role === "mentor";
   const [viewingSessionId, setViewingSessionId] = useState<string | null>(null);
+  
 
   //appels API workspace
   useEffect(() => {
@@ -98,13 +99,14 @@ export default function WorkspacePageClient() {
           objectivesData,
           documentsData,
           sessionsData,
-          
+          tasksData
         ] = await Promise.all([
           workspaceApi.getOverview(id),
           workspaceApi.getMessages(id),
           workspaceApi.getObjectives(id),
           workspaceApi.getDocuments(id),
           workspaceApi.getSessions(id),
+          workspaceApi.getTasks(id),
         ]);
         if (cancelled) return;
 
@@ -112,8 +114,8 @@ export default function WorkspacePageClient() {
         setMembers(overview.members);
         setMessages(history);
         setObjectives(objectivesData);
-
         setDocuments(documentsData);
+        setTasks(tasksData);
         setSessions(
           sessionsData.map((s) => ({
             ...s,
@@ -299,6 +301,7 @@ export default function WorkspacePageClient() {
 
       {activeTab === "tasks" && (
         <TasksTab
+          mentorshipId={id}
           tasks={tasks}
           members={members}
           canManage={canManageSessions}

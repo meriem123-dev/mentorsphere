@@ -4,6 +4,7 @@ import { getWorkspaceOverviewHandler,getWorkspaceSummariesHandler,getWorkspaceMe
 import {createObjectiveHandler,listObjectivesHandler,updateObjectiveHandler,deleteObjectiveHandler} from "../controllers/objectiveController";
 import { listDocumentsHandler, uploadDocumentHandler, deleteDocumentHandler } from "../controllers/documentController";
 import {createSessionHandler,listSessionsHandler,getSessionByIdHandler,updateSessionNotesHandler,updateSessionStatusHandler,getSessionRoomCredentialsHandler,cancelSessionHandler,deleteSessionHandler,rescheduleSessionHandler, getDueRemindersHandler} from "../controllers/sessionController"
+import { createTaskHandler,deleteTaskHandler,listTasksHandler,updateTaskHandler } from "../controllers/taskController";
 
 import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -33,5 +34,11 @@ router.delete("/:mentorshipId/sessions/:sessionId", requireAuth, deleteSessionHa
 router.get("/:mentorshipId/sessions/:sessionId", requireAuth, getSessionByIdHandler);
 router.get("/:mentorshipId/sessions/:sessionId/room",requireAuth,getSessionRoomCredentialsHandler);
 router.get("/internal/reminders-due", getDueRemindersHandler);
+
+router.get("/:mentorshipId/tasks", requireAuth, listTasksHandler);
+router.post("/:mentorshipId/tasks", requireAuth, createTaskHandler);
+router.patch("/:mentorshipId/tasks/:taskId", requireAuth, updateTaskHandler);
+router.delete("/:mentorshipId/tasks/:taskId", requireAuth, deleteTaskHandler);
+
 
 export default router;

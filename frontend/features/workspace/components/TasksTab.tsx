@@ -7,6 +7,8 @@ import { ComboBox } from "@/components/ui/ComboBox";
 import { TaskRow } from "./TaskRow";
 import { AddTaskModal } from "./AddTaskModal";
 import { PRIORITY_LABELS, PRIORITY_LABEL_TO_VALUE } from "./TaskPriorityBadge";
+import { workspaceApi } from "../api/workspaceAPI";
+import { toast } from "sonner";
 import type {
   CreateTaskPayload,
   Task,
@@ -18,13 +20,20 @@ type StatusFilter = "all" | "todo" | "done";
 const PRIORITY_FILTER_OPTIONS = ["Toutes priorités", ...PRIORITY_LABELS];
 
 type Props = {
+  mentorshipId: string;
   tasks: Task[];
   members: WorkspaceMember[];
   canManage: boolean;
-  onTasksChange: (tasks: Task[]) => void;
+  onTasksChange: (update: Task[] | ((prev: Task[]) => Task[])) => void;
 };
 
-export function TasksTab({ tasks, members, canManage, onTasksChange }: Props) {
+export function TasksTab({
+  mentorshipId,
+  tasks,
+  members,
+  canManage,
+  onTasksChange,
+}: Props) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [assigneeLabel, setAssigneeLabel] = useState("Tous les membres");
   const [priorityLabel, setPriorityLabel] = useState("Toutes priorités");
@@ -47,7 +56,10 @@ export function TasksTab({ tasks, members, canManage, onTasksChange }: Props) {
     }
 
     if (priorityLabel !== "Toutes priorités") {
-      if (task.priority !== PRIORITY_LABEL_TO_VALUE[priorityLabel as keyof typeof PRIORITY_LABEL_TO_VALUE]) {
+      if (
+        task.priority !==
+        PRIORITY_LABEL_TO_VALUE[priorityLabel as keyof typeof PRIORITY_LABEL_TO_VALUE]
+      ) {
         return false;
       }
     }
@@ -55,25 +67,41 @@ export function TasksTab({ tasks, members, canManage, onTasksChange }: Props) {
     return true;
   });
 
-  // mutation locale — remplacer par workspaceApi.updateTask quand le back sera prêt
-  const handleToggleStatus = (taskId: string) => {
+  const handleToggleStatus = async (taskId: string) => {
+    const previous = tasks.find((t) => t.id === taskId);
+    if (!previous) return;
+
+    const nextStatus = previous.status === "done" ? "todo" : "done";
+
+    // mise à jour optimiste (fonctionnelle pour éviter d'écraser un état plus récent)
     onTasksChange(
-      tasks.map((t) =>
-        t.id === taskId
-          ? { ...t, status: t.status === "done" ? "todo" : "done" }
-          : t,
-      ),
+      tasks.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t)),
     );
+
+    try {
+      const updated = await workspaceApi.updateTask(mentorshipId, taskId, {
+        status: nextStatus,
+      });
+      onTasksChange((prev: Task[]) =>
+        prev.map((t) => (t.id === taskId ? { ...t, ...updated } : t)),
+      );
+    } catch {
+      toast.error("Impossible de mettre à jour la tâche");
+      // rollback ciblé sur cette tâche uniquement, pas un remplacement global
+      onTasksChange((prev: Task[]) =>
+        prev.map((t) => (t.id === taskId ? previous : t)),
+      );
+    }
   };
 
-  // mutation locale — remplacer par workspaceApi.createTask quand le back sera prêt
   const handleCreate = async (payload: CreateTaskPayload) => {
-    const newTask: Task = {
-      id: `task-${crypto.randomUUID()}`,
-      status: "todo",
-      ...payload,
-    };
-    onTasksChange([...tasks, newTask]);
+    try {
+      const created = await workspaceApi.createTask(mentorshipId, payload);
+      onTasksChange((prev: Task[]) => [...prev, created]);
+      toast.success("Tâche ajoutée");
+    } catch {
+      toast.error("Impossible d'ajouter la tâche");
+    }
   };
 
   return (
