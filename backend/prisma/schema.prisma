@@ -351,7 +351,7 @@ model ProjectJoinRequest {
 }
 
 
-//*****model message du workspace (chat de groupe)********
+//*****model message du workspace********
 model Message {
   id             String   @id @default(cuid())
 

@@ -21,7 +21,11 @@ export function TaskRow({ task, assignee, canManage, onToggleStatus }: Props) {
   const isDone = task.status === "done";
 
   return (
-    <div className="grid grid-cols-[1fr_100px_140px_140px] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
+    <div
+      className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0
+                 sm:grid sm:grid-cols-[1fr_100px_140px_140px] sm:items-center sm:gap-3 sm:py-3"
+    >
+      {/* Ligne titre + checkbox : toujours visible en premier, pleine largeur sur mobile */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -45,22 +49,25 @@ export function TaskRow({ task, assignee, canManage, onToggleStatus }: Props) {
         </span>
       </div>
 
-      <TaskPriorityBadge priority={task.priority} />
+      {/* Ligne meta : priorité + assigné + échéance, regroupés horizontalement sur mobile */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pl-7 sm:contents sm:pl-0">
+        <TaskPriorityBadge priority={task.priority} />
 
-      <div className="flex items-center gap-2 min-w-0">
-        {assignee && (
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-[10px] font-semibold text-brand-blue">
-            {assignee.initials}
+        <div className="flex items-center gap-2 min-w-0">
+          {assignee && (
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-[10px] font-semibold text-brand-blue">
+              {assignee.initials}
+            </span>
+          )}
+          <span className="truncate text-sm text-foreground">
+            {assignee?.name ?? "—"}
           </span>
-        )}
-        <span className="truncate text-sm text-foreground">
-          {assignee?.name ?? "—"}
-        </span>
-      </div>
+        </div>
 
-      <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-        <AlertTriangle size={12} />
-        {formatDueDate(task.dueDate)}
+        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+          <AlertTriangle size={12} />
+          {formatDueDate(task.dueDate)}
+        </div>
       </div>
     </div>
   );
