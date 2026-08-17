@@ -14,6 +14,7 @@ import { Logo } from "@/components/ui/Logo";
 import { useSidebarMobile } from "./sidebar-mobile-context";
 import { useNavBadges } from "@/features/auth/hooks/use-nav-badges";
 import { WorkspaceNavSection } from "@/features/workspace/components/WorkspaceNavSection";
+import { StartupNavSection } from "@/features/projets/components/StartupNavSection";
 
 export type SidebarRole = "entrepreneur" | "mentor";
 
@@ -102,6 +103,17 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
         if (item.href.endsWith("/workspace")) {
           return (
             <WorkspaceNavSection
+              key={item.href}
+              basePath={item.href}
+              hoverClass={accent.hover}
+              focusRing={FOCUS_RING}
+            />
+          );
+        }
+
+         if (item.href.endsWith("/parcours")) {
+          return (
+            <StartupNavSection
               key={item.href}
               basePath={item.href}
               hoverClass={accent.hover}

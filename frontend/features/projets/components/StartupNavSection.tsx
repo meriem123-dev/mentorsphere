@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, PenSquare } from "lucide-react";
+import { ChevronDown, Map } from "lucide-react";
 import NextLink from "next/link";
-import type { WorkspaceSummary } from "@/types/workspaceTypes";
-import { workspaceApi } from "@/features/workspace/api/workspaceAPI";
+import type { Startup } from "@/types/startupTypes";
+import { startupApi } from "@/features/projets/api/startuAPI";
+import { getStepStats } from "@/features/projets/utils/stepMeta";
 
 type Props = {
   basePath: string;
@@ -14,15 +15,14 @@ type Props = {
   focusRing: string;
 };
 
-export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) {
+export function StartupNavSection({ basePath, hoverClass, focusRing }: Props) {
   const pathname = usePathname();
   const isSectionActive = pathname.startsWith(basePath);
 
-  // isOpen = actif automatiquement si on est dans un workspace
   const [manuallyOpen, setManuallyOpen] = useState(false);
   const isOpen = isSectionActive || manuallyOpen;
 
-  const [items, setItems] = useState<WorkspaceSummary[]>([]);
+  const [items, setItems] = useState<Startup[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
@@ -32,8 +32,8 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
 
     const load = async () => {
       try {
-        const summaries = await workspaceApi.getSummaries();
-        if (!cancelled) setItems(summaries);
+        const res = await startupApi.getMine();
+        if (!cancelled) setItems(res.data.startups);
       } catch {
         // silencieux
       } finally {
@@ -56,8 +56,8 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
           isSectionActive ? "bg-gradient-brand text-white" : `text-muted-foreground ${hoverClass}`
         } ${focusRing}`}
       >
-        <PenSquare className="h-4 w-4 shrink-0" strokeWidth={2} />
-        <span className="flex-1 truncate text-left">Workspace</span>
+        <Map className="h-4 w-4 shrink-0" strokeWidth={2} />
+        <span className="flex-1 truncate text-left">Mon Parcours</span>
         <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
@@ -73,6 +73,14 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
               {items.map((item) => {
                 const href = `${basePath}/${item.id}`;
                 const isActive = pathname === href;
+                const { progressPercent } = getStepStats(item.steps);
+                const dotClass =
+                  progressPercent === 100
+                    ? "bg-success"
+                    : progressPercent > 0
+                      ? "bg-brand-blue"
+                      : "bg-muted-foreground";
+
                 return (
                   <NextLink
                     key={item.id}
@@ -81,8 +89,8 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
                       isActive ? "font-medium text-foreground" : `text-muted-foreground ${hoverClass}`
                     }`}
                   >
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.isActive ? "bg-emerald-500" : "bg-muted-foreground"}`} />
-                    <span className="truncate">{item.startupName}</span>
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} />
+                    <span className="truncate">{item.name}</span>
                   </NextLink>
                 );
               })}
