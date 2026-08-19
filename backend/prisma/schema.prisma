@@ -59,6 +59,11 @@ enum SessionStatus {
   CANCELLED
 }
 
+enum ResourceType {
+  DOCUMENT
+  VIDEO
+  LINK
+}
 
 
 //************** Modèle User************
@@ -106,6 +111,8 @@ model User {
   sessionsCreated      Session[]            @relation("SessionCreatedBy")
   sessionParticipations SessionParticipant[] @relation("SessionParticipations")
   tasksAssigned Task[] @relation("TaskAssignee")
+  resourcesAuthored Resource[]     @relation("ResourceAuthor")
+  resourceSaves     ResourceSave[] @relation("ResourceSavedBy")
 }
 
 //************Tables pour User *********
@@ -466,4 +473,42 @@ model Task {
   updatedAt    DateTime @updatedAt
 
   @@index([mentorshipId])
+}
+
+//****Model Ressource****
+model Resource {
+  id            String       @id @default(cuid())
+  type          ResourceType
+  title         String
+
+  fileUrl       String?
+  fileName      String?
+  sizeBytes     Int?
+
+  url           String?
+  durationLabel String?
+
+  authorId      String
+  author        User         @relation("ResourceAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  saves         ResourceSave[]
+
+  @@index([type, createdAt])
+}
+
+model ResourceSave {
+  id         String   @id @default(cuid())
+
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation("ResourceSavedBy", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@unique([resourceId, userId])
 }

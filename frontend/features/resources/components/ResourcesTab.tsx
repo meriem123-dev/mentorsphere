@@ -1,22 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Plus, Bookmark } from "lucide-react";
+import { toast } from "sonner";
 import { ResourceCard } from "./ResourceCard";
 import { AddResourceModal } from "./AddResourceModal";
-import type { Resource, ResourceType } from "../../../types/resourceTypes";
-
-///data
-const MOCK_RESOURCES: Resource[] = [
-  { id: "1", type: "document", title: "Business Model Canvas", authorName: "Sarah", date: "14 août", meta: "2.4 MB · PDF", isSaved: false },
-  { id: "2", type: "video", title: "How to Build a Pitch Deck", authorName: "Ahmed", date: "12 août", meta: "18 min", isSaved: false },
-  { id: "3", type: "link", title: "YC Startup Library", authorName: "Sarah", date: "10 août", meta: "ycombinator.com", isSaved: false },
-  { id: "4", type: "document", title: "Playbook SaaS B2B Pricing", authorName: "Sarah Chen", date: "9 août", meta: "24 pages · PDF", isSaved: false },
-  { id: "5", type: "video", title: "Maîtriser le pitch VC", authorName: "Marcus Reid", date: "8 août", meta: "42 min", isSaved: false },
-  { id: "6", type: "link", title: "First Round Capital Review", authorName: "James Wu", date: "7 août", meta: "firstround.com", isSaved: false },
-  { id: "7", type: "document", title: "Checklist Légale Startup", authorName: "James Wu", date: "5 août", meta: "12 pages · PDF", isSaved: false },
-  { id: "8", type: "video", title: "Construire un Business Model", authorName: "Sarah Chen", date: "3 août", meta: "28 min", isSaved: false },
-];
+import { resourcesApi } from "../api/resourcesAPI";
+import type {
+  Resource,
+  ResourceType,
+  RawResourceFromApi,
+} from "../../../types/resourceTypes";
+import { useAuth } from "../../../context/AuthContext";
 
 type FilterValue = "all" | ResourceType;
 
@@ -27,15 +22,84 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: "link", label: "Liens" },
 ];
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+//mappage
+function mapApiResourceToUi(raw: RawResourceFromApi): Resource {
+  const type = raw.type.toLowerCase() as ResourceType;
+
+  let meta = "";
+  if (type === "document" && raw.sizeBytes) {
+    const ext = raw.fileName?.split(".").pop()?.toUpperCase() ?? "FICHIER";
+    meta = `${(raw.sizeBytes / (1024 * 1024)).toFixed(1)} MB · ${ext}`;
+  } else if (type === "video") {
+    meta = raw.durationLabel ?? "";
+  } else if (type === "link" && raw.url) {
+    try {
+      meta = new URL(raw.url).hostname.replace("www.", "");
+    } catch {
+      meta = raw.url;
+    }
+  }
+
+  return {
+    id: raw.id,
+    type,
+    title: raw.title,
+    authorId: raw.author.id,
+    authorName: `${raw.author.firstName} ${raw.author.lastName}`,
+    date: formatDate(raw.createdAt),
+    meta,
+    isSaved: raw.isSaved,
+    ...(raw.url && { url: raw.url }),
+    ...(raw.fileUrl && { fileUrl: raw.fileUrl }),
+  };
+}
+
 interface ResourcesTabProps {
   onOpenResource?: (resource: Resource) => void;
 }
 
 export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
-  const [resources, setResources] = useState<Resource[]>(MOCK_RESOURCES);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterValue>("all");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+
+  const { user } = useAuth();
+
+  //charger ressources
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchResources() {
+      try {
+        setIsLoading(true);
+        const { data } = await resourcesApi.list({ limit: 100 });
+        if (!cancelled) {
+          setResources(data.resources.map(mapApiResourceToUi));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          toast.error("Impossible de charger les ressources.");
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchResources();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const counts = useMemo(
     () => ({
@@ -45,47 +109,100 @@ export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
       link: resources.filter((r) => r.type === "link").length,
       saved: resources.filter((r) => r.isSaved).length,
     }),
-    [resources]
+    [resources],
   );
 
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
-      const matchesFilter = activeFilter === "all" || resource.type === activeFilter;
-      const matchesSearch = resource.title.toLowerCase().includes(search.toLowerCase());
-      return matchesFilter && matchesSearch;
+      const matchesFilter =
+        activeFilter === "all" || resource.type === activeFilter;
+      const matchesSearch = resource.title
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesSaved = !showSavedOnly || resource.isSaved;
+      return matchesFilter && matchesSearch && matchesSaved;
     });
-  }, [resources, activeFilter, search]);
+  }, [resources, activeFilter, search, showSavedOnly]);
 
-  function toggleSave(id: string) {
-    
+  //gérer save
+  async function toggleSave(id: string) {
+    const previous = resources;
     setResources((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r))
+      prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)),
     );
+
+    try {
+      await resourcesApi.toggleSave(id);
+    } catch (err) {
+      setResources(previous);
+      toast.error("Impossible d'enregistrer la ressource.");
+    }
   }
 
-  function handleAddResource(data: { type: ResourceType; title: string; authorName: string; url: string }) {
-    
-    const newResource: Resource = {
-      id: crypto.randomUUID(),
-      type: data.type,
-      title: data.title,
-      authorName: data.authorName,
-      date: "aujourd'hui",
-      meta: data.type === "link" ? data.url : "",
-      isSaved: false,
-      url: data.url,
-    };
-    setResources((prev) => [newResource, ...prev]);
+  //gérer ajout
+  async function handleAddResource(data: {
+    type: ResourceType;
+    title: string;
+    url: string;
+    file?: File;
+  }) {
+    try {
+      const formData = new FormData();
+      formData.append("type", data.type.toUpperCase());
+      formData.append("title", data.title);
+      if (data.url) formData.append("url", data.url);
+      if (data.file) formData.append("file", data.file);
+
+      const { data: created } = await resourcesApi.create(formData);
+      setResources((prev) => [mapApiResourceToUi(created), ...prev]);
+      toast.success("Ressource ajoutée.");
+    } catch (err) {
+      toast.error("Impossible d'ajouter la ressource.");
+      throw err;
+    }
+  }
+
+  //gérer supp
+  async function handleDelete(id: string) {
+    const previous = resources;
+    setResources((prev) => prev.filter((r) => r.id !== id));
+
+    try {
+      await resourcesApi.remove(id);
+    } catch (err) {
+      setResources(previous);
+      toast.error("Impossible de supprimer la ressource.");
+    }
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label="Total" value={counts.total} valueColor="text-brand-rose"/>
-        <StatCard label="Documents" value={counts.document} valueColor="text-brand-blue"/>
-        <StatCard label="Vidéos" value={counts.video} valueColor="text-brand-blue-light"/>
-        <StatCard label="Liens" value={counts.link} valueColor="text-brand-blue" />
-        <StatCard label="Enregistrés" value={counts.saved} valueColor="text-brand-rose" />
+        <StatCard
+          label="Total"
+          value={counts.total}
+          valueColor="text-brand-rose"
+        />
+        <StatCard
+          label="Documents"
+          value={counts.document}
+          valueColor="text-brand-blue"
+        />
+        <StatCard
+          label="Vidéos"
+          value={counts.video}
+          valueColor="text-brand-blue-light"
+        />
+        <StatCard
+          label="Liens"
+          value={counts.link}
+          valueColor="text-brand-blue"
+        />
+        <StatCard
+          label="Enregistrés"
+          value={counts.saved}
+          valueColor="text-brand-rose"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -93,7 +210,9 @@ export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
           {FILTERS.map((filter) => {
             const isActive = activeFilter === filter.value;
             const count =
-              filter.value === "all" ? counts.total : counts[filter.value as keyof typeof counts];
+              filter.value === "all"
+                ? counts.total
+                : counts[filter.value as keyof typeof counts];
             return (
               <button
                 key={filter.value}
@@ -106,7 +225,11 @@ export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
                 }`}
               >
                 {filter.label}
-                <span className={isActive ? "text-white/80" : "text-muted-foreground"}>
+                <span
+                  className={
+                    isActive ? "text-white/80" : "text-muted-foreground"
+                  }
+                >
                   {count}
                 </span>
               </button>
@@ -127,31 +250,41 @@ export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Ajouter une ressource
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredResources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            resource={resource}
-            onToggleSave={toggleSave}
-            onOpen={onOpenResource}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">
+          Chargement des ressources...
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredResources.map((resource) => (
+            <ResourceCard
+              key={resource.id}
+              resource={resource}
+              onToggleSave={toggleSave}
+              onOpen={onOpenResource}
+              onDelete={handleDelete}
+              currentUserId={user?.id}
+            />
+          ))}
+        </div>
+      )}
 
       <button
         type="button"
-        onClick={() => setActiveFilter("all")}
-        className="fixed bottom-6 right-6 flex items-center gap-2 rounded-full bg-brand-rose px-4 py-3 text-sm font-medium text-white shadow-lg hover:opacity-90"
+        onClick={() => setShowSavedOnly((prev) => !prev)}
+        className={`fixed bottom-6 right-6 flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium text-white shadow-lg hover:opacity-90 cursor-pointer ${
+          showSavedOnly ? "bg-brand-blue" : "bg-brand-rose"
+        }`}
       >
         <Bookmark className="h-4 w-4" fill="currentColor" />
-        Enregistrements
+        {showSavedOnly ? "Toutes les ressources" : "Enregistrements"}
       </button>
 
       <AddResourceModal

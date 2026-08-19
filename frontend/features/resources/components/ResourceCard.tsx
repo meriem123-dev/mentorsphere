@@ -1,12 +1,15 @@
 "use client";
 
-import { FileText, Video, Link2, Bookmark } from "lucide-react";
+import { FileText, Video, Link2, Bookmark, Trash2 } from "lucide-react";
 import type { Resource } from "../../../types/resourceTypes";
+import { confirmToast } from "@/lib/confirm";
 
 interface ResourceCardProps {
   resource: Resource;
   onToggleSave?: (id: string) => void;
   onOpen?: (resource: Resource) => void;
+  onDelete?: (id: string) => void;
+  currentUserId?: string;
 }
 
 const TYPE_CONFIG = {
@@ -33,27 +36,62 @@ const TYPE_CONFIG = {
   },
 } as const;
 
-export function ResourceCard({ resource, onToggleSave, onOpen }: ResourceCardProps) {
+export function ResourceCard({
+  resource,
+  onToggleSave,
+  onOpen,
+  onDelete,
+  currentUserId,
+}: ResourceCardProps) {
   const config = TYPE_CONFIG[resource.type];
   const Icon = config.icon;
+  const canDelete = !currentUserId || resource.authorId === currentUserId;
+
+  async function handleDelete() {
+    const confirmed = await confirmToast({
+      title: "Supprimer cette ressource ?",
+      description: "Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+      cancelLabel: "Annuler",
+      variant: "danger",
+    });
+    if (!confirmed) return;
+    onDelete?.(resource.id);
+  }
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
       <div className="flex items-start justify-between">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.iconBg}`}>
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.iconBg}`}
+        >
           <Icon className={`h-5 w-5 ${config.iconColor}`} />
         </div>
-        <button
-          type="button"
-          onClick={() => onToggleSave?.(resource.id)}
-          aria-label={resource.isSaved ? "Retirer des enregistrements" : "Enregistrer"}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Bookmark
-            className="h-4 w-4"
-            fill={resource.isSaved ? "currentColor" : "none"}
-          />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onToggleSave?.(resource.id)}
+            aria-label={
+              resource.isSaved ? "Retirer des enregistrements" : "Enregistrer"
+            }
+            className="text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <Bookmark
+              className="h-4 w-4"
+              fill={resource.isSaved ? "currentColor" : "none"}
+            />
+          </button>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              aria-label="Supprimer la ressource"
+              className="text-muted-foreground hover:text-destructive cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">

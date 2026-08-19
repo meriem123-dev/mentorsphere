@@ -9,8 +9,15 @@ export default function RessourcesPage() {
       window.open(resource.url, "_blank", "noopener,noreferrer");
       return;
     }
-    //  a gérer
-    console.log("Ouvrir ressource:", resource);
+    if (resource.type === "video" && resource.url) {
+      window.open(resource.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (resource.type === "document" && resource.fileUrl) {
+      window.open(resource.fileUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    console.warn("Aucune URL disponible pour cette ressource:", resource);
   }
 
   return (

@@ -7,8 +7,8 @@ export function uploadToCloudinary(
   folder: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const isImage = file.mimetype.startsWith("image/");
-    const ext = path.extname(file.originalname); // ex: ".pdf"
+    const resourceType = getCloudinaryResourceType(file.mimetype);
+    const ext = path.extname(file.originalname);
     const baseName = path
       .basename(file.originalname, ext)
       .replace(/[^a-zA-Z0-9_-]/g, "_")
@@ -17,12 +17,11 @@ export function uploadToCloudinary(
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: `mentorsphere/${folder}`,
-        resource_type: isImage ? "image" : "raw",
-        ...(isImage
+        resource_type: resourceType,
+        ...(resourceType === "image"
           ? {}
           : {
-              // pour "raw", l'extension doit être DANS le public_id,
-              // l'option "format" est ignorée par Cloudinary pour ce type
+              // pour "raw" ET "video", l'extension doit être DANS le public_id
               public_id: `${baseName}-${Date.now()}${ext}`,
             }),
       },
@@ -36,4 +35,10 @@ export function uploadToCloudinary(
 
     stream.end(file.buffer);
   });
+}
+
+function getCloudinaryResourceType(mimetype: string): "image" | "video" | "raw" {
+  if (mimetype.startsWith("image/")) return "image";
+  if (mimetype.startsWith("video/")) return "video";
+  return "raw";
 }

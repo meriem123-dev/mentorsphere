@@ -13,9 +13,9 @@ interface AddResourceModalProps {
   onSubmit?: (data: {
     type: ResourceType;
     title: string;
-    authorName: string;
     url: string;
-  }) => void;
+    file?: File;
+  }) => Promise<void> | void;
 }
 
 const TYPE_OPTIONS: { value: ResourceType; label: string }[] = [
@@ -24,14 +24,41 @@ const TYPE_OPTIONS: { value: ResourceType; label: string }[] = [
   { value: "link", label: "Lien" },
 ];
 
+
+//modale
 export function AddResourceModal({ open, onOpenChange, onSubmit }: AddResourceModalProps) {
   const [type, setType] = useState<ResourceType>("document");
   const [title, setTitle] = useState("");
-  const [authorName, setAuthorName] = useState("");
   const [url, setUrl] = useState("");
+  const [file, setFile] = useState<File | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit() {
-    onSubmit?.({ type, title, authorName, url });
+  const isValid =
+    title.trim() !== "" &&
+    (type === "document" ? file !== undefined : url.trim() !== "");
+
+  function resetForm() {
+    setType("document");
+    setTitle("");
+    setUrl("");
+    setFile(undefined);
+  }
+
+  async function handleSubmit() {
+    if (!isValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({ type, title, url, ...(file && { file }) });
+      resetForm();
+      onOpenChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleClose() {
+    resetForm();
     onOpenChange(false);
   }
 
@@ -46,7 +73,7 @@ export function AddResourceModal({ open, onOpenChange, onSubmit }: AddResourceMo
             </Dialog.Title>
             <Dialog.Close
               render={
-                <button aria-label="Fermer" className="text-muted-foreground hover:text-foreground">
+                <button aria-label="Fermer" className="text-muted-foreground hover:text-foreground" onClick={handleClose}>
                   <X className="h-5 w-5" />
                 </button>
               }
@@ -56,7 +83,14 @@ export function AddResourceModal({ open, onOpenChange, onSubmit }: AddResourceMo
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-foreground">Type</label>
-              <RadioGroup value={type} onValueChange={(v) => setType(v as ResourceType)}>
+              <RadioGroup
+                value={type}
+                onValueChange={(v) => {
+                  setType(v as ResourceType);
+                  setUrl("");
+                  setFile(undefined);
+                }}
+              >
                 <div className="flex items-center gap-4">
                   {TYPE_OPTIONS.map((option) => (
                     <label key={option.value} className="flex items-center gap-2 text-sm text-foreground">
@@ -86,37 +120,40 @@ export function AddResourceModal({ open, onOpenChange, onSubmit }: AddResourceMo
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="resource-author" className="text-sm font-medium text-foreground">
-                Partagé par
-              </label>
-              <input
-                id="resource-author"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="Votre prénom"
-                className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
-            </div>
+            {type === "document" && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="resource-file" className="text-sm font-medium text-foreground">
+                  Fichier
+                </label>
+                <input
+                  id="resource-file"
+                  type="file"
+                  onChange={(e) => setFile(e.target.files?.[0])}
+                  className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground outline-none file:mr-3 file:rounded-md file:border-0 file:bg-brand-rose file:px-3 file:py-1.5 file:text-white"
+                />
+              </div>
+            )}
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="resource-url" className="text-sm font-medium text-foreground">
-                URL du document (optionnel)
-              </label>
-              <input
-                id="resource-url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://..."
-                className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
-            </div>
+            {(type === "video" || type === "link") && (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="resource-url" className="text-sm font-medium text-foreground">
+                  URL
+                </label>
+                <input
+                  id="resource-url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex gap-3">
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
               Annuler
@@ -124,9 +161,10 @@ export function AddResourceModal({ open, onOpenChange, onSubmit }: AddResourceMo
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 rounded-lg bg-brand-rose py-2 text-sm font-medium text-white hover:opacity-90"
+              disabled={!isValid || isSubmitting}
+              className="flex-1 rounded-lg bg-brand-rose py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Ajouter
+              {isSubmitting ? "Ajout..." : "Ajouter"}
             </button>
           </div>
         </Dialog.Popup>
