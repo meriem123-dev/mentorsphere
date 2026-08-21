@@ -296,6 +296,11 @@ model Mentorship {
   workspaceDocuments WorkspaceDocument[]
   sessions Session[]
   tasks Task[]
+  aiSummaryCache        Json?
+  aiSummaryGeneratedAt  DateTime?
+
+  mentorMatchesCache       Json?
+  mentorMatchesGeneratedAt DateTime?
 }
 
 

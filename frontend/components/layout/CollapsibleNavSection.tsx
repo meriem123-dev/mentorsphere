@@ -3,37 +3,51 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, PenSquare } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import NextLink from "next/link";
-import type { WorkspaceSummary } from "@/types/workspaceTypes";
-import { workspaceApi } from "@/features/workspace/api/workspaceAPI";
 
-type Props = {
-  basePath: string;
-  hoverClass: string;
-  focusRing: string;
+export type NavListItem = {
+  id: string;
+  label: string;
+  dotClassName: string;
 };
 
-export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) {
+type Props<T> = {
+  basePath: string;
+  label: string;
+  icon: LucideIcon;
+  hoverClass: string;
+  focusRing: string;
+  fetchItems: () => Promise<T[]>;
+  mapItem: (item: T) => NavListItem;
+};
+
+export function CollapsibleNavSection<T>({
+  basePath,
+  label,
+  icon: Icon,
+  hoverClass,
+  focusRing,
+  fetchItems,
+  mapItem,
+}: Props<T>) {
   const pathname = usePathname();
   const isSectionActive = pathname.startsWith(basePath);
 
-  // isOpen = actif automatiquement si on est dans un workspace
   const [manuallyOpen, setManuallyOpen] = useState(false);
   const isOpen = isSectionActive || manuallyOpen;
 
-  const [items, setItems] = useState<WorkspaceSummary[]>([]);
+  const [items, setItems] = useState<NavListItem[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (!isOpen || hasLoaded) return;
-
     let cancelled = false;
 
     const load = async () => {
       try {
-        const summaries = await workspaceApi.getSummaries();
-        if (!cancelled) setItems(summaries);
+        const raw = await fetchItems();
+        if (!cancelled) setItems(raw.map(mapItem));
       } catch {
         // silencieux
       } finally {
@@ -45,6 +59,7 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, hasLoaded]);
 
   return (
@@ -56,8 +71,8 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
           isSectionActive ? "bg-gradient-brand text-white" : `text-muted-foreground ${hoverClass}`
         } ${focusRing}`}
       >
-        <PenSquare className="h-4 w-4 shrink-0" strokeWidth={2} />
-        <span className="flex-1 truncate text-left">Workspace</span>
+        <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+        <span className="flex-1 truncate text-left">{label}</span>
         <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
@@ -81,8 +96,8 @@ export function WorkspaceNavSection({ basePath, hoverClass, focusRing }: Props) 
                       isActive ? "font-medium text-foreground" : `text-muted-foreground ${hoverClass}`
                     }`}
                   >
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.isActive ? "bg-emerald-500" : "bg-muted-foreground"}`} />
-                    <span className="truncate">{item.startupName}</span>
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.dotClassName}`} />
+                    <span className="truncate">{item.label}</span>
                   </NextLink>
                 );
               })}

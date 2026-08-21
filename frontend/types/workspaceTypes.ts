@@ -109,6 +109,12 @@ export type SessionParticipant = {
 
 export type SessionStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
 
+export type SessionAISummary = {
+  objectifsAtteints: string[];
+  pointsCles: string[];
+  prochainesActions: string[];
+};
+
 export type Session = {
   id: string;
   number: number;
@@ -118,6 +124,7 @@ export type Session = {
   agenda?: string;
   meetingUrl?: string;
   rawNotes?: string;
+  aiSummary?: SessionAISummary | null;
   participants?: SessionParticipant[];
   createdById: string;
 };

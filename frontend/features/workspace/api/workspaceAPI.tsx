@@ -165,16 +165,30 @@ export const workspaceApi = {
   deleteSession: (mentorshipId: string, sessionId: string) =>
     api.delete(`api/workspace/${mentorshipId}/sessions/${sessionId}`),
 
+  generateSessionAISummary: (mentorshipId: string, sessionId: string) =>
+    api
+      .post<Session>(
+        `api/workspace/${mentorshipId}/sessions/${sessionId}/ai-summary`,
+      )
+      .then((r) => r.data),
 
   getTasks: (mentorshipId: string) =>
-  api.get<Task[]>(`api/workspace/${mentorshipId}/tasks`).then((r) => r.data),
+    api.get<Task[]>(`api/workspace/${mentorshipId}/tasks`).then((r) => r.data),
 
-createTask: (mentorshipId: string, payload: CreateTaskPayload) =>
-  api.post<Task>(`api/workspace/${mentorshipId}/tasks`, payload).then((r) => r.data),
+  createTask: (mentorshipId: string, payload: CreateTaskPayload) =>
+    api
+      .post<Task>(`api/workspace/${mentorshipId}/tasks`, payload)
+      .then((r) => r.data),
 
-updateTask: (mentorshipId: string, taskId: string, payload: UpdateTaskPayload) =>
-  api.patch<Task>(`api/workspace/${mentorshipId}/tasks/${taskId}`, payload).then((r) => r.data),
+  updateTask: (
+    mentorshipId: string,
+    taskId: string,
+    payload: UpdateTaskPayload,
+  ) =>
+    api
+      .patch<Task>(`api/workspace/${mentorshipId}/tasks/${taskId}`, payload)
+      .then((r) => r.data),
 
-deleteTask: (mentorshipId: string, taskId: string) =>
-  api.delete(`api/workspace/${mentorshipId}/tasks/${taskId}`),
+  deleteTask: (mentorshipId: string, taskId: string) =>
+    api.delete(`api/workspace/${mentorshipId}/tasks/${taskId}`),
 };

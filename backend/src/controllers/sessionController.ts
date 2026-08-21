@@ -10,6 +10,7 @@ import {
   rescheduleSession,
   deleteSession,
   getAndMarkDueReminders,
+  generateSessionAISummary
 } from "../services/sessionService";
 
 //créer session
@@ -442,5 +443,47 @@ export async function getDueRemindersHandler(req: Request, res: Response) {
     return res
       .status(500)
       .json({ message: "Erreur lors de la récupération des rappels." });
+  }
+}
+
+//générer le résumé IA à partir des notes
+export async function generateSessionAISummaryHandler(req: Request, res: Response) {
+  try {
+    const sessionIdParam = req.params.sessionId;
+    const sessionId = Array.isArray(sessionIdParam) ? sessionIdParam[0] : sessionIdParam;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Identifiant de session manquant." });
+    }
+
+    const userId = req.user!.userId;
+    const result = await generateSessionAISummary(sessionId, userId);
+
+    if (result === null) {
+      return res.status(404).json({ message: "Session introuvable." });
+    }
+    if (result === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès refusé à ce workspace." });
+    }
+    if (result === "SESSION_NOT_COMPLETED") {
+      return res.status(409).json({
+        message: "Le résumé IA n'est disponible que pour une session terminée.",
+      });
+    }
+    if (result === "NO_NOTES") {
+      return res.status(409).json({
+        message: "Aucune note n'a été prise pour cette session.",
+      });
+    }
+    if (result === "AI_GENERATION_FAILED") {
+      return res.status(502).json({
+        message: "Erreur lors de la génération du résumé IA. Réessayez.",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("generateSessionAISummary error:", err);
+    return res.status(500).json({ message: "Erreur lors de la génération du résumé IA." });
   }
 }

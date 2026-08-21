@@ -3,6 +3,7 @@ import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
 import { randomUUID } from "crypto";
 import { generateJaasToken, jaasAppId } from "../lib/jaas";
 import { notifySessionCancelled, notifySessionCreated, notifySessionRescheduled } from "../lib/n8n";
+import { groq, GROQ_MODEL } from "../lib/groqClient";
 
 //helpers
 function buildRoomName() {
@@ -204,10 +205,7 @@ export async function updateSessionNotes(
 
 //métier recup d'une session (room + notes)
 export async function getSessionById(sessionId: string, userId: string) {
-  const { session: exists, access } = await getAccessBySessionId(
-    sessionId,
-    userId,
-  );
+  const { session: exists, access } = await getAccessBySessionId(sessionId, userId);
   if (!exists) return null;
   if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
 
@@ -221,8 +219,17 @@ export async function getSessionById(sessionId: string, userId: string) {
       },
     },
   });
+  if (!session) return null;
 
-  return session;
+  return {
+    ...session,
+    participants: session.participants.map((p) => ({
+      userId: p.userId,
+      firstName: p.user.firstName,
+      lastName: p.user.lastName,
+      email: p.user.email,
+    })),
+  };
 }
 
 export async function getSessionRoomCredentials(
@@ -459,4 +466,73 @@ export async function getAndMarkDueReminders() {
   }
 
   return results;
+}
+
+type SessionAISummary = {
+  objectifsAtteints: string[];
+  pointsCles: string[];
+  prochainesActions: string[];
+};
+
+//métier génération résumé IA à partir des notes de session
+export async function generateSessionAISummary(sessionId: string, userId: string) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const current = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { status: true, rawNotes: true, agenda: true },
+  });
+  if (!current) return null;
+
+  if (current.status !== "COMPLETED") {
+    return "SESSION_NOT_COMPLETED" as const;
+  }
+  if (!current.rawNotes || current.rawNotes.trim().length === 0) {
+    return "NO_NOTES" as const;
+  }
+
+  const prompt = `
+Voici les notes prises lors d'une session de mentorat${current.agenda ? ` (agenda: ${current.agenda})` : ""}:
+
+${current.rawNotes}
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, avec ce format exact:
+{
+  "objectifsAtteints": ["..."],
+  "pointsCles": ["..."],
+  "prochainesActions": ["..."]
+}
+Base-toi uniquement sur les notes fournies, sans inventer d'informations. Chaque tableau peut être vide si rien de pertinent n'est mentionné. Rédige en français, de façon concise (une phrase courte par élément).
+`;
+
+  const completion = await groq.chat.completions.create({
+    model: GROQ_MODEL,
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3,
+  });
+
+  const raw = completion.choices[0]?.message?.content ?? "{}";
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+
+  let summary: SessionAISummary;
+  try {
+    const parsed = JSON.parse(cleaned);
+    summary = {
+      objectifsAtteints: Array.isArray(parsed.objectifsAtteints) ? parsed.objectifsAtteints : [],
+      pointsCles: Array.isArray(parsed.pointsCles) ? parsed.pointsCles : [],
+      prochainesActions: Array.isArray(parsed.prochainesActions) ? parsed.prochainesActions : [],
+    };
+  } catch (err) {
+    console.error("generateSessionAISummary JSON parse error:", err, "raw:", raw);
+    return "AI_GENERATION_FAILED" as const;
+  }
+
+  const updated = await prisma.session.update({
+    where: { id: sessionId },
+    data: { aiSummary: summary },
+  });
+
+  return updated;
 }

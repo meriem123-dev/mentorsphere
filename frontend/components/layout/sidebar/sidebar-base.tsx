@@ -13,8 +13,13 @@ import type { NavItem } from "@/types/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { useSidebarMobile } from "./sidebar-mobile-context";
 import { useNavBadges } from "@/features/auth/hooks/use-nav-badges";
-import { WorkspaceNavSection } from "@/features/workspace/components/WorkspaceNavSection";
-import { StartupNavSection } from "@/features/projets/components/StartupNavSection";
+import { CollapsibleNavSection } from "@/components/layout/CollapsibleNavSection";
+import { Map, PenSquare, Sparkles } from "lucide-react";
+import type { WorkspaceSummary } from "@/types/workspaceTypes";
+import type { Startup } from "@/types/startupTypes";
+import { workspaceApi } from "@/features/workspace/api/workspaceAPI";
+import { startupApi } from "@/features/projets/api/startuAPI";
+import { getStepStats } from "@/features/projets/utils/stepMeta";
 
 export type SidebarRole = "entrepreneur" | "mentor";
 
@@ -98,26 +103,75 @@ export function SidebarBase({ role, navItems, user }: SidebarBaseProps) {
   };
 
   const renderNav = () => (
-    <nav className="flex flex-1 flex-col gap-1 overflow-hidden">
+    <nav className="flex flex-1 flex-col gap-1 overflow-hidden overflow-y-auto">
       {navItems.map((item) => {
         if (item.href.endsWith("/workspace")) {
           return (
-            <WorkspaceNavSection
+            <CollapsibleNavSection
               key={item.href}
               basePath={item.href}
+              label="Workspace"
+              icon={PenSquare}
               hoverClass={accent.hover}
               focusRing={FOCUS_RING}
+              fetchItems={() => workspaceApi.getSummaries()}
+              mapItem={(w: WorkspaceSummary) => ({
+                id: w.id,
+                label: w.startupName,
+                dotClassName: w.isActive
+                  ? "bg-emerald-500"
+                  : "bg-muted-foreground",
+              })}
             />
           );
         }
 
-         if (item.href.endsWith("/parcours")) {
+        if (item.href.endsWith("/parcours")) {
           return (
-            <StartupNavSection
+            <CollapsibleNavSection
               key={item.href}
               basePath={item.href}
+              label="Mon Parcours"
+              icon={Map}
               hoverClass={accent.hover}
               focusRing={FOCUS_RING}
+              fetchItems={() =>
+                startupApi.getMine().then((res) => res.data.startups)
+              }
+              mapItem={(s: Startup) => {
+                const { progressPercent } = getStepStats(s.steps);
+                return {
+                  id: s.id,
+                  label: s.name,
+                  dotClassName:
+                    progressPercent === 100
+                      ? "bg-success"
+                      : progressPercent > 0
+                        ? "bg-brand-blue"
+                        : "bg-muted-foreground",
+                };
+              }}
+            />
+          );
+        }
+
+        if (item.href.endsWith("/ia-assistant")) {
+          return (
+            <CollapsibleNavSection
+              key={item.href}
+              basePath={item.href}
+              label="Assistant IA"
+              icon={Sparkles}
+              hoverClass={accent.hover}
+              focusRing={FOCUS_RING}
+              fetchItems={() => workspaceApi.getSummaries()}
+              mapItem={(w: WorkspaceSummary) => ({
+                id: w.id,
+                label: w.startupName,
+                dotClassName: w.isActive
+                  ? "bg-emerald-500"
+                  : "bg-muted-foreground",
+              })}
             />
           );
         }
