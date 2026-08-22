@@ -6,10 +6,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AIGenerateEmptyState } from "../AIGenerateEmptyState";
 import { MentorMatchCard } from "./MentorMatchCard";
-import { fetchMentorMatches } from "../../api/aiAPI";
-import type { MentorMatch } from "../../../../types/aiTypes";
-
-const COOLDOWN_MS = 60 * 60 * 1000;
+import { fetchMentorMatchesState, generateMentorMatches } from "../../api/aiAPI";
+import type { MentorMatch, MentorMatchesResult } from "../../../../types/aiTypes";
 
 export function RecommandationMentorsTab({
   startupName,
@@ -20,9 +18,10 @@ export function RecommandationMentorsTab({
 }) {
   const router = useRouter();
   const [matches, setMatches] = useState<MentorMatch[] | null>(null);
-  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasCheckedCache, setHasCheckedCache] = useState(false);
+  const [attemptsRemaining, setAttemptsRemaining] = useState(3);
+  const [windowResetAt, setWindowResetAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
 
   useEffect(() => {
@@ -30,10 +29,11 @@ export function RecommandationMentorsTab({
 
     const checkExisting = async () => {
       try {
-        const data = await fetchMentorMatches(mentorshipId);
+        const state = await fetchMentorMatchesState(mentorshipId);
         if (!cancelled) {
-          setMatches(data.matches);
-          setGeneratedAt(data.generatedAt);
+          setMatches(state.result?.matches ?? null);
+          setAttemptsRemaining(state.attemptsRemaining);
+          setWindowResetAt(state.windowResetAt);
         }
       } catch {
         // silencieux ici : l'état vide s'affichera, l'utilisateur pourra cliquer manuellement
@@ -48,23 +48,26 @@ export function RecommandationMentorsTab({
     };
   }, [mentorshipId]);
 
-  // horloge locale pour le décompte du cooldown, sans lire Date.now() pendant le rendu
+  // horloge légère, utilisée uniquement pour réactiver le bouton après reset
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const cooldownRemainingMs = generatedAt
-    ? Math.max(0, COOLDOWN_MS - (now - new Date(generatedAt).getTime()))
-    : 0;
-  const isOnCooldown = cooldownRemainingMs > 0;
+  const limitReached = attemptsRemaining <= 0;
+  const resetInMs = windowResetAt ? Math.max(0, new Date(windowResetAt).getTime() - now) : 0;
+  const isBlocked = limitReached && resetInMs > 0;
 
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchMentorMatches(mentorshipId);
-      setMatches(data.matches);
-      setGeneratedAt(data.generatedAt);
+      const outcome = await generateMentorMatches(mentorshipId);
+      setMatches((outcome.result as MentorMatchesResult).matches);
+      setAttemptsRemaining(outcome.attemptsRemaining);
+      setWindowResetAt(outcome.windowResetAt);
+      if (outcome.limitReached) {
+        toast.info("Limite de générations atteinte, réessayez plus tard.");
+      }
     } catch (error) {
       toast.error("Impossible de générer les recommandations.");
     } finally {
@@ -93,21 +96,21 @@ export function RecommandationMentorsTab({
     );
   }
 
-  const cooldownMinutes = Math.ceil(cooldownRemainingMs / 60000);
+  const resetMinutes = Math.ceil(resetInMs / 60000);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          {isOnCooldown
-            ? `Prochaine génération possible dans ${cooldownMinutes} min`
-            : "Résultats disponibles depuis plus d'une heure"}
+          {isBlocked
+            ? `Limite atteinte — réessayez dans ${resetMinutes} min`
+            : `${attemptsRemaining} génération${attemptsRemaining > 1 ? "s" : ""} restante${attemptsRemaining > 1 ? "s" : ""}`}
         </p>
         <button
           type="button"
           onClick={handleGenerate}
-          disabled={isLoading || isOnCooldown}
-          className="text-xs font-medium text-brand-rose disabled:cursor-not-allowed disabled:text-muted-foreground"
+          disabled={isLoading || isBlocked}
+          className="text-xs font-medium text-brand-rose disabled:cursor-not-allowed disabled:text-muted-foreground cursor-pointer"
         >
           {isLoading ? "Génération..." : "Régénérer"}
         </button>

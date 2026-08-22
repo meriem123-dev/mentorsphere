@@ -298,9 +298,22 @@ model Mentorship {
   tasks Task[]
   aiSummaryCache        Json?
   aiSummaryGeneratedAt  DateTime?
+  aiSummaryAttempts       Int       @default(0)
+  aiSummaryWindowStart    DateTime?
 
   mentorMatchesCache       Json?
   mentorMatchesGeneratedAt DateTime?
+  mentorMatchesAttempts     Int       @default(0)
+  mentorMatchesWindowStart  DateTime?
+
+  swotCache        Json?
+  swotGeneratedAt  DateTime?
+  swotAttempts     Int       @default(0)
+  swotWindowStart  DateTime?
+
+  aiChatHistory      Json?
+  aiChatAttempts     Int       @default(0)
+  aiChatWindowStart  DateTime?
 }
 
 

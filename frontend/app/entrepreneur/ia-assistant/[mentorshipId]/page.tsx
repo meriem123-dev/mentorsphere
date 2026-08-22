@@ -49,9 +49,9 @@ export default function AssistantIAPage() {
         <RecommandationMentorsTab startupName={startupName} mentorshipId={mentorshipId}/>
       )}
       {activeTab === "analyse" && (
-        <AnalyseApprofondieTab startupName={startupName} />
+        <AnalyseApprofondieTab startupName={startupName} mentorshipId={mentorshipId}/>
       )}
-      {activeTab === "discussion" && <DiscussionIATab />}
+      {activeTab === "discussion" && <DiscussionIATab mentorshipId={mentorshipId}/>}
     </div>
   );
 }

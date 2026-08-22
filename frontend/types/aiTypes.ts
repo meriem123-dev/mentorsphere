@@ -47,3 +47,40 @@ export interface MentorMatchesResult {
   matches: MentorMatch[];
   generatedAt: string;
 }
+
+export interface AIGenerationState<T> {
+  result: T | null;
+  attemptsRemaining: number;
+  windowResetAt: string | null;
+}
+
+export interface AIGenerationOutcome<T> extends AIGenerationState<T> {
+  result: T; 
+  limitReached: boolean;
+}
+
+export interface SwotAnalysisResult {
+  forces: string[];
+  faiblesses: string[];
+  opportunites: string[];
+  menaces: string[];
+  insight: string;
+  generatedAt: string;
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
+
+export interface AIChatState {
+  messages: AIChatMessage[];
+  attemptsRemaining: number;
+  windowResetAt: string | null;
+}
+
+export interface AIChatOutcome extends AIChatState {
+  limitReached: boolean;
+}

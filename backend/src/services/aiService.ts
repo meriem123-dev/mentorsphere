@@ -231,31 +231,82 @@ async function buildFreshAISummary(mentorshipId: string): Promise<AISummaryResul
   };
 }
 
-const AI_COOLDOWN_MS = 60 * 60 * 1000; // 1 heure
+const AI_WINDOW_MS = 60 * 60 * 1000; // fenêtre d'1h
+const AI_MAX_ATTEMPTS = 3;
 
-export async function generateAISummary(mentorshipId: string): Promise<AISummaryResult> {
+interface AIGenerationOutcome {
+  result: AISummaryResult;
+  attemptsRemaining: number;
+  windowResetAt: string | null;
+  limitReached: boolean;
+}
+
+function resolveWindow(windowStart: Date | null, attempts: number) {
+  const windowActive = !!windowStart && Date.now() - windowStart.getTime() < AI_WINDOW_MS;
+  return {
+    attempts: windowActive ? attempts : 0,
+    windowStart: windowActive ? windowStart : null,
+  };
+}
+
+// Appelé au montage du composant : ne consomme AUCUNE tentative
+export async function getAISummaryState(mentorshipId: string) {
   const mentorship = await prisma.mentorship.findUniqueOrThrow({
     where: { id: mentorshipId },
-    select: { aiSummaryCache: true, aiSummaryGeneratedAt: true },
+    select: { aiSummaryCache: true, aiSummaryAttempts: true, aiSummaryWindowStart: true },
   });
 
-  const isCacheFresh =
-    !!mentorship.aiSummaryGeneratedAt &&
-    Date.now() - mentorship.aiSummaryGeneratedAt.getTime() < AI_COOLDOWN_MS;
+  const { attempts, windowStart } = resolveWindow(
+    mentorship.aiSummaryWindowStart,
+    mentorship.aiSummaryAttempts
+  );
 
-  if (isCacheFresh && mentorship.aiSummaryCache) {
-    return mentorship.aiSummaryCache as unknown as AISummaryResult;
+  return {
+    result: (mentorship.aiSummaryCache as unknown as AISummaryResult) ?? null,
+    attemptsRemaining: Math.max(0, AI_MAX_ATTEMPTS - attempts),
+    windowResetAt: windowStart ? new Date(windowStart.getTime() + AI_WINDOW_MS).toISOString() : null,
+  };
+}
+
+// Appelé au clic sur "Générer" / "Régénérer" : consomme une tentative si dispo
+export async function generateAISummary(mentorshipId: string): Promise<AIGenerationOutcome> {
+  const mentorship = await prisma.mentorship.findUniqueOrThrow({
+    where: { id: mentorshipId },
+    select: { aiSummaryCache: true, aiSummaryAttempts: true, aiSummaryWindowStart: true },
+  });
+
+  const { attempts, windowStart } = resolveWindow(
+    mentorship.aiSummaryWindowStart,
+    mentorship.aiSummaryAttempts
+  );
+
+  if (attempts >= AI_MAX_ATTEMPTS) {
+    return {
+      result: mentorship.aiSummaryCache as unknown as AISummaryResult,
+      attemptsRemaining: 0,
+      windowResetAt: new Date((windowStart ?? new Date()).getTime() + AI_WINDOW_MS).toISOString(),
+      limitReached: true,
+    };
   }
 
   const result = await buildFreshAISummary(mentorshipId);
+  const newWindowStart = windowStart ?? new Date();
+  const newAttempts = attempts + 1;
 
   await prisma.mentorship.update({
     where: { id: mentorshipId },
     data: {
       aiSummaryCache: result as unknown as Prisma.InputJsonValue,
       aiSummaryGeneratedAt: new Date(),
+      aiSummaryAttempts: newAttempts,
+      aiSummaryWindowStart: newWindowStart,
     },
   });
 
-  return result;
+  return {
+    result,
+    attemptsRemaining: Math.max(0, AI_MAX_ATTEMPTS - newAttempts),
+    windowResetAt: new Date(newWindowStart.getTime() + AI_WINDOW_MS).toISOString(),
+    limitReached: newAttempts >= AI_MAX_ATTEMPTS,
+  };
 }

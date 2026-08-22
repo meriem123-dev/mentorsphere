@@ -2,9 +2,10 @@ import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { groq, GROQ_MODEL } from "../lib/groqClient";
 import { getMentors } from "./mentorService";
-import type { MentorMatch, MentorMatchesResult } from "../types/aiTypes";
+import type { MentorMatch, MentorMatchesResult, AIGenerationState, AIGenerationOutcome } from "../types/aiTypes";
 
-const AI_COOLDOWN_MS = 60 * 60 * 1000; // 1 heure
+const AI_WINDOW_MS = 60 * 60 * 1000; // fenêtre d'1h
+const AI_MAX_ATTEMPTS = 3;
 
 async function buildFreshMentorMatches(
   mentorshipId: string,
@@ -119,29 +120,73 @@ Classe par matchScore décroissant. N'invente aucun mentor hors de la liste four
   return { matches, generatedAt: new Date().toISOString() };
 }
 
-export async function generateMentorMatches(mentorshipId: string): Promise<MentorMatchesResult> {
+function resolveWindow(windowStart: Date | null, attempts: number) {
+  const windowActive = !!windowStart && Date.now() - windowStart.getTime() < AI_WINDOW_MS;
+  return {
+    attempts: windowActive ? attempts : 0,
+    windowStart: windowActive ? windowStart : null,
+  };
+}
+
+// Appelé au montage du composant : ne consomme AUCUNE tentative
+export async function getMentorMatchesState(mentorshipId: string): Promise<AIGenerationState<MentorMatchesResult>> {
   const mentorship = await prisma.mentorship.findUniqueOrThrow({
     where: { id: mentorshipId },
-    select: { mentorMatchesCache: true, mentorMatchesGeneratedAt: true },
+    select: { mentorMatchesCache: true, mentorMatchesAttempts: true, mentorMatchesWindowStart: true },
   });
 
-  const isCacheFresh =
-    !!mentorship.mentorMatchesGeneratedAt &&
-    Date.now() - mentorship.mentorMatchesGeneratedAt.getTime() < AI_COOLDOWN_MS;
+  const { attempts, windowStart } = resolveWindow(
+    mentorship.mentorMatchesWindowStart,
+    mentorship.mentorMatchesAttempts
+  );
 
-  if (isCacheFresh && mentorship.mentorMatchesCache) {
-    return mentorship.mentorMatchesCache as unknown as MentorMatchesResult;
+  return {
+    result: (mentorship.mentorMatchesCache as unknown as MentorMatchesResult) ?? null,
+    attemptsRemaining: Math.max(0, AI_MAX_ATTEMPTS - attempts),
+    windowResetAt: windowStart ? new Date(windowStart.getTime() + AI_WINDOW_MS).toISOString() : null,
+  };
+}
+
+// Appelé au clic sur "Générer" / "Régénérer" : consomme une tentative si dispo
+export async function generateMentorMatches(mentorshipId: string): Promise<AIGenerationOutcome<MentorMatchesResult>> {
+  const mentorship = await prisma.mentorship.findUniqueOrThrow({
+    where: { id: mentorshipId },
+    select: { mentorMatchesCache: true, mentorMatchesAttempts: true, mentorMatchesWindowStart: true },
+  });
+
+  const { attempts, windowStart } = resolveWindow(
+    mentorship.mentorMatchesWindowStart,
+    mentorship.mentorMatchesAttempts
+  );
+
+  if (attempts >= AI_MAX_ATTEMPTS) {
+    const fallback = mentorship.mentorMatchesCache as unknown as MentorMatchesResult | null;
+    return {
+      result: fallback ?? { matches: [], generatedAt: new Date().toISOString() },
+      attemptsRemaining: 0,
+      windowResetAt: new Date((windowStart ?? new Date()).getTime() + AI_WINDOW_MS).toISOString(),
+      limitReached: true,
+    };
   }
 
   const result = await buildFreshMentorMatches(mentorshipId);
+  const newWindowStart = windowStart ?? new Date();
+  const newAttempts = attempts + 1;
 
   await prisma.mentorship.update({
     where: { id: mentorshipId },
     data: {
       mentorMatchesCache: result as unknown as Prisma.InputJsonValue,
       mentorMatchesGeneratedAt: new Date(),
+      mentorMatchesAttempts: newAttempts,
+      mentorMatchesWindowStart: newWindowStart,
     },
   });
 
-  return result;
+  return {
+    result,
+    attemptsRemaining: Math.max(0, AI_MAX_ATTEMPTS - newAttempts),
+    windowResetAt: new Date(newWindowStart.getTime() + AI_WINDOW_MS).toISOString(),
+    limitReached: newAttempts >= AI_MAX_ATTEMPTS,
+  };
 }
