@@ -8,6 +8,8 @@ import {
   generateSwotAnalysisHandler,
   getAIChat,
   sendAIChatMessageHandler,
+  generateMentorBriefingHandler,
+  getMentorBriefing,
 } from "../controllers/aiController";
 import { requireAuth } from "../middlewares/authMiddleware";
 
@@ -39,4 +41,8 @@ router.post(
 
 router.get("/:mentorshipId/chat", requireAuth, getAIChat);
 router.post("/:mentorshipId/chat/send", requireAuth, sendAIChatMessageHandler);
+
+router.get("/:mentorshipId/mentor-briefing", requireAuth, getMentorBriefing);
+router.post("/:mentorshipId/mentor-briefing/generate", requireAuth, generateMentorBriefingHandler);
+
 export default router;

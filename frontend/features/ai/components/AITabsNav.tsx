@@ -2,19 +2,32 @@
 
 import type { AITabId } from "../../../types/aiTypes";
 
-const TABS: { id: AITabId; label: string }[] = [
+const ENTREPRENEUR_TABS: { id: AITabId; label: string }[] = [
   { id: "resume", label: "Résumé IA" },
   { id: "mentors", label: "Recommandation mentors" },
   { id: "analyse", label: "Analyse approfondie" },
   { id: "discussion", label: "Discussion IA" },
 ];
 
-type Props = { active: AITabId; onChange: (tab: AITabId) => void };
+const MENTOR_TABS: { id: AITabId; label: string }[] = [
+  { id: "resume", label: "Résumé IA" },
+  { id: "analyse", label: "Analyse approfondie" },
+  { id: "discussion", label: "Discussion IA" },
+  { id: "briefing", label: "Préparation session" },
+];
 
-export function AITabsNav({ active, onChange }: Props) {
+type Props = {
+  active: AITabId;
+  onChange: (tab: AITabId) => void;
+  variant?: "entrepreneur" | "mentor";
+};
+
+export function AITabsNav({ active, onChange, variant = "entrepreneur" }: Props) {
+  const tabs = variant === "mentor" ? MENTOR_TABS : ENTREPRENEUR_TABS;
+
   return (
     <div className="flex flex-wrap gap-2">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const isActive = tab.id === active;
         return (
           <button

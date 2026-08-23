@@ -85,3 +85,26 @@ export interface AIChatState {
 export interface AIChatOutcome extends AIChatState {
   limitReached: boolean;
 }
+
+export type KeyEvolutionTrend = "positive" | "negative" | "neutral";
+
+export interface KeyEvolution {
+  id: string;
+  label: string;
+  value: string;
+  trend: KeyEvolutionTrend;
+}
+
+export interface AgendaSuggestionItem {
+  id: string;
+  title: string;
+  durationMinutes: number;
+}
+
+export interface MentorBriefingResult {
+  summary: string;
+  periodLabel: string;
+  keyEvolutions: KeyEvolution[];
+  suggestedAgenda: AgendaSuggestionItem[];
+  generatedAt: string;
+}

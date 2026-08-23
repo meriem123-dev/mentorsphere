@@ -311,9 +311,12 @@ model Mentorship {
   swotAttempts     Int       @default(0)
   swotWindowStart  DateTime?
 
-  aiChatHistory      Json?
-  aiChatAttempts     Int       @default(0)
-  aiChatWindowStart  DateTime?
+  mentorBriefingCache        Json?
+  mentorBriefingGeneratedAt  DateTime?
+  mentorBriefingAttempts     Int       @default(0)
+  mentorBriefingWindowStart  DateTime?
+
+  aiChatSessions AIChatSession[]
 }
 
 
@@ -529,4 +532,21 @@ model ResourceSave {
   createdAt  DateTime @default(now())
 
   @@unique([resourceId, userId])
+}
+
+
+//****modele AI CHAT SESSION**** 
+model AIChatSession {
+  id           String    @id @default(cuid())
+  mentorshipId String
+  userId       String
+  history      Json      @default("[]")
+  attempts     Int       @default(0)
+  windowStart  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  mentorship   Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  @@unique([mentorshipId, userId])
 }

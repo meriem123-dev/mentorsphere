@@ -1,12 +1,11 @@
 import { api } from "@/lib/api";
 import type {
-  AIGenerationState,
-  AIGenerationOutcome,
   AISummaryResult,
   MentorMatchesResult,
 } from "../../../types/aiTypes";
 import type { SwotAnalysisResult } from "../../../types/aiTypes";
 import type { AIChatState, AIChatOutcome } from "../../../types/aiTypes";
+import type { AIGenerationState, AIGenerationOutcome, MentorBriefingResult } from "../../../types/aiTypes";
 
 // --- Résumé IA ---
 
@@ -80,3 +79,23 @@ export async function sendAIChatMessage(
   const res = await api.post<AIChatOutcome>(`api/ai/${mentorshipId}/chat/send`, { message });
   return res.data;
 }
+
+
+export async function fetchMentorBriefingState(
+  mentorshipId: string
+): Promise<AIGenerationState<MentorBriefingResult>> {
+  const res = await api.get<AIGenerationState<MentorBriefingResult>>(
+    `api/ai/${mentorshipId}/mentor-briefing`
+  );
+  return res.data;
+}
+
+export async function generateMentorBriefing(
+  mentorshipId: string
+): Promise<AIGenerationOutcome<MentorBriefingResult>> {
+  const res = await api.post<AIGenerationOutcome<MentorBriefingResult>>(
+    `api/ai/${mentorshipId}/mentor-briefing/generate`
+  );
+  return res.data;
+}
+

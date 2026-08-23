@@ -5,6 +5,9 @@ import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { fetchAIChatState, sendAIChatMessage } from "../../api/aiAPI";
 import type { AIChatMessage } from "../../../../types/aiTypes";
+import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface DiscussionIATabProps {
   mentorshipId: string;
@@ -50,22 +53,37 @@ export function DiscussionIATab({ mentorshipId }: DiscussionIATabProps) {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   const limitReached = attemptsRemaining <= 0;
-  const resetInMs = windowResetAt ? Math.max(0, new Date(windowResetAt).getTime() - now) : 0;
+  const resetInMs = windowResetAt
+    ? Math.max(0, new Date(windowResetAt).getTime() - now)
+    : 0;
   const isBlocked = limitReached && resetInMs > 0;
 
+
+  //gérer envoi messages
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading || isBlocked) return;
 
+    const optimisticMessage: AIChatMessage = {
+      id: `temp-${Date.now()}`,
+      role: "user",
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
     setInput("");
     setIsLoading(true);
     try {
       const outcome = await sendAIChatMessage(mentorshipId, trimmed);
-      setMessages(outcome.messages);
+      setMessages(outcome.messages); 
       setAttemptsRemaining(outcome.attemptsRemaining);
       setWindowResetAt(outcome.windowResetAt);
       if (outcome.limitReached) {
@@ -73,6 +91,7 @@ export function DiscussionIATab({ mentorshipId }: DiscussionIATabProps) {
       }
     } catch (error) {
       toast.error("Impossible d'envoyer le message.");
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id)); // on retire le message optimiste
       setInput(trimmed); // on restitue le message pour ne pas le perdre
     } finally {
       setIsLoading(false);
@@ -85,25 +104,100 @@ export function DiscussionIATab({ mentorshipId }: DiscussionIATabProps) {
     <div className="flex h-[520px] flex-col rounded-2xl border border-border">
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-5">
         {!hasCheckedCache ? (
-          <p className="pt-16 text-center text-sm text-muted-foreground">Chargement...</p>
-        ) : messages.length === 0 ? (
           <p className="pt-16 text-center text-sm text-muted-foreground">
-            Posez une question à l&apos;assistant sur votre projet ou votre mentorat.
+            Chargement...
           </p>
+        ) : messages.length === 0 ? (
+          <div className="flex flex-col justify-center items-center ">
+            <Image
+              src="/icone-logo.svg"
+              alt="MentorSphere"
+              width={120}
+              height={120}
+            />
+            <p className="pt-16 text-center text-sm text-muted-foreground">
+              Posez une question à l&apos;assistant sur votre projet ou votre
+              mentorat.
+            </p>
+          </div>
         ) : (
           messages.map((message) => (
-            <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              key={message.id}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            >
               <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                  message.role === "user" ? "bg-gradient-brand text-white" : "bg-muted text-foreground"
+                className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  message.role === "user"
+                    ? "bg-gradient-brand text-white"
+                    : "bg-muted text-foreground"
                 }`}
               >
-                {message.content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => (
+                      <p className="mb-2 last:mb-0">{children}</p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold">{children}</strong>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="mb-2 list-disc space-y-1 pl-4 last:mb-0">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="mb-2 list-decimal space-y-1 pl-4 last:mb-0">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => <li>{children}</li>,
+                    table: ({ children }) => (
+                      <div className="mb-2 overflow-x-auto last:mb-0">
+                        <table className="w-full border-collapse text-xs">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="border-b border-border/50">
+                        {children}
+                      </thead>
+                    ),
+                    th: ({ children }) => (
+                      <th className="px-2 py-1.5 text-left font-semibold">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="border-t border-border/30 px-2 py-1.5 align-top">
+                        {children}
+                      </td>
+                    ),
+                    a: ({ children, href }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
               </div>
             </div>
           ))
         )}
-        {isLoading && <p className="text-xs text-muted-foreground">L&apos;assistant réfléchit...</p>}
+        {isLoading && (
+          <p className="text-xs text-muted-foreground">
+            L&apos;assistant réfléchit...
+          </p>
+        )}
       </div>
       <div className="border-t border-border p-3">
         {isBlocked && (

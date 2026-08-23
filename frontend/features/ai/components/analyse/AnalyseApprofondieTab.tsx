@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lightbulb, Microscope, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
+import { Lightbulb, Microscope, ShieldAlert, ShieldCheck, TrendingUp,RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { AIGenerateEmptyState } from "../AIGenerateEmptyState";
 import { fetchSwotAnalysisState, generateSwotAnalysis } from "../../api/aiAPI";
@@ -147,9 +147,12 @@ export function AnalyseApprofondieTab({ startupName, mentorshipId }: AnalyseAppr
           type="button"
           onClick={handleGenerate}
           disabled={isLoading || isBlocked}
-          className="text-xs font-medium text-brand-rose disabled:cursor-not-allowed disabled:text-muted-foreground"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {isLoading ? "Génération..." : "Régénérer"}
+          <RefreshCw
+            className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`}
+          />
+          Regénérer
         </button>
       </div>
 

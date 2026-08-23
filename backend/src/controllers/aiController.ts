@@ -4,6 +4,7 @@ import { getWorkspaceAccess } from "../services/workspaceService";
 import {  getMentorMatchesState, generateMentorMatches } from "../services/mentorMatchService";
 import { getSwotAnalysisState, generateSwotAnalysis } from "../services/aiSwotService";
 import { getAIChatState, sendAIChatMessage } from "../services/aiChatService";
+import { getMentorBriefingState, generateMentorBriefing } from "../services/mentorBriefingService";
 
 
 //  Résumé IA 
@@ -161,7 +162,7 @@ export async function getAIChat(req: Request, res: Response) {
       return res.status(403).json({ message: "Accès non autorisé à ce workspace." });
     }
 
-    const state = await getAIChatState(mentorshipId);
+    const state = await getAIChatState(mentorshipId, userId);
     return res.json(state);
   } catch (error) {
     console.error("getAIChat error:", error);
@@ -187,10 +188,62 @@ export async function sendAIChatMessageHandler(req: Request, res: Response) {
       return res.status(403).json({ message: "Accès non autorisé à ce workspace." });
     }
 
-    const outcome = await sendAIChatMessage(mentorshipId, message.trim());
+    const outcome = await sendAIChatMessage(mentorshipId, userId, message.trim());
     return res.json(outcome);
   } catch (error) {
     console.error("sendAIChatMessageHandler error:", error);
     return res.status(500).json({ message: "Erreur lors de l'envoi du message." });
   }
+  
 }
+
+// tab briefing mentor — check cache/état, ne consomme aucune tentative
+export async function getMentorBriefing(req: Request, res: Response) {
+  try {
+    const { mentorshipId } = req.params;
+    if (!mentorshipId || Array.isArray(mentorshipId)) {
+      return res.status(400).json({ message: "Identifiant de mentorat invalide." });
+    }
+
+    const userId = req.user!.userId;
+    const access = await getWorkspaceAccess(mentorshipId, userId);
+    if (!access || access === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès non autorisé à ce workspace." });
+    }
+    if (access.isMentor !== true) {
+      return res.status(403).json({ message: "Réservé au mentor." });
+    }
+
+    const state = await getMentorBriefingState(mentorshipId);
+    return res.json(state);
+  } catch (error) {
+    console.error("getMentorBriefing error:", error);
+    return res.status(500).json({ message: "Erreur lors de la récupération de la synthèse." });
+  }
+}
+
+// bouton Générer/Régénérer — consomme une tentative si disponible
+export async function generateMentorBriefingHandler(req: Request, res: Response) {
+  try {
+    const { mentorshipId } = req.params;
+    if (!mentorshipId || Array.isArray(mentorshipId)) {
+      return res.status(400).json({ message: "Identifiant de mentorat invalide." });
+    }
+
+    const userId = req.user!.userId;
+    const access = await getWorkspaceAccess(mentorshipId, userId);
+    if (!access || access === "FORBIDDEN") {
+      return res.status(403).json({ message: "Accès non autorisé à ce workspace." });
+    }
+    if (access.isMentor !== true) {
+      return res.status(403).json({ message: "Réservé au mentor." });
+    }
+
+    const outcome = await generateMentorBriefing(mentorshipId);
+    return res.json(outcome);
+  } catch (error) {
+    console.error("generateMentorBriefingHandler error:", error);
+    return res.status(500).json({ message: "Erreur lors de la génération de la synthèse." });
+  }
+}
+
