@@ -9,6 +9,7 @@ import mentorshipRoutes from "./routes/mentorshipRoutes";
 import workspaceRoutes from "./routes/workpsaceRoutes";
 import resourcesRoutes from "./routes/resourcesRoutes";
 import aiRoutes from "./routes/aiRoutes";
+import communityRoutes from "./routes/communityRoutes";
 
 import cookieParser from "cookie-parser";
 
@@ -37,6 +38,7 @@ app.use("/api/mentorship",mentorshipRoutes);
 app.use("/api/workspace", workspaceRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/ai",aiRoutes);
+app.use('/api/community',communityRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {

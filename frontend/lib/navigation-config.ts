@@ -3,12 +3,10 @@ import {
   FolderKanban,
   Map,
   PenSquare,
-  CalendarDays,
   Compass,
   Hash,
   Bot,
   BookOpen,
-  Bell,
   Users,
   UserPlus,
 } from "lucide-react";
@@ -23,7 +21,6 @@ export const entrepreneurNavItems: NavItem[] = [
   { label: "Communauté", href: "/entrepreneur/communaute", icon: Hash },
   { label: "IA Assistant", href: "/entrepreneur/ia-assistant", icon: Bot },
   { label: "Ressources", href: "/entrepreneur/ressources", icon: BookOpen },
-  { label: "Notifications", href: "/entrepreneur/notifications", icon: Bell, badgeKey: "notifications" },
 ];
 
 export const mentorNavItems: NavItem[] = [
@@ -34,5 +31,4 @@ export const mentorNavItems: NavItem[] = [
   { label: "Communauté", href: "/mentor/communaute", icon: Hash },
   { label: "IA Assistant", href: "/mentor/ia-assistant", icon: Bot },
   { label: "Ressources", href: "/mentor/ressources", icon: BookOpen },
-  { label: "Notifications", href: "/mentor/notifications", icon: Bell },
 ];

@@ -206,7 +206,7 @@ export function ResourcesTab({ onOpenResource }: ResourcesTabProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map((filter) => {
             const isActive = activeFilter === filter.value;
             const count =

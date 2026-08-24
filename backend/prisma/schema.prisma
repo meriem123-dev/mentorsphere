@@ -65,6 +65,11 @@ enum ResourceType {
   LINK
 }
 
+enum PostTag {
+  MILESTONE
+  QUESTION
+  UPDATE
+}
 
 //************** Modèle User************
 model User {
@@ -113,6 +118,10 @@ model User {
   tasksAssigned Task[] @relation("TaskAssignee")
   resourcesAuthored Resource[]     @relation("ResourceAuthor")
   resourceSaves     ResourceSave[] @relation("ResourceSavedBy")
+  posts         Post[]        @relation("PostAuthor")
+  postComments  PostComment[] @relation("PostCommentAuthor")
+  postLikes     PostLike[]    @relation("PostLikedBy")
+  postSaves     PostSave[]    @relation("PostSavedBy")
 }
 
 //************Tables pour User *********
@@ -549,4 +558,72 @@ model AIChatSession {
   mentorship   Mentorship @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
 
   @@unique([mentorshipId, userId])
+}
+
+
+//****modèle Post***
+model Post {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  tag       PostTag?
+
+  authorId  String
+  author    User     @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  PostComment[]
+  likes     PostLike[]
+  saves     PostSave[]
+
+  @@index([createdAt])
+}
+
+
+//***modèle commentaire***
+model PostComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User     @relation("PostCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+}
+
+//****modèle like****
+model PostLike {
+  id        String   @id @default(cuid())
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation("PostLikedBy", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+
+//****modèle save****
+model PostSave {
+  id        String   @id @default(cuid())
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation("PostSavedBy", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
 }
