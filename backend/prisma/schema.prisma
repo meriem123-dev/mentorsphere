@@ -592,9 +592,14 @@ model PostComment {
   authorId  String
   author    User     @relation("PostCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
+  parentId  String?
+  parent    PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   PostComment[] @relation("CommentReplies")
+
   createdAt DateTime @default(now())
 
   @@index([postId, createdAt])
+  @@index([parentId])
 }
 
 //****modèle like****

@@ -128,7 +128,6 @@ export async function toggleSave(postId: string, userId: string) {
   return { saved: !existing, savesCount };
 }
 
-
 const commentInclude = {
   author: {
     include: {
@@ -140,7 +139,25 @@ const commentInclude = {
 
 type CommentWithRelations = Prisma.PostCommentGetPayload<{ include: typeof commentInclude }>;
 
-function mapCommentToDTO(comment: CommentWithRelations) {
+interface CommentAuthorDTO {
+  id: string;
+  firstName: string;
+  lastName: string;
+  company: string | null;
+  avatarUrl: string | null;
+  avatarColor: string | null;
+}
+
+interface CommentDTO {
+  id: string;
+  content: string;
+  createdAt: Date;
+  parentId: string | null;
+  author: CommentAuthorDTO;
+  replies: CommentDTO[];
+}
+
+function mapCommentToDTO(comment: CommentWithRelations, replies: CommentDTO[] = []): CommentDTO {
   const profession =
     comment.author.mentor?.profession ?? comment.author.entrepreneur?.profession ?? null;
 
@@ -148,6 +165,7 @@ function mapCommentToDTO(comment: CommentWithRelations) {
     id: comment.id,
     content: comment.content,
     createdAt: comment.createdAt,
+    parentId: comment.parentId,
     author: {
       id: comment.author.id,
       firstName: comment.author.firstName,
@@ -156,22 +174,71 @@ function mapCommentToDTO(comment: CommentWithRelations) {
       avatarUrl: comment.author.profilePicture,
       avatarColor: comment.author.coverPicture,
     },
+    replies,
   };
 }
 
-export async function listComments(postId: string) {
+export async function listComments(postId: string): Promise<CommentDTO[]> {
   const comments = await prisma.postComment.findMany({
     where: { postId },
     orderBy: { createdAt: "asc" },
     include: commentInclude,
   });
 
-  return comments.map(mapCommentToDTO);
+  const dtoById = new Map<string, CommentDTO>();
+  for (const comment of comments) {
+    dtoById.set(comment.id, mapCommentToDTO(comment));
+  }
+
+  const topLevel: CommentDTO[] = [];
+
+  for (const comment of comments) {
+    const dto = dtoById.get(comment.id)!;
+
+    if (comment.parentId) {
+      const parentDto = dtoById.get(comment.parentId);
+      if (parentDto) {
+        parentDto.replies.push(dto);
+      } else {
+        topLevel.push(dto);
+      }
+    } else {
+      topLevel.push(dto);
+    }
+  }
+
+  return topLevel;
 }
 
-export async function createComment(postId: string, userId: string, content: string) {
+export async function createComment(
+  postId: string,
+  userId: string,
+  content: string,
+  parentId?: string
+) {
+  let effectiveParentId: string | undefined = parentId;
+
+  if (parentId) {
+    const parentComment = await prisma.postComment.findUnique({
+      where: { id: parentId },
+      select: { id: true, postId: true, parentId: true },
+    });
+
+    if (!parentComment || parentComment.postId !== postId) {
+      throw new Error("PARENT_COMMENT_NOT_FOUND");
+    }
+
+    // Aplatit à un seul niveau : répondre à une réponse l'attache au commentaire racine
+    effectiveParentId = parentComment.parentId ?? parentComment.id;
+  }
+
   const comment = await prisma.postComment.create({
-    data: { postId, authorId: userId, content },
+    data: {
+      postId,
+      authorId: userId,
+      content,
+      ...(effectiveParentId !== undefined && { parentId: effectiveParentId }),
+    },
     include: commentInclude,
   });
 

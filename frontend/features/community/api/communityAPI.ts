@@ -37,8 +37,12 @@ export const communityApi = {
       .get<PostComment[]>(`api/community/posts/${postId}/comments`)
       .then((r) => r.data),
 
-  createComment: (postId: string, content: string) =>
-    api
-      .post<PostComment>(`api/community/posts/${postId}/comments`, { content })
-      .then((r) => r.data),
+  createComment: (postId: string, content: string, parentId?: string) =>
+  api
+    .post(`api/community/posts/${postId}/comments`, {
+      content,
+      ...(parentId !== undefined && { parentId }),
+    })
+    .then((res) => res.data as PostComment),
+  
 };

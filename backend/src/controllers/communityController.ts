@@ -105,7 +105,7 @@ export async function createCommentHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
     const postId = Array.isArray(req.params.postId) ? req.params.postId[0] : req.params.postId;
-    const { content } = req.body as { content?: string };
+    const { content, parentId } = req.body as { content?: string; parentId?: string };
 
     if (!postId) {
       return res.status(400).json({ message: "postId manquant" });
@@ -121,9 +121,16 @@ export async function createCommentHandler(req: Request, res: Response) {
         .json({ message: `Le commentaire ne peut pas dépasser ${MAX_COMMENT_LENGTH} caractères` });
     }
 
-    const comment = await communityService.createComment(postId, userId, content.trim());
+    if (parentId !== undefined && typeof parentId !== "string") {
+      return res.status(400).json({ message: "parentId invalide" });
+    }
+
+    const comment = await communityService.createComment(postId, userId, content.trim(), parentId);
     return res.status(201).json(comment);
   } catch (error) {
+    if (error instanceof Error && error.message === "PARENT_COMMENT_NOT_FOUND") {
+      return res.status(400).json({ message: "Commentaire parent introuvable" });
+    }
     console.error("Erreur createCommentHandler:", error);
     return res.status(500).json({ message: "Erreur lors de l'ajout du commentaire" });
   }

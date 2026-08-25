@@ -36,6 +36,7 @@ export interface PostComment {
   id: string;
   content: string;
   createdAt: string;
+  parentId: string | null;
   author: {
     id: string;
     firstName: string;
@@ -44,4 +45,5 @@ export interface PostComment {
     avatarUrl: string | null;
     avatarColor: string | null;
   };
+  replies: PostComment[];
 }
