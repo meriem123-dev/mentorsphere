@@ -204,6 +204,90 @@ static async updateEmail(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+  //vérifier email
+  static async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.params.token as string;
+      await AuthService.verifyEmail(token);
+      res.status(200).json({ success: true, message: "Email vérifié avec succès" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //renvoyer email de vérification
+  static async resendVerification(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      if (!email || !EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ success: false, message: "Email invalide" });
+      }
+      await AuthService.resendVerificationEmail(email.trim().toLowerCase());
+      res.status(200).json({ success: true, message: "Email de vérification renvoyé" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //mot de passe oublié
+   static async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      if (!email || !EMAIL_REGEX.test(email)) {
+        return res.status(400).json({ success: false, message: "Email invalide" });
+      }
+      await AuthService.forgotPassword(email.trim().toLowerCase());
+      res.status(200).json({
+        success: true,
+        message: "Si un compte existe avec cet email, un lien a été envoyé",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //réinitialiser mot de passe
+  static async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, newPassword } = req.body;
+      const errors: Record<string, string> = {};
+      if (!token) errors.token = "Token requis";
+      if (!newPassword || newPassword.length < 6) {
+        errors.newPassword = "Nouveau mot de passe requis (min 6 caractères)";
+      }
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({ success: false, message: "Données invalides", errors });
+      }
+      await AuthService.resetPassword(token, newPassword);
+      res.status(200).json({ success: true, message: "Mot de passe réinitialisé avec succès" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //connexion Google
+  static async googleAuth(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { idToken, role } = req.body;
+      if (!idToken) {
+        return res.status(400).json({ success: false, message: "Token Google requis" });
+      }
+      if (role && !["entrepreneur", "mentor"].includes(role)) {
+        return res.status(400).json({ success: false, message: "Rôle invalide" });
+      }
+
+      const { user, token } = await AuthService.googleAuth(idToken, role);
+
+      res.cookie("token", token, COOKIE_OPTIONS).status(200).json({
+        success: true,
+        message: "Connexion réussie",
+        data: { user, token },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 
 

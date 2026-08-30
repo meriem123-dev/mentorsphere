@@ -3,6 +3,11 @@ import {
   RegisterPayload,
   LoginPayload,
   AuthResponse,
+  GoogleAuthPayload,
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
+  ResendVerificationPayload,
+  SimpleApiResponse,
 } from "../../../types/authTypes";
 import {
   MentorProfileFormData,
@@ -28,6 +33,31 @@ export const authApi = {
 
   getMe: async (): Promise<MeResponse> => {
     const res = await api.get<MeResponse>("/api/auth/me");
+    return res.data;
+  },
+
+  googleAuth: async (payload: GoogleAuthPayload): Promise<AuthResponse> => {
+    const res = await api.post<AuthResponse>("/api/auth/google", payload);
+    return res.data;
+  },
+
+  forgotPassword: async (payload: ForgotPasswordPayload): Promise<SimpleApiResponse> => {
+    const res = await api.post<SimpleApiResponse>("/api/auth/forgot-password", payload);
+    return res.data;
+  },
+
+  resetPassword: async (payload: ResetPasswordPayload): Promise<SimpleApiResponse> => {
+    const res = await api.post<SimpleApiResponse>("/api/auth/reset-password", payload);
+    return res.data;
+  },
+
+  resendVerification: async (payload: ResendVerificationPayload): Promise<SimpleApiResponse> => {
+    const res = await api.post<SimpleApiResponse>("/api/auth/resend-verification", payload);
+    return res.data;
+  },
+
+  verifyEmail: async (token: string): Promise<SimpleApiResponse> => {
+    const res = await api.get<SimpleApiResponse>(`/api/auth/verify-email/${token}`);
     return res.data;
   },
 

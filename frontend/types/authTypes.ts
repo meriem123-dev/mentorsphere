@@ -113,3 +113,25 @@ export interface MentorProfileFormData extends BaseProfileFormData {
   documents: File[];
 }
 
+export interface GoogleAuthPayload {
+  idToken: string;
+  role?: "entrepreneur" | "mentor";
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
+export interface ResendVerificationPayload {
+  email: string;
+}
+
+export interface SimpleApiResponse {
+  success: boolean;
+  message: string;
+}

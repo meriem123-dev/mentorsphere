@@ -15,6 +15,7 @@ import { ApiErrorResponse } from "@/types/authTypes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { GoogleAuthButton } from "./GoogleAuthButton";
 
 import { getDashboardPath, getProfileCompletionPath } from "@/lib/routes";
 
@@ -90,11 +91,21 @@ export function LoginForm() {
       }
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
-      toast.error("Connexion impossible", {
-        description:
-          axiosError.response?.data?.message ||
-          "Email ou mot de passe incorrect",
-      });
+      const status = axiosError.response?.status;
+
+      if (status === 423) {
+        toast.error("Compte bloqué", {
+          description:
+            axiosError.response?.data?.message ||
+            "Trop de tentatives échouées. Réinitialisez votre mot de passe.",
+        });
+      } else {
+        toast.error("Connexion impossible", {
+          description:
+            axiosError.response?.data?.message ||
+            "Email ou mot de passe incorrect",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -191,6 +202,7 @@ export function LoginForm() {
         <motion.div className="flex justify-end" variants={itemVariants}>
           <button
             type="button"
+            onClick={() => router.push("/auth/forgot-password")}
             className="text-sm text-primary hover:underline font-medium"
           >
             Mot de passe oublié ?
@@ -206,6 +218,18 @@ export function LoginForm() {
           >
             Se connecter
           </Button>
+        </motion.div>
+
+        {/* Séparateur */}
+        <motion.div variants={itemVariants} className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">OU</span>
+          <div className="h-px flex-1 bg-border" />
+        </motion.div>
+
+        {/* Google Auth */}
+        <motion.div variants={itemVariants}>
+          <GoogleAuthButton />
         </motion.div>
 
         {/* Sign Up Link */}

@@ -17,6 +17,8 @@ import { ApiErrorResponse } from "@/types/authTypes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { GoogleAuthButton } from "./GoogleAuthButton";
+
 type Role = "entrepreneur" | "mentor";
 
 const roleConfig: Record<
@@ -106,7 +108,7 @@ export function RegistrationForm() {
       });
 
       toast.success("Compte créé avec succès", {
-        description: `Bienvenue sur MentorSphere, ${response.data.user.firstName} !`,
+        description: `Un email de vérification a été envoyé à ${formData.email}.`,
       });
 
       await refetch();
@@ -137,7 +139,6 @@ export function RegistrationForm() {
       setIsSubmitting(false);
     }
   };
-
 
   const canSubmit = acceptedTerms && acceptedPrivacy;
 
@@ -388,7 +389,21 @@ export function RegistrationForm() {
           >
             Créer un compte
           </Button>
+
         </motion.div>
+
+         <motion.div
+            variants={itemVariants}
+            className="flex items-center gap-5"
+          >
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">OU</span>
+            <div className="h-px flex-1 bg-border" />
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <GoogleAuthButton role={role} />
+          </motion.div>
 
         {/* Login Link */}
         <motion.p

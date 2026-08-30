@@ -71,6 +71,11 @@ enum PostTag {
   UPDATE
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 //************** Modèle User************
 model User {
   id                String   @id @default(cuid())
@@ -79,9 +84,12 @@ model User {
   lastName          String
 
   email             String   @unique
-  password          String
+  password          String?  // nullable : un compte Google n'a pas de mot de passe
 
   role              UserRole
+
+  authProvider      AuthProvider @default(LOCAL)
+  googleId          String?      @unique
 
   profilePicture    String?
   coverPicture      String?
@@ -93,8 +101,17 @@ model User {
   country           String?
   city              String?
 
-  isEmailVerified   Boolean  @default(false)
+  isEmailVerified          Boolean   @default(false)
+  emailVerificationToken   String?   @unique // HASH du token
+  emailVerificationExpires DateTime?
+
   isActive          Boolean  @default(true)
+  isLocked          Boolean  @default(false)
+  failedLoginAttempts Int    @default(0)
+
+  passwordResetToken   String?   @unique // HASH du token
+  passwordResetExpires DateTime?
+
   profileCompleted Boolean @default(false)
   lastLoginAt   DateTime?
 
