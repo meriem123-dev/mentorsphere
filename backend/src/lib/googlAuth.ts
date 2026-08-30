@@ -1,6 +1,14 @@
 import { OAuth2Client } from "google-auth-library";
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID: string = (() => {
+  const value = process.env.GOOGLE_CLIENT_ID;
+  if (!value) {
+    throw new Error("GOOGLE_CLIENT_ID manquant dans les variables d'environnement");
+  }
+  return value;
+})();
+
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 interface GoogleProfile {
   googleId: string;
@@ -13,7 +21,7 @@ interface GoogleProfile {
 export async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfile> {
   const ticket = await client.verifyIdToken({
     idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
+    audience: GOOGLE_CLIENT_ID,
   });
 
   const payload = ticket.getPayload();
