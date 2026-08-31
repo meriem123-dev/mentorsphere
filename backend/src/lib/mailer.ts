@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -8,7 +9,8 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-});
+  family: 4, // force IPv4
+} as SMTPTransport.Options);
 
 const FROM = process.env.EMAIL_FROM || "MentorSphere <no-reply@mentorsphere.com>";
 
