@@ -17,7 +17,7 @@ export async function sendVerificationEmail(
   firstName: string,
   rawToken: string,
 ) {
-  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+  const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
 
   await transporter.sendMail({
     from: FROM,
@@ -37,7 +37,7 @@ export async function sendPasswordResetEmail(
   firstName: string,
   rawToken: string,
 ) {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${rawToken}`;
 
   await transporter.sendMail({
     from: FROM,

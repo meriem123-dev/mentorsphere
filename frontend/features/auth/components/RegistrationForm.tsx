@@ -113,11 +113,8 @@ export function RegistrationForm() {
 
       await refetch();
 
-      router.push(
-        role === "mentor"
-          ? "/auth/ProfileCompletion/Mentor"
-          : "/auth/ProfileCompletion/Entrepreneur",
-      );
+      router.push("/auth/awaiting-verification");
+      
     } catch (err) {
       const axiosError = err as AxiosError<ApiErrorResponse>;
       const status = axiosError.response?.status;
