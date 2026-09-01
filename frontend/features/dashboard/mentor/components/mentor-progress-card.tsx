@@ -1,4 +1,3 @@
-// features/mentor-dashboard/components/mentee-progress-card.tsx
 import { DashboardCard } from "./dashboard-card";
 import type { MenteeProgress } from "@/types/dashTypes";
 

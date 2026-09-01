@@ -1,40 +1,25 @@
-
-import type {
-  DashboardStats,
-  WeeklyActivityPoint,
-  AISuggestion,
-  RecommendedMentor,
-} from "@/types/dashTypes";
+import type { AISuggestion, RecommendedMentor } from "@/types/dashTypes";
+import { dashboardApi, type ParcoursData } from "../api/dashboardAPI";
 
 interface DashboardData {
-  stats: DashboardStats;
-  weeklyActivity: WeeklyActivityPoint[];
+  stats: Awaited<ReturnType<typeof dashboardApi.getStats>>;
+  weeklyActivity: Awaited<ReturnType<typeof dashboardApi.getWeeklyActivity>>;
   aiSuggestions: AISuggestion[];
   recommendedMentors: RecommendedMentor[];
-  parcours: { projectName: string; stage: string; progression: number };
+  parcours: ParcoursData;
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(startupId?: string): Promise<DashboardData> {
+  const [stats, weeklyActivity, parcours] = await Promise.all([
+    dashboardApi.getStats(),
+    dashboardApi.getWeeklyActivity(),
+    dashboardApi.getParcours(startupId),
+  ]);
+
+
   return {
-    stats: {
-      activeProjects: 2,
-      activeProjectsDelta: "+1 ce mois",
-      mentorSessions: 14,
-      mentorSessionsDelta: "+3 cette semaine",
-      upcomingSessions: 2,
-      nextSessionLabel: "Demain 15h00",
-      progression: 68,
-      progressionDelta: "+12% ce mois",
-    },
-    weeklyActivity: [
-      { day: "Lun", sessions: 2, messages: 5 },
-      { day: "Mar", sessions: 3, messages: 8 },
-      { day: "Mer", sessions: 1, messages: 4 },
-      { day: "Jeu", sessions: 4, messages: 10 },
-      { day: "Ven", sessions: 2, messages: 6 },
-      { day: "Sam", sessions: 1, messages: 2 },
-      { day: "Dim", sessions: 0, messages: 1 },
-    ],
+    stats,
+    weeklyActivity,
     aiSuggestions: [
       { id: "1", text: "Votre pitch deck manque une section sur la défensibilité." },
       { id: "2", text: "Envisagez un palier freemium — 67% de votre cible préfère le self-serve." },
@@ -45,6 +30,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       { id: "2", name: "Marcus Reid", title: "Serial Founder", initials: "MR" },
       { id: "3", name: "Aisha Patel", title: "VC Partner", initials: "AP" },
     ],
-    parcours: { projectName: "NovaPay", stage: "Seed", progression: 68 },
+    parcours,
   };
 }

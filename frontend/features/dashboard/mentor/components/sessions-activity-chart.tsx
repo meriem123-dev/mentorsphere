@@ -1,4 +1,3 @@
-// features/mentor-dashboard/components/sessions-activity-chart.tsx
 "use client";
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";

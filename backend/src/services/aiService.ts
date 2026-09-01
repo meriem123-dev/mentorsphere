@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import  prisma  from "../lib/prisma"; 
 import { groq, GROQ_MODEL } from "../lib/groqClient";
 import type { AISummaryResult, AIKpi, AIAlert, AISessionsSummary } from "../types/aiTypes";
+import {resolveWindow} from "../lib/aiRateLimit";
 
 
 interface HealthMetrics {
@@ -241,13 +242,7 @@ interface AIGenerationOutcome {
   limitReached: boolean;
 }
 
-function resolveWindow(windowStart: Date | null, attempts: number) {
-  const windowActive = !!windowStart && Date.now() - windowStart.getTime() < AI_WINDOW_MS;
-  return {
-    attempts: windowActive ? attempts : 0,
-    windowStart: windowActive ? windowStart : null,
-  };
-}
+
 
 // Appelé au montage du composant : ne consomme AUCUNE tentative
 export async function getAISummaryState(mentorshipId: string) {

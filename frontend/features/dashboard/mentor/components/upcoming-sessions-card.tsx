@@ -1,4 +1,3 @@
-// features/mentor-dashboard/components/upcoming-sessions-card.tsx
 import { DashboardCard } from "./dashboard-card";
 import type { UpcomingSession } from "@/types/dashTypes";
 

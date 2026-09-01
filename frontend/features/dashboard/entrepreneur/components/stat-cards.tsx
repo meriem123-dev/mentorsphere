@@ -15,7 +15,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         IconBg="bg-gradient-brand"
       />
       <StatCard
-        label="Sessions Mentor"
+        label="Sessions terminées"
         value={stats.mentorSessions}
         delta={stats.mentorSessionsDelta}
         Icon={Users}
@@ -30,7 +30,7 @@ export function StatsCards({ stats }: { stats: DashboardStats }) {
         IconBg="bg-gradient-brand"
       />
       <StatCard
-        label="Progression"
+        label="Progression (projet récent)"
         value={`${stats.progression}%`}
         delta={stats.progressionDelta}
         Icon={TrendingUp}

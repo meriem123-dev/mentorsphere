@@ -1,76 +1,116 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Users, Calendar, Star as StarIcon, TrendingUp } from "lucide-react";
 import { StatsGrid } from "@/features/dashboard/mentor/components/stats-grid";
 import { SessionsActivityChart } from "@/features/dashboard/mentor/components/sessions-activity-chart";
 import { MenteeProgressCard } from "@/features/dashboard/mentor/components/mentor-progress-card";
 import { UpcomingSessionsCard } from "@/features/dashboard/mentor/components/upcoming-sessions-card";
 import { RecentFeedbackCard } from "@/features/dashboard/mentor/components/recent-feedback-card";
+import { mentorDashboardApi } from "@/features/dashboard/mentor/api/dashboardMentorAPI";
+import { STATIC_FEEDBACKS, STATIC_AVERAGE_RATING, STATIC_AVERAGE_RATING_DELTA } from "@/features/dashboard/mentor/data/static-data";
 import type {
-  StatCardData,
+  MentorDashboardStats,
   SessionActivityPoint,
   MenteeProgress,
   UpcomingSession,
-  Feedback,
+  StatCardData,
 } from "@/types/dashTypes";
 
-const stats: StatCardData[] = [
-  { icon: Users, label: "Mentorés Actifs", value: "4", delta: "+1 ce mois", accent: "rose" },
-  { icon: Calendar, label: "Sessions Totales", value: "47", delta: "+8 cette semaine", accent: "blue" },
-  { icon: StarIcon, label: "Note Moyenne", value: "4.9", delta: "Top 5% mentors", accent: "rose" },
-  { icon: TrendingUp, label: "Taux de Réussite", value: "92%", delta: "+3% ce mois", accent: "green" },
-];
+interface MentorDashboardState {
+  stats: MentorDashboardStats | null;
+  activity: SessionActivityPoint[];
+  mentees: MenteeProgress[];
+  sessions: UpcomingSession[];
+}
 
-const activity: SessionActivityPoint[] = [
-  { day: "Mar", sessions: 4 },
-  { day: "Mer", sessions: 7 },
-  { day: "Jeu", sessions: 9 },
-  { day: "Ven", sessions: 6 },
-  { day: "Sam", sessions: 5 },
-  { day: "Dim", sessions: 6 },
-];
-
-const mentees: MenteeProgress[] = [
-  { id: "1", name: "Elena Kovacs", progress: 68, accent: "rose" },
-  { id: "2", name: "Tariq Hassan", progress: 45, accent: "blue" },
-  { id: "3", name: "Linh Nguyen", progress: 61, accent: "rose" },
-  { id: "4", name: "David Kim", progress: 18, accent: "blue" },
-];
-
-const sessions: UpcomingSession[] = [
-  { id: "1", menteeName: "Elena Kovacs", initials: "EK", topic: "Revue Pitch Deck", when: "Aujourd'hui 15h00", accent: "rose" },
-  { id: "2", menteeName: "Tariq Hassan", initials: "TH", topic: "Stratégie Go-to-Market", when: "Demain 11h00", accent: "blue" },
-  { id: "3", menteeName: "Linh Nguyen", initials: "LN", topic: "Levée de fonds Pré-seed", when: "Vendredi 14h00", accent: "rose" },
-];
-
-const feedbacks: Feedback[] = [
-  {
-    id: "1",
-    menteeName: "Elena Kovacs",
-    initials: "EK",
-    rating: 5,
-    quote: "Sarah m'a aidé à pivoter ma stratégie de pricing. Résultat : +35% de conversion.",
-    accent: "rose",
-  },
-  {
-    id: "2",
-    menteeName: "David Kim",
-    initials: "DK",
-    rating: 5,
-    quote: "Conseils très concrets sur le go-to-market. Exactement ce dont j'avais besoin.",
-    accent: "blue",
-  },
-];
+function buildStatCards(stats: MentorDashboardStats): StatCardData[] {
+  return [
+    {
+      icon: Users,
+      label: "Mentorés Actifs",
+      value: String(stats.activeMentees),
+      delta: stats.activeMenteesDelta,
+      accent: "rose",
+    },
+    {
+      icon: Calendar,
+      label: "Sessions finalisées",
+      value: String(stats.sessionsCompleted),
+      delta: stats.sessionsDelta,
+      accent: "blue",
+    },
+    {
+      icon: StarIcon,
+      label: "Note Moyenne",
+      value: STATIC_AVERAGE_RATING,
+      delta: STATIC_AVERAGE_RATING_DELTA,
+      accent: "rose",
+    },
+    {
+      icon: TrendingUp,
+      label: "Taux de Réussite",
+      value: `${stats.successRate}%`,
+      delta: stats.successRateDelta,
+      accent: "green",
+    },
+  ];
+}
 
 export default function MentorDashboardPage() {
+  const [data, setData] = useState<MentorDashboardState>({
+    stats: null,
+    activity: [],
+    mentees: [],
+    sessions: [],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const [stats, mentees, activity, sessions] = await Promise.all([
+          mentorDashboardApi.getStats(),
+          mentorDashboardApi.getMenteesProgress(),
+          mentorDashboardApi.getSessionsActivity(),
+          mentorDashboardApi.getUpcomingSessions(),
+        ]);
+
+        if (cancelled) return;
+
+        setData({ stats, mentees, activity, sessions });
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          setLoading(false);
+          toast.error("Impossible de charger le tableau de bord");
+        }
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading || !data.stats) {
+    return <div>Chargement...</div>;
+  }
+
   return (
     <div className="space-y-6">
-      <StatsGrid stats={stats} />
+      <StatsGrid stats={buildStatCards(data.stats)} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <SessionsActivityChart data={activity} />
-        <MenteeProgressCard mentees={mentees} />
+        <SessionsActivityChart data={data.activity} />
+        <MenteeProgressCard mentees={data.mentees} />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <UpcomingSessionsCard sessions={sessions} />
-        <RecentFeedbackCard feedbacks={feedbacks} />
+        <UpcomingSessionsCard sessions={data.sessions} />
+        <RecentFeedbackCard feedbacks={STATIC_FEEDBACKS} />
       </div>
     </div>
   );

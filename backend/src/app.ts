@@ -10,6 +10,8 @@ import workspaceRoutes from "./routes/workpsaceRoutes";
 import resourcesRoutes from "./routes/resourcesRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import communityRoutes from "./routes/communityRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import dashboardMentorRoutes from "./routes/dashboardMentorRoutes";
 
 import cookieParser from "cookie-parser";
 
@@ -31,7 +33,7 @@ app.get("/health", (req, res) => {
 
 app.use(morgan("dev"));
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth",authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/startups", startupRoutes);
 app.use("/api/mentorship",mentorshipRoutes);
@@ -39,6 +41,8 @@ app.use("/api/workspace", workspaceRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/ai",aiRoutes);
 app.use('/api/community',communityRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard/mentor",dashboardMentorRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {

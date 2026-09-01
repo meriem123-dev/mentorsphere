@@ -1,4 +1,3 @@
-// features/mentor-dashboard/components/recent-feedback-card.tsx
 import { Star } from "lucide-react";
 import { DashboardCard } from "./dashboard-card";
 import type { Feedback } from "@/types/dashTypes";

@@ -1,6 +1,5 @@
-// features/mentor-dashboard/components/stats-grid.tsx
 import { StatCard } from "./stat-card";
-import type { StatCardData } from "../..//../../types/dashTypes";
+import type { StatCardData } from "../../../../types/dashTypes";
 
 export function StatsGrid({ stats }: { stats: StatCardData[] }) {
   return (

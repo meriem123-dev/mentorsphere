@@ -9,7 +9,16 @@ export function WeeklyActivityChart({ data }: { data: WeeklyActivityPoint[] }) {
       <div className="mb-4 flex items-start justify-between">
         <div>
           <h3 className="font-semibold">Activité cette semaine</h3>
-          <p className="text-sm text-muted-foreground">Sessions & messages</p>
+          <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-brand-blue" />
+              Sessions
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-brand-rose" />
+              Messages
+            </span>
+          </div>
         </div>
         <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
           7 derniers jours
@@ -20,9 +29,13 @@ export function WeeklyActivityChart({ data }: { data: WeeklyActivityPoint[] }) {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="hsl(var(--brand-blue))" stopOpacity={0.35} />
                 <stop offset="100%" stopColor="hsl(var(--brand-blue))" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="messagesGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--brand-rose))" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="hsl(var(--brand-rose))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -44,7 +57,14 @@ export function WeeklyActivityChart({ data }: { data: WeeklyActivityPoint[] }) {
               dataKey="sessions"
               stroke="hsl(var(--brand-blue))"
               strokeWidth={2.5}
-              fill="url(#activityGradient)"
+              fill="url(#sessionsGradient)"
+            />
+            <Area
+              type="monotone"
+              dataKey="messages"
+              stroke="hsl(var(--brand-rose))"
+              strokeWidth={2.5}
+              fill="url(#messagesGradient)"
             />
           </AreaChart>
         </ResponsiveContainer>
