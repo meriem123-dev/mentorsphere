@@ -4,7 +4,7 @@ import type { Accent } from "../types/dashTypes";
 const ACCENTS: Accent[] = ["rose", "blue", "green"];
 
 function accentAt(index: number): Accent {
-  return ACCENTS[index % ACCENTS.length];
+  return ACCENTS[index % ACCENTS.length] ?? "rose";
 }
 
 function initialsOf(firstName: string, lastName: string): string {
@@ -80,9 +80,13 @@ export async function getMentorDashboardStats(userId: string) {
   const mentorshipIds = mentorships.map((m) => m.id);
 
   const activeMentees = mentorships.length;
-  const newMenteesThisMonth = mentorships.filter((m) => m.createdAt >= monthStart).length;
+  const newMenteesThisMonth = mentorships.filter(
+    (m) => m.createdAt >= monthStart,
+  ).length;
   const activeMenteesDelta =
-    newMenteesThisMonth > 0 ? `+${newMenteesThisMonth} ce mois` : "Aucun nouveau ce mois";
+    newMenteesThisMonth > 0
+      ? `+${newMenteesThisMonth} ce mois`
+      : "Aucun nouveau ce mois";
 
   const progressRates = mentorships
     .filter((m) => m.startup && m.startup.steps.length > 0)
@@ -94,49 +98,57 @@ export async function getMentorDashboardStats(userId: string) {
 
   const successRate =
     progressRates.length > 0
-      ? Math.round((progressRates.reduce((a, b) => a + b, 0) / progressRates.length) * 100)
+      ? Math.round(
+          (progressRates.reduce((a, b) => a + b, 0) / progressRates.length) *
+            100,
+        )
       : 0;
 
-  const [totalCompletedSessions, sessionsCompletedThisWeek, upcomingSessionsList, upcomingSessionsCount] =
-    await Promise.all([
-      prisma.session.count({
-        where: { mentorshipId: { in: mentorshipIds }, status: "COMPLETED" },
-      }),
-      prisma.session.count({
-        where: {
-          mentorshipId: { in: mentorshipIds },
-          status: "COMPLETED",
-          scheduledAt: { gte: weekStart },
-        },
-      }),
-      prisma.session.findMany({
-        where: {
-          mentorshipId: { in: mentorshipIds },
-          status: "SCHEDULED",
-          scheduledAt: { gte: now },
-        },
-        orderBy: { scheduledAt: "asc" },
-        select: { scheduledAt: true },
-        take: 1,
-      }),
-      prisma.session.count({
-        where: {
-          mentorshipId: { in: mentorshipIds },
-          status: "SCHEDULED",
-          scheduledAt: { gte: now },
-        },
-      }),
-    ]);
+  const [
+    totalCompletedSessions,
+    sessionsCompletedThisWeek,
+    upcomingSessionsList,
+    upcomingSessionsCount,
+  ] = await Promise.all([
+    prisma.session.count({
+      where: { mentorshipId: { in: mentorshipIds }, status: "COMPLETED" },
+    }),
+    prisma.session.count({
+      where: {
+        mentorshipId: { in: mentorshipIds },
+        status: "COMPLETED",
+        scheduledAt: { gte: weekStart },
+      },
+    }),
+    prisma.session.findMany({
+      where: {
+        mentorshipId: { in: mentorshipIds },
+        status: "SCHEDULED",
+        scheduledAt: { gte: now },
+      },
+      orderBy: { scheduledAt: "asc" },
+      select: { scheduledAt: true },
+      take: 1,
+    }),
+    prisma.session.count({
+      where: {
+        mentorshipId: { in: mentorshipIds },
+        status: "SCHEDULED",
+        scheduledAt: { gte: now },
+      },
+    }),
+  ]);
 
   const sessionsDelta =
     sessionsCompletedThisWeek > 0
       ? `+${sessionsCompletedThisWeek} cette semaine`
       : "Aucune cette semaine";
 
-  const nextSessionLabel =
-    upcomingSessionsList.length > 0
-      ? formatSessionLabel(upcomingSessionsList[0].scheduledAt, now)
-      : "Aucune session prévue";
+  const nextSession = upcomingSessionsList[0];
+
+  const nextSessionLabel = nextSession
+    ? formatSessionLabel(nextSession.scheduledAt, now)
+    : "Aucune session prévue";
 
   return {
     activeMentees,
@@ -144,7 +156,8 @@ export async function getMentorDashboardStats(userId: string) {
     sessionsCompleted: totalCompletedSessions,
     sessionsDelta,
     successRate,
-    successRateDelta: progressRates.length > 0 ? "Basé sur roadmap active" : "Aucune donnée",
+    successRateDelta:
+      progressRates.length > 0 ? "Basé sur roadmap active" : "Aucune donnée",
     upcomingSessionsCount,
     nextSessionLabel,
   };

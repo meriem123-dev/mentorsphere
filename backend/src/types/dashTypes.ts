@@ -32,3 +32,13 @@ export interface MentorDashboardStats {
   upcomingSessionsCount: number;
   nextSessionLabel: string;
 }
+
+export type Accent = "rose" | "blue" | "green";
+export interface Feedback {
+  id: string;
+  menteeName: string;
+  initials: string;
+  rating: number;
+  quote: string;
+  accent: Accent;
+}
