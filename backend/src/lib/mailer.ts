@@ -1,18 +1,41 @@
-import nodemailer from "nodemailer";
-import type SMTPTransport from "nodemailer/lib/smtp-transport";
+const MJ_API_KEY = process.env.MAILJET_API_KEY as string;
+const MJ_SECRET_KEY = process.env.MAILJET_SECRET_KEY as string;
+const MJ_API_URL = "https://api.mailjet.com/v3.1/send";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  family: 4, // force IPv4
-} as SMTPTransport.Options);
+const FROM_EMAIL = process.env.EMAIL_FROM || "no-reply@mentorsphere.com";
+const FROM_NAME = "MentorSphere";
 
-const FROM = process.env.EMAIL_FROM || "MentorSphere <no-reply@mentorsphere.com>";
+function getAuthHeader() {
+  const credentials = Buffer.from(`${MJ_API_KEY}:${MJ_SECRET_KEY}`).toString("base64");
+  return `Basic ${credentials}`;
+}
+
+async function sendMailjetEmail(to: string, subject: string, html: string) {
+  const response = await fetch(MJ_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": getAuthHeader(),
+    },
+    body: JSON.stringify({
+      Messages: [
+        {
+          From: { Email: FROM_EMAIL, Name: FROM_NAME },
+          To: [{ Email: to }],
+          Subject: subject,
+          HTMLPart: html,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Mailjet API error (${response.status}): ${errorBody}`);
+  }
+
+  return response.json();
+}
 
 export async function sendVerificationEmail(
   to: string,
@@ -21,17 +44,16 @@ export async function sendVerificationEmail(
 ) {
   const verifyUrl = `${process.env.FRONTEND_URL}/auth/verify-email?token=${rawToken}`;
 
-  await transporter.sendMail({
-    from: FROM,
+  await sendMailjetEmail(
     to,
-    subject: "Vérifiez votre adresse email - MentorSphere",
-    html: `
+    "Vérifiez votre adresse email - MentorSphere",
+    `
       <p>Bonjour ${firstName},</p>
       <p>Merci de votre inscription sur MentorSphere. Confirmez votre adresse email en cliquant sur le lien ci-dessous :</p>
       <p><a href="${verifyUrl}">Vérifier mon email</a></p>
       <p>Ce lien expire dans 24 heures.</p>
     `,
-  });
+  );
 }
 
 export async function sendPasswordResetEmail(
@@ -41,15 +63,14 @@ export async function sendPasswordResetEmail(
 ) {
   const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${rawToken}`;
 
-  await transporter.sendMail({
-    from: FROM,
+  await sendMailjetEmail(
     to,
-    subject: "Réinitialisation de votre mot de passe - MentorSphere",
-    html: `
+    "Réinitialisation de votre mot de passe - MentorSphere",
+    `
       <p>Bonjour ${firstName},</p>
       <p>Votre compte a été temporairement bloqué (ou vous avez demandé une réinitialisation).</p>
       <p><a href="${resetUrl}">Réinitialiser mon mot de passe</a></p>
       <p>Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
     `,
-  });
+  );
 }
