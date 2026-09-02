@@ -265,6 +265,7 @@ export async function getMentorUpcomingSessions(userId: string, limit = 5) {
       scheduledAt: true,
       mentorship: {
         select: {
+          id: true,
           entrepreneur: {
             select: { user: { select: { firstName: true, lastName: true } } },
           },
@@ -279,6 +280,7 @@ export async function getMentorUpcomingSessions(userId: string, limit = 5) {
 
     return {
       id: s.id,
+      mentorshipId: s.mentorship.id,
       menteeName: `${firstName} ${lastName}`,
       initials: initialsOf(firstName, lastName),
       topic: s.agenda ?? `Session ${s.number}`,

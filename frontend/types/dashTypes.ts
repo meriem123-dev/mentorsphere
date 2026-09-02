@@ -43,6 +43,7 @@ export interface MenteeProgress {
 export interface UpcomingSession {
   id: string;
   menteeName: string;
+  mentorshipId: string;
   initials: string;
   topic: string;
   when: string;
@@ -64,6 +65,8 @@ export interface RecommendedMentor {
   title: string;
   initials: string;
   avatarUrl?: string;
+  requestedStartupIds?: string[];
+  hasRequestedAll?: boolean;
 }
 
 export interface AISuggestion {

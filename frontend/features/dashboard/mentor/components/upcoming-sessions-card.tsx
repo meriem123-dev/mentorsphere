@@ -1,21 +1,22 @@
 import { DashboardCard } from "./dashboard-card";
 import type { UpcomingSession } from "@/types/dashTypes";
 
-export function UpcomingSessionsCard({ sessions }: { sessions: UpcomingSession[] }) {
+interface UpcomingSessionsCardProps {
+  sessions: UpcomingSession[];
+  onJoinSession?: (mentorshipId: string, sessionId: string) => void;
+}
+
+export function UpcomingSessionsCard({ sessions, onJoinSession }: UpcomingSessionsCardProps) {
   return (
     <DashboardCard
       title="Prochaines Sessions"
-      action={
-        <button type="button" className="text-xs font-medium text-brand-rose hover:underline">
-          Voir tout
-        </button>
-      }
     >
       <ul className="space-y-3">
         {sessions.map((session) => (
           <li
             key={session.id}
             className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 p-3"
+            onClick={() => onJoinSession?.(session.mentorshipId, session.id)}
           >
             <div className="flex min-w-0 items-center gap-3">
               <div

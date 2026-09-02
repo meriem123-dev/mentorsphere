@@ -37,7 +37,7 @@ export function AISuggestions({ suggestions, onRegenerate, isGenerating, attempt
         type="button"
         onClick={onRegenerate}
         disabled={isGenerating || attemptsRemaining === 0}
-        className="mt-3 flex items-center gap-1.5 self-start text-sm font-medium text-[#13496B] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-3 flex items-center gap-1.5 self-start text-sm font-medium text-brand-rose hover:underline disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isGenerating && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {suggestions.length === 0 ? "Générer des suggestions" : "Régénérer"}

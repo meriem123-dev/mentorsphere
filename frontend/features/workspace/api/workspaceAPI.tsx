@@ -92,6 +92,7 @@ export const workspaceApi = {
   deleteDocument: (mentorshipId: string, documentId: string) =>
     api.delete(`api/workspace/${mentorshipId}/documents/${documentId}`),
 
+  //sessions
   createSession: async (
     mentorshipId: string,
     payload: CreateSessionPayload,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Users, Calendar, Star as StarIcon, TrendingUp } from "lucide-react";
 import { StatsGrid } from "@/features/dashboard/mentor/components/stats-grid";
@@ -17,6 +18,7 @@ import type {
   UpcomingSession,
   StatCardData,
 } from "@/types/dashTypes";
+import { workspaceApi } from "@/features/workspace/api/workspaceAPI";
 
 interface MentorDashboardState {
   stats: MentorDashboardStats | null;
@@ -66,6 +68,17 @@ export default function MentorDashboardPage() {
     sessions: [],
   });
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // fct gérant le bouton "Rejoindre" — au niveau du composant, pas dans le useEffect
+  async function handleJoinSession(mentorshipId: string, sessionId: string) {
+    try {
+      await workspaceApi.getSessionRoomCredentials(mentorshipId, sessionId);
+      router.push(`/mentor/workspace/${mentorshipId}/sessions/${sessionId}/room`);
+    } catch (err) {
+      toast.error("Impossible de rejoindre la session");
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +122,7 @@ export default function MentorDashboardPage() {
         <MenteeProgressCard mentees={data.mentees} />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <UpcomingSessionsCard sessions={data.sessions} />
+        <UpcomingSessionsCard sessions={data.sessions} onJoinSession={handleJoinSession} />
         <RecentFeedbackCard feedbacks={STATIC_FEEDBACKS} />
       </div>
     </div>
