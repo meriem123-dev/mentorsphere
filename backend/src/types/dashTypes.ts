@@ -31,6 +31,8 @@ export interface MentorDashboardStats {
   successRateDelta: string;
   upcomingSessionsCount: number;
   nextSessionLabel: string;
+  averageRating: string; 
+  averageRatingDelta: string;
 }
 
 export type Accent = "rose" | "blue" | "green";

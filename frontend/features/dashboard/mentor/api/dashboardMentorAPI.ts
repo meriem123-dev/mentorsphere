@@ -4,6 +4,7 @@ import type {
   MenteeProgress,
   SessionActivityPoint,
   UpcomingSession,
+  Feedback,
 } from "@/types/dashTypes";
 
 export const mentorDashboardApi = {
@@ -18,4 +19,7 @@ export const mentorDashboardApi = {
 
   getUpcomingSessions: () =>
     api.get<UpcomingSession[]>("api/dashboard/mentor/upcoming-sessions").then((r) => r.data),
+
+  getRecentFeedbacks: () =>
+    api.get<Feedback[]>("api/dashboard/mentor/recent-feedbacks").then((r) => r.data),
 };

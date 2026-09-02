@@ -10,13 +10,13 @@ import { MenteeProgressCard } from "@/features/dashboard/mentor/components/mento
 import { UpcomingSessionsCard } from "@/features/dashboard/mentor/components/upcoming-sessions-card";
 import { RecentFeedbackCard } from "@/features/dashboard/mentor/components/recent-feedback-card";
 import { mentorDashboardApi } from "@/features/dashboard/mentor/api/dashboardMentorAPI";
-import { STATIC_FEEDBACKS, STATIC_AVERAGE_RATING, STATIC_AVERAGE_RATING_DELTA } from "@/features/dashboard/mentor/data/static-data";
 import type {
   MentorDashboardStats,
   SessionActivityPoint,
   MenteeProgress,
   UpcomingSession,
   StatCardData,
+  Feedback,
 } from "@/types/dashTypes";
 import { workspaceApi } from "@/features/workspace/api/workspaceAPI";
 
@@ -25,6 +25,7 @@ interface MentorDashboardState {
   activity: SessionActivityPoint[];
   mentees: MenteeProgress[];
   sessions: UpcomingSession[];
+  feedbacks: Feedback[];
 }
 
 function buildStatCards(stats: MentorDashboardStats): StatCardData[] {
@@ -46,8 +47,8 @@ function buildStatCards(stats: MentorDashboardStats): StatCardData[] {
     {
       icon: StarIcon,
       label: "Note Moyenne",
-      value: STATIC_AVERAGE_RATING,
-      delta: STATIC_AVERAGE_RATING_DELTA,
+      value: stats.averageRating,
+      delta: stats.averageRatingDelta,
       accent: "rose",
     },
     {
@@ -66,11 +67,11 @@ export default function MentorDashboardPage() {
     activity: [],
     mentees: [],
     sessions: [],
+    feedbacks: [],
   });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // fct gérant le bouton "Rejoindre" — au niveau du composant, pas dans le useEffect
   async function handleJoinSession(mentorshipId: string, sessionId: string) {
     try {
       await workspaceApi.getSessionRoomCredentials(mentorshipId, sessionId);
@@ -85,16 +86,17 @@ export default function MentorDashboardPage() {
 
     async function load() {
       try {
-        const [stats, mentees, activity, sessions] = await Promise.all([
+        const [stats, mentees, activity, sessions, feedbacks] = await Promise.all([
           mentorDashboardApi.getStats(),
           mentorDashboardApi.getMenteesProgress(),
           mentorDashboardApi.getSessionsActivity(),
           mentorDashboardApi.getUpcomingSessions(),
+          mentorDashboardApi.getRecentFeedbacks(),
         ]);
 
         if (cancelled) return;
 
-        setData({ stats, mentees, activity, sessions });
+        setData({ stats, mentees, activity, sessions, feedbacks });
         setLoading(false);
       } catch (err) {
         if (!cancelled) {
@@ -123,7 +125,7 @@ export default function MentorDashboardPage() {
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UpcomingSessionsCard sessions={data.sessions} onJoinSession={handleJoinSession} />
-        <RecentFeedbackCard feedbacks={STATIC_FEEDBACKS} />
+        <RecentFeedbackCard feedbacks={data.feedbacks} />
       </div>
     </div>
   );

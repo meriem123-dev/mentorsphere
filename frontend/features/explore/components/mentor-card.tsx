@@ -25,6 +25,7 @@ export interface MentorCardData {
   sentRequestsCount?: number;
   hasRequestedAll?: boolean;
   requestedStartupIds?: string[];
+  reviewsCount: number;
 }
 
 const STATUS_CONFIG: Record<
@@ -90,7 +91,7 @@ export function MentorCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={{ y: -4 }}
-       onClick={() => onViewProfile?.(mentor.id)}
+      onClick={() => onViewProfile?.(mentor.id)}
       className="group relative flex flex-col overflow-hidden rounded-2xl cursor-pointer border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
     >
       <span
@@ -125,8 +126,16 @@ export function MentorCard({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1 text-sm font-medium text-foreground">
-              <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-              {mentor.rating.toFixed(1)}
+              {mentor.reviewsCount > 0 ? (
+                <>
+                  <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                  {mentor.rating.toFixed(1)}
+                </>
+              ) : (
+                <span className="text-xs font-normal text-muted-foreground">
+                  Nouveau
+                </span>
+              )}
             </div>
           </div>
 

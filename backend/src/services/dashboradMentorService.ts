@@ -109,6 +109,8 @@ export async function getMentorDashboardStats(userId: string) {
     sessionsCompletedThisWeek,
     upcomingSessionsList,
     upcomingSessionsCount,
+    ratingAggregate,
+    reviewsThisMonth,
   ] = await Promise.all([
     prisma.session.count({
       where: { mentorshipId: { in: mentorshipIds }, status: "COMPLETED" },
@@ -137,6 +139,14 @@ export async function getMentorDashboardStats(userId: string) {
         scheduledAt: { gte: now },
       },
     }),
+    prisma.mentorReview.aggregate({
+      where: { mentorId },
+      _avg: { rating: true },
+      _count: { rating: true },
+    }),
+    prisma.mentorReview.count({
+      where: { mentorId, createdAt: { gte: monthStart } },
+    }),
   ]);
 
   const sessionsDelta =
@@ -150,6 +160,14 @@ export async function getMentorDashboardStats(userId: string) {
     ? formatSessionLabel(nextSession.scheduledAt, now)
     : "Aucune session prévue";
 
+  const averageRatingValue = ratingAggregate._avg.rating;
+  const averageRating =
+    averageRatingValue !== null ? averageRatingValue.toFixed(1) : "—";
+  const averageRatingDelta =
+    reviewsThisMonth > 0
+      ? `+${reviewsThisMonth} avis ce mois`
+      : "Aucun nouvel avis";
+
   return {
     activeMentees,
     activeMenteesDelta,
@@ -160,6 +178,8 @@ export async function getMentorDashboardStats(userId: string) {
       progressRates.length > 0 ? "Basé sur roadmap active" : "Aucune donnée",
     upcomingSessionsCount,
     nextSessionLabel,
+    averageRating,
+    averageRatingDelta,
   };
 }
 
@@ -288,4 +308,37 @@ export async function getMentorUpcomingSessions(userId: string, limit = 5) {
       accent: accentAt(index),
     };
   });
+}
+
+// --- Derniers feedbacks (avis mentors commentés) ---
+export async function getMentorRecentFeedbacks(userId: string, limit = 5) {
+  const mentorId = await getMentorId(userId);
+
+  const reviews = await prisma.mentorReview.findMany({
+    where: { mentorId, comment: { not: null } },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      entrepreneur: {
+        select: { user: { select: { firstName: true, lastName: true } } },
+      },
+    },
+  });
+
+  return reviews
+    .filter((r) => r.comment && r.comment.trim().length > 0)
+    .map((r) => {
+      const firstName = r.entrepreneur.user.firstName;
+      const lastName = r.entrepreneur.user.lastName;
+      return {
+        id: r.id,
+        menteeName: `${firstName} ${lastName}`,
+        initials: initialsOf(firstName, lastName),
+        rating: r.rating,
+        quote: r.comment as string,
+      };
+    });
 }

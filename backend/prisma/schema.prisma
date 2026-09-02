@@ -139,6 +139,7 @@ model User {
   postComments  PostComment[] @relation("PostCommentAuthor")
   postLikes     PostLike[]    @relation("PostLikedBy")
   postSaves     PostSave[]    @relation("PostSavedBy")
+  platformReview    PlatformReview?
 }
 
 //************Tables pour User *********
@@ -247,6 +248,7 @@ model Mentor {
   //****************** Relations pour Mentor*************
   domains           MentorDomain[]
   mentorships      Mentorship[]
+  reviews           MentorReview[]
 }
 
 //************** Modèle Entrepreneur ************
@@ -267,6 +269,7 @@ model Entrepreneur {
   mentorships      Mentorship[]
   startups          Startup[]
   joinRequests      ProjectJoinRequest[]
+  mentorReviews     MentorReview[]
 }
 
 //************Table pivot Domaines *********
@@ -348,6 +351,8 @@ model Mentorship {
   dashboardSuggestionsGeneratedAt DateTime?
   dashboardSuggestionsAttempts    Int       @default(0)
   dashboardSuggestionsWindowStart DateTime?
+
+  review            MentorReview?
 }
 
 
@@ -653,4 +658,43 @@ model PostSave {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+}
+
+
+//**** modèle avis sur un mentor ****
+model MentorReview {
+  id             String   @id @default(cuid())
+
+  rating         Int
+  comment        String?  @db.Text
+
+  mentorshipId   String   @unique
+  mentorship     Mentorship   @relation(fields: [mentorshipId], references: [id], onDelete: Cascade)
+
+  mentorId       String
+  mentor         Mentor       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  entrepreneurId String
+  entrepreneur   Entrepreneur @relation(fields: [entrepreneurId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([mentorId])
+}
+
+//**** modèle avis sur la plateforme ****
+model PlatformReview {
+  id        String   @id @default(cuid())
+
+  rating    Int
+  comment   String?  @db.Text
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([rating, createdAt])
 }

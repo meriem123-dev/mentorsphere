@@ -28,6 +28,8 @@ export interface Mentor {
   mentorships: { id: string }[];
   mentorshipStatus?: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | null;
   myMentorshipRequests?: MentorshipRequestSummary[];
+  averageRating: number;
+  reviewsCount: number;
 }
 
 export interface GetMentorsResponse {
@@ -52,6 +54,8 @@ export interface MentorProfile {
   menteeCount: number;
   mentorshipStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | null;
   domains: { domain: { id: string; name: ExpertiseDomain } }[];
+  averageRating: number;
+  reviewsCount: number;
   user: {
     id: string;
     firstName: string;

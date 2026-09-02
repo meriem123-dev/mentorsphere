@@ -25,6 +25,7 @@ import type { MentorMatch } from "@/types/aiTypes";
 import { RequestMentorshipModal } from "@/features/explore/components/request-mentorship-modal";
 import { mentorshipApi } from "@/features/mentorat/api/mentorshipAPI";
 import type { Mentorship } from "@/types/mentoratTypes";
+import { FeedbackFab } from "@/features/feedback/components/feedback-fab";
 
 // Mapper
 function mapMentorMatchToRecommendedMentor(
@@ -343,6 +344,7 @@ export default function EntrepreneurDashboardPage() {
         requestedStartupIds={mentorshipModal?.requestedStartupIds ?? []}
         onSuccess={handleMentorshipSuccess}
       />
+      <FeedbackFab/>
     </>
   );
 }

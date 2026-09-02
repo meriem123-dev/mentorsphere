@@ -19,7 +19,6 @@ export interface WeeklyActivityPoint {
   messages: number;
 }
 
-
 export interface StatCardData {
   icon: LucideIcon;
   label: string;
@@ -112,4 +111,6 @@ export interface MentorDashboardStats {
   successRateDelta: string;
   upcomingSessionsCount: number;
   nextSessionLabel: string;
+  averageRating: string;
+  averageRatingDelta: string;
 }

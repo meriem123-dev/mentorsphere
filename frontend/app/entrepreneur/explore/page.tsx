@@ -41,7 +41,8 @@ function mapMentorToCardData(
     name: `${mentor.user.firstName} ${mentor.user.lastName}`,
     title: mentor.profession ?? "Mentor",
     expertise: primaryDomain ?? FALLBACK_DOMAIN,
-    rating: 5,
+    rating: mentor.averageRating?? 0,
+    reviewsCount: mentor.reviewsCount?? 0,
     menteeCount: mentor.mentorships.length,
     avatarUrl: mentor.user.profilePicture ?? undefined,
     initials,
@@ -50,6 +51,8 @@ function mapMentorToCardData(
     requestedStartupIds: Array.from(requestedStartupIds) as string[],
   };
 }
+
+
 function mapEntrepreneurToCardData(
   entrepreneur: Entrepreneur,
 ): EntrepreneurCardData {

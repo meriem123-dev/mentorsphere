@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Moon, Sun, Menu, Home } from "lucide-react";
+import { Moon, Sun, Menu, Home } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useIsClient } from "@/hooks/use-is-client";
 import type { NavItem } from "@/types/navigation";
@@ -28,9 +28,7 @@ const FOCUS_RING =
 export function TopBar({
   navItems,
   title,
-  notificationCount = 0,
   user,
-  accent = "blue",
 }: TopBarProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -65,25 +63,20 @@ export function TopBar({
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-0 sm:gap-6">
         <button
           type="button"
           aria-label="Notifications"
           className={`relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
-        >
-          <Bell className="h-4 w-4" />
-          {notificationCount > 0 && (
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand-rose ring-2 ring-card" />
-          )}
-        </button>
+        ></button>
 
         <button
           type="button"
           aria-label="Changer de thème"
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          className={`hidden h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex ${FOCUS_RING}`}
+          className={`hidden h-9 w-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex ${FOCUS_RING}`}
         >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
 
         <UserMenu

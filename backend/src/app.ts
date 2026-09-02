@@ -12,8 +12,10 @@ import aiRoutes from "./routes/aiRoutes";
 import communityRoutes from "./routes/communityRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import dashboardMentorRoutes from "./routes/dashboardMentorRoutes";
+import feedbackRoutes from "./routes/feedbackRoutes";
 
 import cookieParser from "cookie-parser";
+
 
 // app conf
 const app = express();
@@ -43,6 +45,7 @@ app.use("/api/ai",aiRoutes);
 app.use('/api/community',communityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/dashboard/mentor",dashboardMentorRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {

@@ -8,6 +8,31 @@ interface GetMentorsParams {
   currentUserId: string;
 }
 
+interface RatingAggregate {
+  averageRating: number;
+  reviewsCount: number;
+}
+
+async function getRatingAggregatesByMentorIds(
+  mentorIds: string[],
+): Promise<Map<string, RatingAggregate>> {
+  if (mentorIds.length === 0) return new Map();
+
+  const aggregates = await prisma.mentorReview.groupBy({
+    by: ["mentorId"],
+    where: { mentorId: { in: mentorIds } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+
+  return new Map(
+    aggregates.map((a) => [
+      a.mentorId,
+      { averageRating: a._avg.rating ?? 0, reviewsCount: a._count.rating },
+    ]),
+  );
+}
+
 //métier recup tous les mentors
 export const getMentors = async ({
   search,
@@ -80,6 +105,10 @@ export const getMentors = async ({
     prisma.mentor.count({ where }),
   ]);
 
+  const ratingByMentor = await getRatingAggregatesByMentorIds(
+    mentors.map((m: any) => m.id),
+  );
+
   return {
     mentors: mentors.map((mentor: any) => {
       const menteeCount = mentor.mentorships.filter(
@@ -93,6 +122,11 @@ export const getMentors = async ({
           )
         : [];
 
+      const rating = ratingByMentor.get(mentor.id) ?? {
+        averageRating: 0,
+        reviewsCount: 0,
+      };
+
       return {
         ...mentor,
         mentorships: mentor.mentorships.filter(
@@ -103,6 +137,8 @@ export const getMentors = async ({
           startupId: m.startupId,
           status: m.status,
         })),
+        averageRating: rating.averageRating,
+        reviewsCount: rating.reviewsCount,
       };
     }),
     total,
@@ -163,10 +199,18 @@ export const getMentorById = async (id: string, currentUserId: string) => {
       )
     : undefined;
 
+  const ratingAggregate = await prisma.mentorReview.aggregate({
+    where: { mentorId: id },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+
   return {
     ...mentor,
     mentorships: mentor.mentorships.filter((m: any) => m.status === "ACCEPTED"),
     menteeCount,
     mentorshipStatus: myRequest?.status ?? null,
+    averageRating: ratingAggregate._avg.rating ?? 0,
+    reviewsCount: ratingAggregate._count.rating,
   };
 };

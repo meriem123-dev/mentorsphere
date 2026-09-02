@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 interface RatingRingProps {
-  rating: number; 
+  rating: number;
   size?: number;
   strokeWidth?: number;
 }
@@ -12,7 +12,9 @@ export function RatingRing({ rating, size = 60, strokeWidth = 3 }: RatingRingPro
   const [progress, setProgress] = useState(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const pct = Math.min(rating / 5, 1);
+
+  const safeRating = Number.isFinite(rating) ? rating : 0;
+  const pct = Math.min(Math.max(safeRating / 5, 0), 1);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setProgress(pct));
