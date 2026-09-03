@@ -3,6 +3,7 @@ const N8N_CANCELLED_WEBHOOK_URL = process.env.N8N_SESSION_CANCELLED_WEBHOOK_URL;
 const N8N_RESCHEDULED_WEBHOOK_URL = process.env.N8N_SESSION_RESCHEDULED_WEBHOOK_URL;
 const N8N_REMINDER_WEBHOOK_URL = process.env.N8N_SESSION_REMINDER_WEBHOOK_URL;
 const N8N_WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET;
+const N8N_SESSION_COMPLETED_WEBHOOK_URL = process.env.N8N_SESSION_COMPLETED_WEBHOOK_URL;
 
 type SessionParticipantPayload = {
   email: string;
@@ -40,6 +41,20 @@ type SessionReminderPayload = {
   participants: SessionParticipantPayload[];
 };
 
+type SessionAISummaryPayload = {
+  objectifsAtteints: string[];
+  pointsCles: string[];
+  prochainesActions: string[];
+};
+
+type SessionCompletedPayload = {
+  sessionId: string;
+  scheduledAt: Date;
+  agenda?: string | null;
+  summary: SessionAISummaryPayload;
+  participants: Omit<SessionParticipantPayload, "joinUrl">[];
+};
+
 //fct générique d'envoi, réutilisée par toutes les notifs
 async function postToN8n(url: string | undefined, payload: unknown) {
   if (!url) return;
@@ -72,4 +87,8 @@ export async function notifySessionRescheduled(payload: SessionRescheduledPayloa
 
 export async function notifySessionReminder(payload: SessionReminderPayload) {
   await postToN8n(N8N_REMINDER_WEBHOOK_URL, payload);
+}
+
+export async function notifySessionCompleted(payload: SessionCompletedPayload) {
+  await postToN8n(N8N_SESSION_COMPLETED_WEBHOOK_URL, payload);
 }

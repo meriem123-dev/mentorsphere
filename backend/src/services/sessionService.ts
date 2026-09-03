@@ -2,8 +2,9 @@ import prisma from "../lib/prisma";
 import { getWorkspaceAccess, getWorkspaceOverview } from "./workspaceService";
 import { randomUUID } from "crypto";
 import { generateJaasToken, jaasAppId } from "../lib/jaas";
-import { notifySessionCancelled, notifySessionCreated, notifySessionRescheduled } from "../lib/n8n";
+import { notifySessionCancelled,notifySessionCompleted, notifySessionCreated, notifySessionRescheduled } from "../lib/n8n";
 import { groq, GROQ_MODEL } from "../lib/groqClient";
+
 
 //helpers
 function buildRoomName() {
@@ -181,10 +182,45 @@ export async function updateSessionStatus(
   if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
   if (!access.isMentor) return "NOT_ALLOWED_TO_CREATE" as const;
 
-  return prisma.session.update({
+  const updated = await prisma.session.update({
     where: { id: sessionId },
     data: { status },
+    include: {
+      participants: {
+        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      },
+    },
   });
+
+  if (status === "COMPLETED" && updated.rawNotes && updated.rawNotes.trim().length > 0) {
+    const summary = await generateAISummaryContent(updated.rawNotes, updated.agenda);
+
+    if (summary) {
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { aiSummary: summary },
+      });
+
+      const participantsPayload = await buildParticipantsPayload(
+        session.mentorshipId,
+        userId,
+        updated.id,
+        updated.participants,
+      );
+
+      if (participantsPayload) {
+        await notifySessionCompleted({
+          sessionId: updated.id,
+          scheduledAt: updated.scheduledAt,
+          agenda: updated.agenda,
+          summary,
+          participants: participantsPayload.map(({ joinUrl, ...rest }) => rest),
+        });
+      }
+    }
+  }
+
+  return updated;
 }
 
 //métier notes partagées
@@ -474,29 +510,15 @@ type SessionAISummary = {
   prochainesActions: string[];
 };
 
-//métier génération résumé IA à partir des notes de session
-export async function generateSessionAISummary(sessionId: string, userId: string) {
-  const { session, access } = await getAccessBySessionId(sessionId, userId);
-  if (!session) return null;
-  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
-
-  const current = await prisma.session.findUnique({
-    where: { id: sessionId },
-    select: { status: true, rawNotes: true, agenda: true },
-  });
-  if (!current) return null;
-
-  if (current.status !== "COMPLETED") {
-    return "SESSION_NOT_COMPLETED" as const;
-  }
-  if (!current.rawNotes || current.rawNotes.trim().length === 0) {
-    return "NO_NOTES" as const;
-  }
-
+//helper partagé: appel Groq + parsing, réutilisé par génération manuelle et auto
+async function generateAISummaryContent(
+  rawNotes: string,
+  agenda: string | null,
+): Promise<SessionAISummary | null> {
   const prompt = `
-Voici les notes prises lors d'une session de mentorat${current.agenda ? ` (agenda: ${current.agenda})` : ""}:
+Voici les notes prises lors d'une session de mentorat${agenda ? ` (agenda: ${agenda})` : ""}:
 
-${current.rawNotes}
+${rawNotes}
 
 Réponds UNIQUEMENT en JSON valide, sans markdown, avec ce format exact:
 {
@@ -516,23 +538,39 @@ Base-toi uniquement sur les notes fournies, sans inventer d'informations. Chaque
   const raw = completion.choices[0]?.message?.content ?? "{}";
   const cleaned = raw.replace(/```json|```/g, "").trim();
 
-  let summary: SessionAISummary;
   try {
     const parsed = JSON.parse(cleaned);
-    summary = {
+    return {
       objectifsAtteints: Array.isArray(parsed.objectifsAtteints) ? parsed.objectifsAtteints : [],
       pointsCles: Array.isArray(parsed.pointsCles) ? parsed.pointsCles : [],
       prochainesActions: Array.isArray(parsed.prochainesActions) ? parsed.prochainesActions : [],
     };
   } catch (err) {
-    console.error("generateSessionAISummary JSON parse error:", err, "raw:", raw);
-    return "AI_GENERATION_FAILED" as const;
+    console.error("generateAISummaryContent JSON parse error:", err, "raw:", raw);
+    return null;
   }
+}
 
-  const updated = await prisma.session.update({
+//métier génération résumé IA à partir des notes de session
+export async function generateSessionAISummary(sessionId: string, userId: string) {
+  const { session, access } = await getAccessBySessionId(sessionId, userId);
+  if (!session) return null;
+  if (!access || access === "FORBIDDEN") return "FORBIDDEN" as const;
+
+  const current = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: { status: true, rawNotes: true, agenda: true },
+  });
+  if (!current) return null;
+
+  if (current.status !== "COMPLETED") return "SESSION_NOT_COMPLETED" as const;
+  if (!current.rawNotes || current.rawNotes.trim().length === 0) return "NO_NOTES" as const;
+
+  const summary = await generateAISummaryContent(current.rawNotes, current.agenda);
+  if (!summary) return "AI_GENERATION_FAILED" as const;
+
+  return prisma.session.update({
     where: { id: sessionId },
     data: { aiSummary: summary },
   });
-
-  return updated;
 }
