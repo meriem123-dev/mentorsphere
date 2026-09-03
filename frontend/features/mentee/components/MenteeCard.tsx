@@ -11,6 +11,7 @@ interface MenteeCardProps {
   mentee: Mentee;
   onOpen?: (mentee: Mentee) => void;
   onViewProfile?: (entrepreneurId: string) => void;
+  
 }
 
 export function MenteeCard({ mentee, onOpen, onViewProfile }: MenteeCardProps) {
@@ -75,17 +76,13 @@ export function MenteeCard({ mentee, onOpen, onViewProfile }: MenteeCardProps) {
           Vu {mentee.lastSeenLabel.toLowerCase()}
         </span>
         <span className="text-border">·</span>
-        <span className="inline-flex items-center gap-1">
-          <MessageSquare className="h-3.5 w-3.5" aria-hidden />
-          {mentee.sessionsCount} session{mentee.sessionsCount > 1 ? "s" : ""}
-        </span>
       </div>
 
       <div className="mt-4">
         <MenteeProgressBar value={mentee.progression} />
       </div>
 
-      <div className="mt-3 flex items-center justify-end text-xs font-medium text-brand-rose opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="mt-3 flex items-center cursor-pointer justify-end text-xs font-medium text-brand-rose opacity-0 transition-opacity group-hover:opacity-100">
         Ouvrir l&apos;espace
         <ArrowUpRight className="ml-1 h-3.5 w-3.5" aria-hidden />
       </div>

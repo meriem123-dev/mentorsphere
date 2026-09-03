@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MenteesToolbar } from "@/features/mentee/components/MenteeToolBar";
 import { MenteesGrid } from "@/features/mentee/components/MenteesGrid";
-import { menteeApi, type MenteeApiResponse } from "@/features/mentee/api/menteeAPI";
+import {
+  menteeApi,
+  type MenteeApiResponse,
+} from "@/features/mentee/api/menteeAPI";
 import type { Mentee, MenteeStatus, SortKey } from "@/types/mentoratTypes";
 import { Loader2 } from "lucide-react";
 
@@ -29,20 +32,23 @@ function formatLastInteraction(dateStr: string): string {
 
 function mapToMentee(raw: MenteeApiResponse, index: number): Mentee {
   const { user } = raw.entrepreneur;
-  const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+  const initials =
+    `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
 
   return {
-    id: raw.mentorshipId,
+    mentorshipId: raw.mentorshipId,
     entrepreneurId: raw.entrepreneur.id,
     name: `${user.firstName} ${user.lastName}`,
     initials,
     avatarUrl: user.profilePicture,
     accent: index % 2 === 0 ? "rose" : "blue",
     projectName: raw.startup?.name ?? "Sans projet",
-    stage: raw.startup ? (STAGE_LABELS[raw.startup.stage] ?? raw.startup.stage) : "—",
-    status: user.isActive ? "actif" : "inactif", 
+    stage: raw.startup
+      ? (STAGE_LABELS[raw.startup.stage] ?? raw.startup.stage)
+      : "—",
+    status: user.isActive ? "actif" : "inactif",
     lastSeenLabel: formatLastInteraction(raw.lastInteractionAt),
-    sessionsCount: raw.sessionsCount, 
+    sessionsCount: raw.sessionsCount,
     progression: raw.progression,
   };
 }
@@ -50,7 +56,9 @@ function mapToMentee(raw: MenteeApiResponse, index: number): Mentee {
 export default function MenteesPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<MenteeStatus | "tous">("tous");
+  const [statusFilter, setStatusFilter] = useState<MenteeStatus | "tous">(
+    "tous",
+  );
   const [sortKey, setSortKey] = useState<SortKey>("recent");
 
   const [mentees, setMentees] = useState<Mentee[]>([]);
@@ -84,7 +92,8 @@ export default function MenteesPage() {
       const matchesSearch =
         mentee.name.toLowerCase().includes(search.toLowerCase()) ||
         mentee.projectName.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = statusFilter === "tous" || mentee.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "tous" || mentee.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
@@ -124,10 +133,12 @@ export default function MenteesPage() {
         <MenteesGrid
           mentees={filteredMentees}
           onOpenMentee={(mentee) => {
-            // TODO: router.push vers l'espace de mentorat 
+            // TODO: router.push vers l'espace de mentorat
             console.log("Ouvrir l'espace de", mentee.name);
           }}
-          onViewProfile={(entrepreneurId) => router.push(`/profil/entrepreneur/${entrepreneurId}`)}
+          onViewProfile={(entrepreneurId) =>
+            router.push(`/profil/entrepreneur/${entrepreneurId}`)
+          }
         />
       )}
     </div>

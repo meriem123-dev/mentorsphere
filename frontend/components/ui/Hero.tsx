@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BackgroundGrid } from "@/components/ui/background-grid";
+import { publicApi } from "@/features/landing/api/publicAPI";
+import type { PlatformStats } from "@/types/publicTypes";
 
 const containerVariants: Variants = {
   hidden: {},
@@ -40,8 +43,32 @@ const illustrationVariants: Variants = {
 };
 
 export function Hero() {
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const data = await publicApi.getStats();
+        if (!cancelled) setStats(data);
+      } catch (error) {
+        console.error("getStats error:", error);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-20 pb-10 px-4 overflow-hidden" id="acceuil">
+    <section
+      className="relative min-h-screen flex items-center justify-center pt-20 pb-10 px-4 overflow-hidden"
+      id="acceuil"
+    >
       <BackgroundGrid />
 
       <div className="relative max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -118,14 +145,14 @@ export function Hero() {
             </Button>
           </motion.div>
 
-          {/* Trust bar  */}
+          {/* Trust bar */}
           <motion.div
             variants={fadeUp}
             className="flex items-end gap-6 pt-4 flex-wrap"
           >
             <div>
               <p className="text-2xl font-bold text-brand-blue tabular-nums">
-                500+
+                {stats ? `${stats.startupsAccompanied}+` : "—"}
               </p>
               <p className="text-sm text-muted-foreground">
                 Startups accompagnées
@@ -147,14 +174,16 @@ export function Hero() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">10k+</span>{" "}
+                <span className="font-semibold text-foreground">
+                  {stats ? `${stats.entrepreneursCount}+` : "—"}
+                </span>{" "}
                 entrepreneurs
               </p>
             </div>
             <div className="w-px h-10 bg-border" />
             <div>
               <p className="text-2xl font-bold text-brand-blue tabular-nums">
-                +50M
+                {stats ? `${stats.mentorsCount}+` : "—"}
               </p>
               <p className="text-sm text-muted-foreground">
                 Mentors expérimentés

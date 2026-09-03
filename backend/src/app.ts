@@ -13,6 +13,7 @@ import communityRoutes from "./routes/communityRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import dashboardMentorRoutes from "./routes/dashboardMentorRoutes";
 import feedbackRoutes from "./routes/feedbackRoutes";
+import publicRoutes from "./routes/publicRoutes";
 
 import cookieParser from "cookie-parser";
 
@@ -46,6 +47,7 @@ app.use('/api/community',communityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/dashboard/mentor",dashboardMentorRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/public",publicRoutes);
 
 //404 pour les routes inconnues
 app.use((req, res) => {

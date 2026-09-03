@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
-
-
+import { publicApi } from "@/features/landing/api/publicAPI";
+import type { PlatformStats } from "@/types/publicTypes";
 
 //list stats
 const stats = [
@@ -13,7 +14,34 @@ const stats = [
 
 //mon cmpst
 export function LoginHero() {
-  
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const data = await publicApi.getStats();
+        if (!cancelled) setStats(data);
+      } catch (error) {
+        console.error("getStats error:", error);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayStats = [
+    { value: stats ? `${stats.mentorsCount}+` : "—", label: "mentors experts" },
+    {
+      value: stats ? `${stats.entrepreneursCount}+` : "—",
+      label: "entrepreneurs actifs",
+    },
+  ];
 
   //animations
   const container = {
@@ -115,7 +143,7 @@ export function LoginHero() {
         variants={fadeUp}
         className="relative flex gap-8 border-t border-white/10 pt-6"
       >
-        {stats.map((s) => (
+        {displayStats.map((s) => (
           <div key={s.label}>
             <div className="text-2xl font-semibold text-white">{s.value}</div>
             <div className="text-xs uppercase tracking-wide text-white/50">

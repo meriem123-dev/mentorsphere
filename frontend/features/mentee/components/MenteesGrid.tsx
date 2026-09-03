@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { MenteeCard } from "./MenteeCard";
 import { EmptyMenteesState } from "./EmptyMenteeState";
 import type { Mentee } from "../../../types/mentoratTypes";
+import { useRouter } from "next/navigation";
 
 interface MenteesGridProps {
   mentees: Mentee[];
@@ -24,6 +25,8 @@ const item = {
 };
 
 export function MenteesGrid({ mentees, onOpenMentee, onViewProfile }: MenteesGridProps) {
+  const router = useRouter();
+
   if (mentees.length === 0) {
     return <EmptyMenteesState />;
   }
@@ -36,8 +39,8 @@ export function MenteesGrid({ mentees, onOpenMentee, onViewProfile }: MenteesGri
       className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
     >
       {mentees.map((mentee) => (
-        <motion.div key={mentee.id} variants={item}>
-          <MenteeCard mentee={mentee} onOpen={onOpenMentee} onViewProfile={onViewProfile} />
+        <motion.div key={mentee.mentorshipId} variants={item}>
+          <MenteeCard mentee={mentee}  onOpen={(m) => router.push(`/mentor/workspace/${m.mentorshipId}`)} onViewProfile={onViewProfile} />
         </motion.div>
       ))}
     </motion.div>

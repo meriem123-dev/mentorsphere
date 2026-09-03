@@ -1,37 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
+import { publicApi } from "@/features/landing/api/publicAPI";
+import type { Testimonial } from "@/types/publicTypes";
 
-interface Testimonial {
-  quote: string;
-  name: string;
-  role: string;
-}
-
-//list testimonials
-const testimonials: Testimonial[] = [
-  {
-    quote:
-      "En trois semaines, mon idée floue est devenue un vrai plan d'action. Ma mentore m'a challengé sur mon pricing dès la première session.",
-    name: "Yanis Kaddour",
-    role: "Fondateur, idée validée",
-  },
-  {
-    quote:
-      "Le Workspace centralise tout : plus besoin de jongler entre Notion, WhatsApp et Zoom pour suivre mes 4 startups en mentorat.",
-    name: "Sarah Belaïd",
-    role: "Mentore, Growth & Levée de fonds",
-  },
-  {
-    quote:
-      "L'assistant IA a détecté un point faible dans mon pitch que même mon mentor n'avait pas vu. Les deux se complètent bien.",
-    name: "Rayan Hamidi",
-    role: "Fondateur, en recherche de financement",
-  },
-];
-
-
-//animations
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
@@ -42,9 +15,31 @@ const containerVariants: Variants = {
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
-
-//mon cmpst
 export function Testimonials() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const res = await publicApi.getTestimonials(3);
+        if (!cancelled) setTestimonials(res.testimonials);
+      } catch (error) {
+        console.error("getTestimonials error:", error);
+        if (!cancelled) setTestimonials([]);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (testimonials.length === 0) return null;
+
   return (
     <section className="relative py-24 px-4 overflow-hidden" id="testimo">
       <div className="max-w-6xl mx-auto">
@@ -72,13 +67,11 @@ export function Testimonials() {
         >
           {testimonials.map((t) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               variants={fadeUp}
               className="rounded-2xl bg-gradient-brand backdrop-blur-sm border border-white/15 p-7 flex flex-col"
             >
-              <span className="font-serif text-5xl leading-none text-white/50 mb-3 select-none">
-                &ldquo;
-              </span>
+              <span className="font-serif text-5xl leading-none text-white/50 mb-3 select-none">&ldquo;</span>
               <p className="text-sm text-white/90 leading-relaxed mb-6 flex-1">{t.quote}</p>
               <div className="h-px bg-white/20 mb-4" />
               <p className="text-sm font-semibold text-white">{t.name}</p>

@@ -67,7 +67,7 @@ export interface GetMentorsResponseWrapper {
 export type MenteeStatus = "actif" | "inactif";
 
 export interface Mentee {
-  id: string;
+  mentorshipId: string;
   entrepreneurId: string;
   name: string;
   initials: string;
