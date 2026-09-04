@@ -9,7 +9,7 @@ import { getMentorBriefingState, generateMentorBriefing } from "../services/ment
 
 //  Résumé IA 
 
-// tab summary — check cache/état, ne consomme aucune tentative
+// tab summary check cache/état, ne consomme aucune tentative
 export async function getAISummary(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -33,7 +33,7 @@ export async function getAISummary(req: Request, res: Response) {
   }
 }
 
-// bouton Générer/Régénérer — consomme une tentative si disponible
+// bouton Générer/Régénérer consomme une tentative si disponible
 export async function generateAISummaryHandler(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -59,7 +59,7 @@ export async function generateAISummaryHandler(req: Request, res: Response) {
 
 //  Recommandations mentors 
 
-// tab matching — check cache/état, ne consomme aucune tentative
+// tab matching  check cache/état, ne consomme aucune tentative
 export async function getMentorMatches(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -81,7 +81,7 @@ export async function getMentorMatches(req: Request, res: Response) {
   }
 }
 
-// bouton Générer/Régénérer — consomme une tentative si disponible
+// bouton Générer/Régénérer  consomme une tentative si disponible
 export async function generateMentorMatchesHandler(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -104,7 +104,7 @@ export async function generateMentorMatchesHandler(req: Request, res: Response) 
 }
 
 
-// tab analyse — check cache/état, ne consomme aucune tentative
+// tab analyse  check cache/état, ne consomme aucune tentative
 export async function getSwotAnalysis(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -126,7 +126,7 @@ export async function getSwotAnalysis(req: Request, res: Response) {
   }
 }
 
-// bouton Générer/Régénérer — consomme une tentative si disponible
+// bouton Générer/Régénérer  consomme une tentative si disponible
 export async function generateSwotAnalysisHandler(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -148,7 +148,7 @@ export async function generateSwotAnalysisHandler(req: Request, res: Response) {
   }
 }
 
-
+//recup chat IA
 export async function getAIChat(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -170,6 +170,7 @@ export async function getAIChat(req: Request, res: Response) {
   }
 }
 
+// envoyer un message dans la conversation IA
 export async function sendAIChatMessageHandler(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -197,7 +198,7 @@ export async function sendAIChatMessageHandler(req: Request, res: Response) {
   
 }
 
-// tab briefing mentor — check cache/état, ne consomme aucune tentative
+// tab briefing mentor  check cache/état, ne consomme aucune tentative
 export async function getMentorBriefing(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;
@@ -222,7 +223,7 @@ export async function getMentorBriefing(req: Request, res: Response) {
   }
 }
 
-// bouton Générer/Régénérer — consomme une tentative si disponible
+// bouton Générer/Régénérer  consomme une tentative si disponible
 export async function generateMentorBriefingHandler(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.params;

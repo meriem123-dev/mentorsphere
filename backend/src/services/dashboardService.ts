@@ -5,6 +5,7 @@ import { resolveWindow, computeWindowResetAt } from "../lib/aiRateLimit";
 import type { AISuggestion } from "../types/dashTypes";
 import { Prisma } from "@prisma/client";
 
+//helpers
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay(); // 0 = dimanche
@@ -46,6 +47,7 @@ function formatSessionLabel(scheduledAt: Date, now: Date): string {
   return `${dateLabel} ${time}`;
 }
 
+//métier dashboard stats
 export async function getEntrepreneurDashboardStats(
   userId: string,
 ): Promise<DashboardStats> {

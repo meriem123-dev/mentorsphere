@@ -88,6 +88,7 @@ interface RateMentorParams {
   comment?: string;
 }
 
+//métier noter
 export const rateMentor = async ({
   userId,
   mentorshipId,
@@ -126,7 +127,7 @@ export const rateMentor = async ({
   });
 };
 
-//avis plateforme existant (pour préremplir la modale à l'ouverture)
+//avis plateforme existant 
 export const getMyPlatformReview = async (userId: string) => {
   return prisma.platformReview.findUnique({ where: { userId } });
 };
@@ -153,7 +154,7 @@ export const submitPlatformReview = async ({
   });
 };
 
-//témoignages publics (notes hautes + commentaire renseigné)
+//témoignages publics 
 export const getTestimonials = async (limit = 6) => {
   const reviews = await prisma.platformReview.findMany({
     where: {

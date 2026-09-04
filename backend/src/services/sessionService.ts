@@ -268,6 +268,7 @@ export async function getSessionById(sessionId: string, userId: string) {
   };
 }
 
+//métier recup des credentials pour rejoindre la room (JaaS)
 export async function getSessionRoomCredentials(
   sessionId: string,
   userId: string,

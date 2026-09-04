@@ -11,6 +11,7 @@ function getParam(req: Request, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+//recups tasks
 export async function listTasksHandler(req: Request, res: Response) {
   const mentorshipId = getParam(req, "mentorshipId");
   if (!mentorshipId)
@@ -30,6 +31,7 @@ export async function listTasksHandler(req: Request, res: Response) {
   }
 }
 
+//créer task
 export async function createTaskHandler(req: Request, res: Response) {
   const mentorshipId = getParam(req, "mentorshipId");
   if (!mentorshipId)
@@ -81,6 +83,7 @@ export async function createTaskHandler(req: Request, res: Response) {
   }
 }
 
+//modifier une tache
 export async function updateTaskHandler(req: Request, res: Response) {
   const mentorshipId = getParam(req, "mentorshipId");
   const taskId = getParam(req, "taskId");
@@ -108,7 +111,7 @@ export async function updateTaskHandler(req: Request, res: Response) {
     return res.status(403).json({ error: "FORBIDDEN" });
   }
 
-  // si ce n'est qu'un changement de statut et que l'utilisateur ne gère pas les sessions,
+
   // il doit être l'assigné de la tâche pour pouvoir la cocher/décocher
   if (onlyStatusChange && !canManageSessions) {
     const existingTask = await taskService.findById(mentorshipId, taskId);
@@ -161,6 +164,7 @@ try {
   }
 }
 
+//supp tache
 export async function deleteTaskHandler(req: Request, res: Response) {
   const mentorshipId = getParam(req, "mentorshipId");
   const taskId = getParam(req, "taskId");

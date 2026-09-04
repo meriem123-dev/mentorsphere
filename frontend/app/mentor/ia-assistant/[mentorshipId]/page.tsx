@@ -20,7 +20,7 @@ export default function AssistantIAMentorPage() {
 
     const load = async () => {
       try {
-        // endpoint pour aprés
+        // endpoint
         const summaries = await workspaceApi.getSummaries();
         const current = summaries.find((s) => s.id === mentorshipId);
         if (!cancelled) setStartupName(current?.startupName ?? "votre mentoré");

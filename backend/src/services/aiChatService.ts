@@ -21,6 +21,7 @@ function resolveWindow(windowStart: Date | null, attempts: number) {
   };
 }
 
+//helper construction du prompt
 async function buildSystemPrompt(mentorshipId: string): Promise<string> {
   const mentorship = await prisma.mentorship.findUniqueOrThrow({
     where: { id: mentorshipId },

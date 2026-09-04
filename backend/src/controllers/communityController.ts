@@ -5,6 +5,7 @@ import * as communityService from "../services/communityService";
 const MAX_CONTENT_LENGTH = 2000;
 const VALID_TAGS = Object.values(PostTag);
 
+//recup posts
 export async function listPostsHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -18,6 +19,7 @@ export async function listPostsHandler(req: Request, res: Response) {
   }
 }
 
+//créer post
 export async function createPostHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -49,6 +51,7 @@ export async function createPostHandler(req: Request, res: Response) {
   }
 }
 
+//liker
 export async function toggleLikeHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -66,6 +69,7 @@ export async function toggleLikeHandler(req: Request, res: Response) {
   }
 }
 
+//enregistrer
 export async function toggleSaveHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -84,7 +88,7 @@ export async function toggleSaveHandler(req: Request, res: Response) {
 }
 
 const MAX_COMMENT_LENGTH = 1000;
-
+//recup commentaires
 export async function listCommentsHandler(req: Request, res: Response) {
   try {
     const postId = Array.isArray(req.params.postId) ? req.params.postId[0] : req.params.postId;
@@ -101,6 +105,7 @@ export async function listCommentsHandler(req: Request, res: Response) {
   }
 }
 
+//commenter
 export async function createCommentHandler(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;

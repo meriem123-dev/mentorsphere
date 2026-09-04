@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getPlatformStats, getTestimonials } from "../services/publicService";
 
+//recup stats
 export const getStats = async (_req: Request, res: Response) => {
   try {
     const stats = await getPlatformStats();
@@ -11,6 +12,7 @@ export const getStats = async (_req: Request, res: Response) => {
   }
 };
 
+//recup feedbacks
 export const getTestimonialsList = async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? Number(req.query.limit) : 3;

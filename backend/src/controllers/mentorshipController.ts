@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import * as mentorshipService from "../services/mentorshipService";
 
 
-//http create controlleurs
+//http create demande
 export const createMentorshipRequest = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
@@ -39,6 +39,7 @@ export const createMentorshipRequest = async (req: Request, res: Response) => {
   }
 };
 
+//http get demandes
 export const getReceivedRequests = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
@@ -56,6 +57,7 @@ export const getReceivedRequests = async (req: Request, res: Response) => {
   }
 };
 
+//http recup demandes
 export const getSentRequests = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
@@ -66,7 +68,7 @@ export const getSentRequests = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Erreur serveur." });
   }
 };
-
+//http repondre demande
 export const respondToRequest = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;

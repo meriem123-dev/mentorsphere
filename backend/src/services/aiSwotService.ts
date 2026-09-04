@@ -15,6 +15,7 @@ const EMPTY_SWOT: SwotAnalysisResult = {
   generatedAt: new Date().toISOString(),
 };
 
+//helper
 async function buildFreshSwotAnalysis(mentorshipId: string): Promise<SwotAnalysisResult> {
   const mentorship = await prisma.mentorship.findUniqueOrThrow({
     where: { id: mentorshipId },

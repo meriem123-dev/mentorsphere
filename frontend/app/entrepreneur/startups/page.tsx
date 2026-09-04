@@ -92,7 +92,7 @@ function mapJoinRequestToCollabRequest(request: JoinRequest): CollabRequest {
     projectId: request.startupId,
     projectName: request.startup.name,
     requester: {
-      id: request.requester.id, // id Entrepreneur — utilisé pour /profil/entrepreneur/[id]
+      id: request.requester.id, // id Entrepreneur
       userId: request.requester.userId,
       name: `${firstName} ${lastName}`,
       initials: getInitials(firstName, lastName),

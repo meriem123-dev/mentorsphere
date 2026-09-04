@@ -2,7 +2,7 @@ const MJ_API_KEY = process.env.MAILJET_API_KEY as string;
 const MJ_SECRET_KEY = process.env.MAILJET_SECRET_KEY as string;
 const MJ_API_URL = "https://api.mailjet.com/v3.1/send";
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "no-reply@mentorsphere.com";
+const FROM_EMAIL = process.env.EMAIL_FROM || "mentorsphere.platform@gmail.com";
 const FROM_NAME = "MentorSphere";
 
 function getAuthHeader() {

@@ -5,7 +5,7 @@ import {
   deleteWorkspaceDocument,
 } from "../services/documentService";
 
-
+//recup
 export async function listDocumentsHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;
@@ -25,6 +25,7 @@ export async function listDocumentsHandler(req: Request, res: Response) {
   }
 }
 
+//upload
 export async function uploadDocumentHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;
@@ -50,6 +51,7 @@ export async function uploadDocumentHandler(req: Request, res: Response) {
   }
 }
 
+//supp
 export async function deleteDocumentHandler(req: Request, res: Response) {
   try {
     const mentorshipId = req.params.id as string;

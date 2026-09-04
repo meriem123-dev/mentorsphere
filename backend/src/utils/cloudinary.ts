@@ -21,7 +21,7 @@ export function uploadToCloudinary(
         ...(resourceType === "image"
           ? {}
           : {
-              // pour "raw" ET "video", l'extension doit être DANS le public_id
+              // pour "raw" ET "video"
               public_id: `${baseName}-${Date.now()}${ext}`,
             }),
       },

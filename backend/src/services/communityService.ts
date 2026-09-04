@@ -20,6 +20,7 @@ const postInclude = {
 
 type PostWithRelations = Prisma.PostGetPayload<{ include: typeof postInclude }>;
 
+//hepler mappage
 function mapPostToDTO(
   post: PostWithRelations,
   likedPostIds: Set<string>,
@@ -49,6 +50,7 @@ function mapPostToDTO(
   };
 }
 
+//métier recup posts
 export async function listPosts(userId: string, cursor?: string) {
   const posts = await prisma.post.findMany({
     take: PAGE_SIZE + 1,
@@ -83,6 +85,7 @@ export async function listPosts(userId: string, cursor?: string) {
   };
 }
 
+//métier création
 export async function createPost(userId: string, input: CreatePostInput) {
   const post = await prisma.post.create({
     data: {
@@ -96,6 +99,7 @@ export async function createPost(userId: string, input: CreatePostInput) {
   return mapPostToDTO(post, new Set(), new Set());
 }
 
+//métier liker
 export async function toggleLike(postId: string, userId: string) {
   const existing = await prisma.postLike.findUnique({
     where: { postId_userId: { postId, userId } },
@@ -157,6 +161,7 @@ interface CommentDTO {
   replies: CommentDTO[];
 }
 
+//helper
 function mapCommentToDTO(comment: CommentWithRelations, replies: CommentDTO[] = []): CommentDTO {
   const profession =
     comment.author.mentor?.profession ?? comment.author.entrepreneur?.profession ?? null;
@@ -178,6 +183,7 @@ function mapCommentToDTO(comment: CommentWithRelations, replies: CommentDTO[] = 
   };
 }
 
+//métier recup comments
 export async function listComments(postId: string): Promise<CommentDTO[]> {
   const comments = await prisma.postComment.findMany({
     where: { postId },
@@ -210,6 +216,7 @@ export async function listComments(postId: string): Promise<CommentDTO[]> {
   return topLevel;
 }
 
+//métier commnenter
 export async function createComment(
   postId: string,
   userId: string,

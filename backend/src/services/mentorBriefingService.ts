@@ -114,6 +114,7 @@ Réponds UNIQUEMENT en JSON valide (pas de préambule, pas de balises markdown, 
 Base les évolutions et l'agenda uniquement sur les données fournies ci-dessus, sans inventer de chiffres. Maximum 4 keyEvolutions et 5 points d'agenda. Reste concis et actionnable.`;
 }
 
+//appel groq pour la synthèse
 async function callGroqForBriefing(mentorshipId: string): Promise<MentorBriefingResult> {
   const { mentorship } = await gatherBriefingData(mentorshipId);
   const prompt = buildPrompt(mentorship);
@@ -157,7 +158,7 @@ async function callGroqForBriefing(mentorshipId: string): Promise<MentorBriefing
   };
 }
 
-/// GET — appelé au montage, ne consomme aucune tentative
+/// GET  appelé au montage, ne consomme aucune tentative
 export async function getMentorBriefingState(
   mentorshipId: string
 ): Promise<AIGenerationState<MentorBriefingResult>> {
@@ -184,7 +185,7 @@ export async function getMentorBriefingState(
   };
 }
 
-// POST — bouton Générer/Régénérer, consomme une tentative si dispo
+// POST  bouton Générer/Régénérer, consomme une tentative si dispo
 export async function generateMentorBriefing(
   mentorshipId: string
 ): Promise<AIGenerationOutcome<MentorBriefingResult>> {
@@ -206,7 +207,6 @@ export async function generateMentorBriefing(
     const cached = (mentorship.mentorBriefingCache as unknown as MentorBriefingResult) ?? null;
     if (!cached) {
       // pas de cache et plus de tentatives : on force une réponse malgré tout
-      // (cas limite rare — décide si tu préfères throw une 429 côté controller à la place)
     }
     return {
       result: cached as MentorBriefingResult,

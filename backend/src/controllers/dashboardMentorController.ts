@@ -7,6 +7,7 @@ import {
   getMentorUpcomingSessions,
 } from "../services/dashboradMentorService";
 
+//stats
 export async function getMentorDashboardStatsHandler(req: Request, res: Response) {
   try {
     const stats = await getMentorDashboardStats(req.user!.userId);
@@ -16,6 +17,7 @@ export async function getMentorDashboardStatsHandler(req: Request, res: Response
   }
 }
 
+//progress mentorés
 export async function getMentorMenteeProgressHandler(req: Request, res: Response) {
   try {
     const mentees = await getMentorMenteeProgress(req.user!.userId);
@@ -25,6 +27,7 @@ export async function getMentorMenteeProgressHandler(req: Request, res: Response
   }
 }
 
+//sessions
 export async function getMentorSessionsActivityHandler(req: Request, res: Response) {
   try {
     const activity = await getMentorSessionsActivity(req.user!.userId);
@@ -34,6 +37,7 @@ export async function getMentorSessionsActivityHandler(req: Request, res: Respon
   }
 }
 
+//sessions à venir
 export async function getMentorUpcomingSessionsHandler(req: Request, res: Response) {
   try {
     const sessions = await getMentorUpcomingSessions(req.user!.userId);
@@ -43,6 +47,7 @@ export async function getMentorUpcomingSessionsHandler(req: Request, res: Respon
   }
 }
 
+//testimonials
 export const getRecentFeedbacks = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;

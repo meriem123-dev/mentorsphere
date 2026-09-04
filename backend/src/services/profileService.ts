@@ -90,12 +90,14 @@ interface UpdateMentorProfileInput {
 }
 
 export class ProfileService {
+  //recup user profile
   static async getUserById(userId: string) {
     return prisma.user.findUnique({
       where: { id: userId },
       select: { profileCompleted: true },
     });
   }
+  //métier completer profile entrepreneur
   static async completeEntrepreneurProfile(
     input: CompleteEntrepreneurProfileInput,
   ) {
@@ -226,6 +228,7 @@ export class ProfileService {
     );
   }
 
+  //métier completer profile mentor
   static async completeMentorProfile(input: CompleteMentorProfileInput) {
     const photoUrl = input.photoFile
       ? await uploadToCloudinary(input.photoFile, "profiles")

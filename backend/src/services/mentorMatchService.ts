@@ -7,6 +7,7 @@ import type { MentorMatch, MentorMatchesResult, AIGenerationState, AIGenerationO
 const AI_WINDOW_MS = 60 * 60 * 1000; // fenêtre d'1h
 const AI_MAX_ATTEMPTS = 3;
 
+// Appelé au clic sur "Générer" / "Régénérer" : consomme une tentative si dispo
 async function buildFreshMentorMatches(
   mentorshipId: string,
 ): Promise<MentorMatchesResult> {

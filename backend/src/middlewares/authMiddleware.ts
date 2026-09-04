@@ -33,7 +33,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-//vérifie que l'utilisateur a le bon rôle (ex: MENTOR uniquement)
+//vérifie que l'utilisateur a le bon rôle 
 export const requireRole = (...roles: JwtPayload["role"][]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {

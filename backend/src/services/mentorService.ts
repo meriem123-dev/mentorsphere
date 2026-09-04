@@ -13,6 +13,7 @@ interface RatingAggregate {
   reviewsCount: number;
 }
 
+//méteir recup notes et avis
 async function getRatingAggregatesByMentorIds(
   mentorIds: string[],
 ): Promise<Map<string, RatingAggregate>> {

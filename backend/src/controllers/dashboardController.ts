@@ -10,7 +10,7 @@ import { getEntrepreneurDashboardStats,  getEntrepreneurParcours,
 } from "../services/mentorMatchService"; 
 import { assertMentorshipOwnership } from "../services/dashboardService";
 
-
+//stats
 export async function getDashboardStats(req: Request, res: Response) {
   try {
     const userId = req.user!.userId; 
@@ -24,7 +24,7 @@ export async function getDashboardStats(req: Request, res: Response) {
   }
 }
 
-
+//parcours
 export async function getParcours(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -37,6 +37,7 @@ export async function getParcours(req: Request, res: Response) {
   }
 }
 
+//mes startups
 export async function getStartupsList(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -48,6 +49,7 @@ export async function getStartupsList(req: Request, res: Response) {
   }
 }
 
+//sessions et messages
 export async function getWeeklyActivity(req: Request, res: Response) {
   try {
     const userId = req.user!.userId;
@@ -60,7 +62,7 @@ export async function getWeeklyActivity(req: Request, res: Response) {
 }
 
 
-
+//menotorats
 export async function getMentorshipsList(req: Request, res: Response) {
   try {
     const mentorships = await getEntrepreneurMentorshipsList(req.user!.userId);
@@ -71,6 +73,7 @@ export async function getMentorshipsList(req: Request, res: Response) {
   }
 }
 
+//ia suggestions
 export async function getSuggestionsState(req: Request, res: Response) {
   try {
     const mentorshipId = req.query.mentorshipId as string | undefined;
@@ -85,6 +88,7 @@ export async function getSuggestionsState(req: Request, res: Response) {
   }
 }
 
+// bouton Générer/Régénérer  consomme une tentative si disponible
 export async function postSuggestions(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.body as { mentorshipId?: string };
@@ -99,6 +103,7 @@ export async function postSuggestions(req: Request, res: Response) {
   }
 }
 
+//recommendation mentors
 export async function getMentorMatchesStateController(req: Request, res: Response) {
   try {
     const mentorshipId = req.query.mentorshipId as string | undefined;
@@ -114,6 +119,7 @@ export async function getMentorMatchesStateController(req: Request, res: Respons
   }
 }
 
+// bouton Générer/Régénérer  consomme une tentative si disponible
 export async function postMentorMatches(req: Request, res: Response) {
   try {
     const { mentorshipId } = req.body as { mentorshipId?: string };

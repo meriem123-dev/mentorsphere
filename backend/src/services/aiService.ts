@@ -140,6 +140,7 @@ function computeHealthScore(metrics: HealthMetrics): number {
   return Math.round(Math.max(0, Math.min(100, score)));
 }
 
+//métier recup résumé IA
 async function getSessionsSummary(mentorshipId: string): Promise<AISessionsSummary | null> {
   const sessions = await prisma.session.findMany({
     where: { mentorshipId, status: "COMPLETED", aiSummary: { not: Prisma.JsonNull } },
@@ -174,6 +175,7 @@ async function getSessionsSummary(mentorshipId: string): Promise<AISessionsSumma
   };
 }
 
+//métier génération synthèse et alertes IA
 async function generateSynthesisAndAlerts(
   kpis: AIKpi[],
   healthScore: number,
@@ -215,6 +217,7 @@ Génère entre 0 et 3 alertes pertinentes basées uniquement sur les KPIs fourni
   }
 }
 
+//métier génération résumé IA
 async function buildFreshAISummary(mentorshipId: string): Promise<AISummaryResult> {
   const { kpis, metrics } = await computeKpis(mentorshipId);
   const healthScore = computeHealthScore(metrics);

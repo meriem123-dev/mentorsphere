@@ -1,4 +1,3 @@
-// frontend/app/mentor/mentorship-requests/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -47,7 +46,6 @@ export default function MentorshipRequestsPage() {
   const [requests, setRequests] = useState<MentorshipRequestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  
 
   useEffect(() => {
   let cancelled = false;
