@@ -26,13 +26,13 @@ Projet personnel.
 ### Espace Entrepreneur
 
 - Dashboard : statistiques, activité, parcours et suggestions IA
-- Startups : gestion de plusieurs projets (création, modification, statut, besoins)
+- Startups : gestion de plusieurs projets (création, modification, roadmap)
 - Mon Parcours : roadmap de la startup, étapes et progression
 - Workspace : espace de mentorat (messagerie, objectifs, documents, résumés IA)
 - Explorer : recherche de mentors et d'entrepreneurs ,demandes de mentorat
 - Communauté : publications, questions, commentaires, likes
-- IA Assistant : analyse d'idée, roadmap, amélioration de pitch, recommandations de mentors
-- Ressources : articles, documents et vidéos 
+- IA Assistant : analyse d'idée, amélioration de pitch, recommandations de mentors
+- Ressources : liens, documents et vidéos 
 
 ### Espace Mentor
 
@@ -42,7 +42,7 @@ Projet personnel.
 - Workspace : messagerie, objectifs, notes, documents, suivi de progression
 - Communauté : publications, questions, commentaires
 - IA Assistant : résumé automatique, analyse de projet, briefing, plans d'action
-- Ressources : publication de vidéos, documents et 
+- Ressources : publication de vidéos, documents et liens 
 
 ### Fonctionnalités communes
 
@@ -72,9 +72,11 @@ Projet personnel.
 - Express.js, TypeScript
 - Prisma ORM
 - JWT, bcrypt
-- `jsonwebtoken` (RS256) et `google-auth-library` pour JaaS
+- `jsonwebtoken` (RS256) et `google-auth-library` pour l'authentification JaaS
 - Multer et Cloudinary pour les fichiers
 - Socket.io pour le temps réel
+- Mailjet pour l'envoi des emails transactionnels
+- JaaS (Jitsi as a Service) pour les visioconférences
 
 ### Base de données
 
@@ -87,12 +89,14 @@ Projet personnel.
 - Modèle `openai/gpt-oss-120b`
 - Cas d'usage : analyse d'idée, génération de roadmap, amélioration de pitch, résumé de réunions, recommandations de mentors, chat IA
 
-### Infrastructure et outillage
+## Infrastructure et outillage
 
 - Frontend déployé sur Vercel
 - Backend déployé sur Render
 - Base de données hébergée sur Neon
-- Images hébergées sur Cloudinary
+- Images et fichiers hébergés sur Cloudinary
+- Emails transactionnels envoyés via Mailjet
+- Visioconférences intégrées avec JaaS (Jitsi as a Service)
 - Workflows n8n conçus pour l'automatisation des emails (sessions créées, annulées, reportées, rappels) — publiés mais non encore déployés
 - Git et GitHub, CI via GitHub Actions
 - Diagramme de classes réalisé avec Visual Paradigm
