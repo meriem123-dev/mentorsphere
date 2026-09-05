@@ -174,7 +174,7 @@ export function VerifyEmailStatus() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground mt-2">
-                Si ce compte existe et n&apos;est pas déjà vérifié, un nouvel email vient d&apos;être envoyé.
+                Si ce compte existe et n&apos;est pas déjà vérifié, un nouvel email vient d&apos;être envoyé (vérifiez votre dossier de spam).
               </p>
             )}
           </>

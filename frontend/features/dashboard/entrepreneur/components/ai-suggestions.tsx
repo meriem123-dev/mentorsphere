@@ -18,7 +18,7 @@ export function AISuggestions({ suggestions, onRegenerate, isGenerating, attempt
 
       {suggestions.length === 0 && !isGenerating ? (
         <p className="rounded-xl bg-muted/60 p-3 text-sm text-muted-foreground">
-          Aucune suggestion pour l&lpos;instant. Génère-en une pour ce mentorat.
+          Aucune suggestion pour l&apos;instant. Génère-en une pour ce mentorat.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
