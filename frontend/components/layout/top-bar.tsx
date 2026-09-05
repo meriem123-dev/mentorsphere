@@ -63,12 +63,7 @@ export function TopBar({
         </h1>
       </div>
 
-      <div className="flex items-center gap-0 sm:gap-6">
-        <button
-          type="button"
-          aria-label="Notifications"
-          className={`relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${FOCUS_RING}`}
-        ></button>
+      <div className="flex items-center gap-0 sm:gap-3">
 
         <button
           type="button"
@@ -78,6 +73,8 @@ export function TopBar({
         >
           {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
+
+         <div className="w-px h-5 bg-border mx-1 bg-primary" />
 
         <UserMenu
           name={user.name}

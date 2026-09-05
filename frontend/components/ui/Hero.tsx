@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
+import NextLink from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -136,12 +137,28 @@ export function Hero() {
             <Button
               size="lg"
               className="bg-gradient-brand hover:opacity-90 text-white gap-2"
+              nativeButton={false}
+              render={(props) => (
+                <NextLink href="/auth/login" {...props}>
+                  {props.children}
+                </NextLink>
+              )}
             >
-              Commencer
-              <ArrowRight className="h-4 w-4" />
+              Se connecter
+             
             </Button>
-            <Button size="lg" variant="outline">
-              En savoir plus
+            <Button
+              size="lg"
+              variant="outline"
+              nativeButton={false}
+              render={(props) => (
+                <NextLink href="/auth/Registration" {...props}>
+                  {props.children}
+                </NextLink>
+              )}
+            >
+              Ouvrir un compte
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </motion.div>
 
@@ -192,7 +209,7 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Right — Startup Journey, le différenciateur du produit, comme signature visuelle */}
+        {/* Right — Startup Journey */}
         <motion.div
           variants={illustrationVariants}
           initial="hidden"

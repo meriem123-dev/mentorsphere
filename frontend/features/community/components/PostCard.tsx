@@ -21,9 +21,10 @@ interface PostCardProps {
     avatarUrl?: string | null;
     avatarColor?: string | null;
   };
+  onSaveChanged?: (postId: string, saved: boolean) => void;
 }
 
-export function PostCard({ post, currentUser }: PostCardProps) {
+export function PostCard({ post, currentUser, onSaveChanged, }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [isSaved, setIsSaved] = useState(post.isSavedByMe);
@@ -63,6 +64,7 @@ export function PostCard({ post, currentUser }: PostCardProps) {
       const result = await communityApi.save(post.id);
       setIsSaved(result.saved);
       setSavesCount(result.savesCount);
+      onSaveChanged?.(post.id, result.saved);
     } catch (error) {
       setIsSaved(previousSaved);
       setSavesCount(previousCount);
@@ -99,7 +101,7 @@ export function PostCard({ post, currentUser }: PostCardProps) {
         </span>
       </div>
 
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+      <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
         {post.content}
       </p>
 

@@ -34,9 +34,9 @@ const faqItems: FAQItem[] = [
       "Oui. Vous pouvez mettre à jour votre profil, vos compétences, votre photo et vos informations personnelles à tout moment depuis les paramètres de votre compte.",
   },
   {
-    question: "Puis-je changer de mentor ?",
+    question: "Comment est généré le résumé IA d’une session ?",
     answer:
-      "Oui, à tout moment. Vous pouvez mettre fin à un mentorat depuis votre espace et relancer une recherche ou solliciter une nouvelle recommandation de l'IA.",
+      "Le résumé IA est généré à partir des notes prises pendant les sessions de mentorat. L’IA analyse ces notes afin d’identifier les points clés abordés, les décisions prises, les objectifs définis et les prochaines actions à réaliser, puis les synthétise dans un résumé clair et structuré.",
   },
 ];
 

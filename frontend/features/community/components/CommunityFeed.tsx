@@ -6,6 +6,7 @@ import { communityApi } from "../api/communityAPI";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
 import type { Post } from "../../../types/communityTypes";
+import { Bookmark } from "lucide-react";
 
 interface CommunityFeedProps {
   currentUser: {
@@ -22,6 +23,10 @@ export function CommunityFeed({ currentUser }: CommunityFeedProps) {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+  const displayedPosts = showSavedOnly
+    ? posts.filter((post) => post.isSavedByMe)
+    : posts;
 
   useEffect(() => {
     let cancelled = false;
@@ -64,18 +69,44 @@ export function CommunityFeed({ currentUser }: CommunityFeedProps) {
     setPosts((prev) => [post, ...prev]);
   }
 
+  function handleSaveChanged(postId: string, saved: boolean) {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              isSavedByMe: saved,
+            }
+          : post,
+      ),
+    );
+  }
+
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <PostComposer currentUser={currentUser} onPostCreated={handlePostCreated} />
+      <PostComposer
+        currentUser={currentUser}
+        onPostCreated={handlePostCreated}
+      />
 
       {isLoading ? (
-        <div className="py-10 text-center text-sm text-muted-foreground">Chargement...</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">
+          Chargement...
+        </div>
       ) : posts.length === 0 ? (
         <div className="py-10 text-center text-sm text-muted-foreground">
-          Aucune publication pour le moment. Soyez le premier à partager quelque chose !
+          Aucune publication pour le moment. Soyez le premier à partager quelque
+          chose !
         </div>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} currentUser={currentUser} />)
+        displayedPosts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            currentUser={currentUser}
+            onSaveChanged={handleSaveChanged}
+          />
+        ))
       )}
 
       {nextCursor && (
@@ -87,6 +118,21 @@ export function CommunityFeed({ currentUser }: CommunityFeedProps) {
           {isLoadingMore ? "Chargement..." : "Voir plus"}
         </button>
       )}
+
+      <button
+        onClick={() => setShowSavedOnly((prev) => !prev)}
+        className={`fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full px-5 py-3 text-sm font-medium shadow-lg transition-all ${
+          showSavedOnly
+            ? "bg-brand-rose text-white"
+            : "border border-border bg-card text-foreground hover:bg-muted"
+        }`}
+      >
+        <Bookmark
+          className="h-4 w-4"
+          fill={showSavedOnly ? "currentColor" : "none"}
+        />
+        {showSavedOnly ? "Tous les posts" : "Enregistrements"}
+      </button>
     </div>
   );
 }

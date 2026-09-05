@@ -23,8 +23,8 @@ const columns: FooterColumn[] = [
   {
     title: "Légal",
     links: [
-      { label: "Confidentialité", href: "/confidentialite" },
-      { label: "Mentions légales", href: "/mentions-legales" },
+      { label: "Confidentialité", href: "/legal/privacy" },
+      { label: "Mentions légales", href: "/legal/terms" },
     ],
   },
 ];

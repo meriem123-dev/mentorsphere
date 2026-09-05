@@ -86,7 +86,7 @@ export function AwaitingVerificationStatus() {
         </span>
         <h1 className="text-2xl font-bold text-foreground">Vérifiez votre boîte mail</h1>
         <p className="text-muted-foreground">
-          Un email de confirmation vous a été envoyé{user?.email ? ` à ${user.email}` : ""}.
+          Un email de confirmation vous a été envoyé{user?.email ? ` à ${user.email}` : ""}.(vérifiez vos spams)
           Cliquez sur le lien pour continuer — cette page se met à jour automatiquement.
         </p>
         <span className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
