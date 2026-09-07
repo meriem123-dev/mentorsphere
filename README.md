@@ -134,7 +134,7 @@ Route -> Controller -> Service -> Prisma -> Base de données
 ## Installation
 
 ```bash
-git clone https://github.com/<votre-organisation>/mentorsphere.git
+git clone https://github.com/meriem123-dev/mentorsphere.git
 cd mentorsphere
 ```
 
