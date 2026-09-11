@@ -1,5 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import NextLink from "next/link";
 
 export function CTA() {
   return (
@@ -25,6 +28,12 @@ export function CTA() {
               <Button
                 size="lg"
                 className="bg-gradient-hero text-white hover:bg-white/90 font-semibold"
+                nativeButton={false}
+                render={(props) => (
+                <NextLink href="/auth/Registration" {...props}>
+                  {props.children}
+                </NextLink>
+              )}
               >
                 Commencer gratuitement
                 <ArrowRight className="ml-2 h-4 w-4" />

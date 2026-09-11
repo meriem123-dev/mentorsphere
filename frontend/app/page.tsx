@@ -6,11 +6,12 @@ import { CTA } from "@/components/ui/CTA";
 import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
+import { BackendWarmupBanner } from "@/components/ui/BackendWarmupBanner";
 
 export default function Home() {
   return (
     <div className="bg-background min-h-screen">
-      
+      <BackendWarmupBanner />
       <Navbar />
       <Hero />
       <Features />
